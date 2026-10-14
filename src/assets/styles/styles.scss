@@ -1,0 +1,36 @@
+@use 'reset';
+@use 'fonts';
+@use 'colors';
+@use 'classes';
+@use 'media';
+@use 'variables';
+
+body {
+  overflow-x: hidden !important;
+
+  min-width: 320px;
+  min-height: 100vh;
+
+  background-color: var(--bg-primary-color);
+
+  color: var(--primary-color);
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 27.4px;
+  letter-spacing: 0.7px;
+}
+
+#app {
+  display: flex;
+  overflow-x: hidden;
+  flex-direction: column;
+
+  min-height: 100vh;
+}
+
+main {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+}
