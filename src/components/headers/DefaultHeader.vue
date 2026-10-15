@@ -36,7 +36,7 @@
         </RouterLink>
 
         <RouterLink :to="{ name: 'AboutPage' }" class="nav__link">
-          {{ $t('About Varellune') }}
+          {{ $t('About Game') }}
         </RouterLink>
 
         <RouterLink :to="{ name: 'FaqPage' }" class="nav__link">
@@ -60,13 +60,21 @@
 
           <PriceFormatter
             class="balance__price"
-            size="size-24"
+            size="size-28"
             :price="userStore.userBalance"
           />
-
-          <SvgIcon :icon="PlusIcon" class="balance__plus" />
         </RouterLink>
+        <RouterLink
+          :to="{ name: 'CartPage' }"
+          class="auth__link"
+          :aria-label="$t('Cart')"
+        >
+          <SvgIcon :icon="CartIcon" class="auth__link-icon" />
 
+          <div v-if="cartItemsCount > 0" class="auth__link-count">
+            {{ cartItemsCount }}
+          </div>
+        </RouterLink>
         <div
           class="auth__profile-menu profile-menu"
           :class="{ 'profile-menu_active': isAccountRoute }"
@@ -109,9 +117,9 @@
                 @click="closeMobileMenu"
               >
                 <SvgIcon :icon="item.icon" class="profile-menu__link-icon" />
-                <span>{{ item.label }}</span>
-              </RouterLink>
 
+                <span> {{ item.label }}</span>
+              </RouterLink>
               <button
                 type="button"
                 class="profile-menu__link"
@@ -122,26 +130,15 @@
                   :icon="LogoutDropdownIcon"
                   class="profile-menu__link-icon"
                 />
-
                 <span>
-                  {{ isLoggingOut ? $t('Logging out...') : $t('Log out') }}
-                </span>
+                  {{
+                    isLoggingOut ? $t('Logging out...') : $t('Log out')
+                  }}</span
+                >
               </button>
             </div>
           </div>
         </div>
-
-        <RouterLink
-          :to="{ name: 'CartPage' }"
-          class="auth__link"
-          :aria-label="$t('Cart')"
-        >
-          <SvgIcon :icon="CartIcon" class="auth__link-icon" />
-
-          <div v-if="cartItemsCount > 0" class="auth__link-count">
-            {{ cartItemsCount }}
-          </div>
-        </RouterLink>
       </div>
 
       <div v-else class="header__auth auth">
@@ -185,11 +182,11 @@ import {
   LogoutDropdownIcon,
   OffersDropdownIcon,
   OrderDropdownIcon,
-  PlusIcon,
   ProfileDropdownIcon,
   TransactionDropdownIcon,
   WalletDropdownIcon,
   WalletIcon,
+  WithdrawalsDropdownIcon,
 } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
@@ -200,7 +197,6 @@ import { useNavigationStore } from '@/stores/navigation'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
-import { WithdrawalsDropdownIcon } from '../icons'
 
 const playRedirectLink = import.meta.env.VITE_PLAY_REDIRECT_LINK
 
@@ -245,38 +241,38 @@ const cartItemsCount = computed(() => {
 const accountLinks = computed(() => {
   const links = [
     {
-      icon: ProfileDropdownIcon,
       name: 'account-personal',
-      label: t('Personal Data'),
+      label: t('Profile'),
+      icon: ProfileDropdownIcon,
     },
     {
-      icon: WalletDropdownIcon,
       name: 'account-wallet',
       label: t('My Balance'),
+      icon: WalletDropdownIcon,
     },
     {
-      icon: OrderDropdownIcon,
       name: 'account-orders',
       label: t('Order History'),
+      icon: OrderDropdownIcon,
     },
     {
-      icon: TransactionDropdownIcon,
       name: 'account-transactions',
       label: t('Transactions'),
+      icon: TransactionDropdownIcon,
     },
   ]
 
   if (offersEnabled.value) {
     links.push(
       {
-        icon: OffersDropdownIcon,
         name: 'account-offers',
         label: t('Offers'),
+        icon: OffersDropdownIcon,
       },
       {
-        icon: WithdrawalsDropdownIcon,
         name: 'account-withdrawals',
         label: t('Withdrawals'),
+        icon: WithdrawalsDropdownIcon,
       },
     )
   }
@@ -434,10 +430,13 @@ onBeforeUnmount(() => {
   min-width: 320px;
   max-width: none;
 
-  border-bottom: 1px solid var(--border-priamry-color);
-  background-color: var(--bg-third-color);
+  border-top: 1px solid var(--border-third-color);
+  border-bottom: 1px solid var(--border-third-color);
+  background-color: transparent;
 
+  transition: all 0.3s ease 0s;
   &.scrolled {
+    background-color: var(--bg-primary-color);
     @media (min-width: $md2) {
       .header__inner {
         min-height: 50px;
@@ -456,8 +455,8 @@ onBeforeUnmount(() => {
   }
 
   &__inner {
-    @include adaptiveValue('gap', 32, 10, 1840, 1370, 1);
-    @include adaptiveValue('min-height', 67, 50, 1840, 1370, 1);
+    @include adaptiveValue('gap', 32, 10, 1870, 1370, 1);
+    @include adaptiveValue('min-height', 66, 50, 1870, 1370, 1);
 
     position: relative;
     z-index: 1;
@@ -491,7 +490,7 @@ onBeforeUnmount(() => {
     @media (min-width: $md4) {
       align-self: center;
 
-      min-width: 73px;
+      min-width: 100px;
 
       margin-left: auto;
     }
@@ -509,8 +508,8 @@ onBeforeUnmount(() => {
 }
 
 .logo {
-  @include adaptiveValue('min-width', 158, 100, 1840, 1370, 1);
-  @include adaptiveValue('height', 40, 25, 1840, 1370, 1);
+  @include adaptiveValue('min-width', 209, 100, 1870, 1370, 1);
+  @include adaptiveValue('height', 32, 25, 1870, 1370, 1);
 
   display: block;
   align-self: center;
@@ -518,7 +517,7 @@ onBeforeUnmount(() => {
   width: fit-content;
 
   @media (max-width: $md6) {
-    min-width: 40px;
+    min-width: 24px;
     height: 40px;
   }
 
@@ -537,11 +536,9 @@ onBeforeUnmount(() => {
 
 .nav {
   @media (min-width: 1399.98px) {
-    @include adaptiveValue('gap', 16, 10, 1840, 1370, 1);
-
     display: flex;
-
-    min-height: inherit;
+    align-items: center;
+    gap: 8px;
   }
 
   @media (max-width: 1399.98px) {
@@ -561,8 +558,8 @@ onBeforeUnmount(() => {
     margin-left: 0;
     padding: 25px 10px 30px;
 
-    border-top: 1px solid var(--border-priamry-color);
-    background-color: var(--bg-primary-color);
+    border-top: 1px solid var(--border-third-color);
+    background-color: var(--bg-fourth-color);
 
     transition: left 0.3s ease;
 
@@ -594,37 +591,46 @@ onBeforeUnmount(() => {
   }
 
   &__link {
-    @include adaptiveValue('padding-left', 16, 10, 1840, 1370, 1);
-    @include adaptiveValue('padding-right', 16, 10, 1840, 1370, 1);
+    @include adaptiveValue('padding-left', 24, 10, 1870, 1370, 1);
+    @include adaptiveValue('padding-right', 24, 10, 1870, 1370, 1);
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    height: 40px;
+
     padding-top: 10px;
     padding-bottom: 10px;
 
-    border-bottom: 1px solid transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
 
-    color: var(--secondary-color);
-    font-size: 16px;
-    font-weight: 500;
+    color: var(--primary-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 100%;
+    letter-spacing: 0px;
     text-transform: uppercase;
     white-space: nowrap;
 
     transition: all 0.3s ease;
 
     &.router-link-active {
-      border-color: var(--hint-primary-color);
+      border-color: var(--border-fourth-color);
+      background-color: var(--bg-third-color);
 
-      color: var(--primary-color);
+      color: var(--secondary-color);
 
       pointer-events: none;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        border-color: var(--border-fourth-color);
+
+        color: var(--secondary-color);
       }
     }
 
@@ -635,7 +641,7 @@ onBeforeUnmount(() => {
 }
 
 .auth {
-  @include adaptiveValue('gap', 32, 10, 1840, 1370, 1);
+  @include adaptiveValue('gap', 32, 10, 1870, 1370, 1);
 
   display: flex;
   align-items: stretch;
@@ -645,7 +651,7 @@ onBeforeUnmount(() => {
   }
 
   &__link {
-    @include adaptiveValue('min-width', 64, 46, 1840, 1370, 1);
+    @include adaptiveValue('min-width', 64, 46, 1870, 1370, 1);
 
     position: relative;
 
@@ -655,24 +661,32 @@ onBeforeUnmount(() => {
 
     height: inherit;
 
-    color: var(--hint-primary-color);
+    color: var(--secondary-color);
 
-    transition: color 0.3s ease;
+    transition: opacity 0.3s ease 0s;
 
     &.router-link-active {
-      color: var(--primary-color);
+      .auth__link-icon {
+        opacity: 1;
+      }
     }
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--hint-secondary-color);
+        .auth__link-icon {
+          opacity: 1;
+        }
       }
     }
 
     &-icon {
-      @include adaptiveValue('height', 29, 24);
-
       min-width: 24px;
+      height: 24px;
+
+      transition: opacity 0.3s ease 0s;
+      @media (any-hover: hover) {
+        opacity: 0.5;
+      }
     }
 
     &-count {
@@ -691,11 +705,12 @@ onBeforeUnmount(() => {
       padding: 0px 5px;
 
       border-radius: 50%;
-      background-color: var(--hint-primary-color);
+      background-color: var(--bg-fourth-color);
 
       color: var(--primary-color);
       font-size: 12px;
-      line-height: 18px;
+      line-height: 12px;
+      letter-spacing: 0px;
 
       transform: translate(25%, -50%);
     }
@@ -705,54 +720,59 @@ onBeforeUnmount(() => {
     align-self: center;
 
     width: fit-content;
-    min-width: 111px;
-    min-height: 36px !important;
-
-    font-family: var(--font-inter) !important;
-    font-size: 14px !important;
+    min-width: 100px;
+    min-height: 40px !important;
   }
 }
 
 .balance {
-  @include adaptiveValue('gap', 18, 10);
+  @include adaptiveValue('gap', 12, 10);
 
   display: flex;
   align-items: center;
 
   height: 100%;
 
+  color: var(--secondary-color);
   @media (max-width: $md8) {
-    min-width: 46px;
+    min-width: 45px;
   }
 
   @media (any-hover: hover) {
     &:hover {
       .balance__price {
-        color: var(--hint-secondary-color);
+        color: var(--secondary-color);
+      }
+      .balance__wallet {
+        opacity: 1;
       }
     }
   }
 
   @media (max-width: $md5) {
+    justify-content: center;
+
     width: fit-content;
   }
 
   &__wallet {
-    min-width: 26px;
-    height: 26px;
-
-    color: var(--hint-secondary-color);
+    min-width: 24px;
+    height: 24px;
+    @media (any-hover: hover) {
+      opacity: 0.5;
+    }
   }
 
   &__price {
-    color: var(--primary-color);
+    margin-top: 5px;
 
+    color: var(--primary-color);
     @media (max-width: $md6) {
       :deep(.price__number) {
         overflow: hidden;
 
         min-width: 0;
-        max-width: 86px;
+        max-width: 90px;
 
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -790,27 +810,21 @@ onBeforeUnmount(() => {
     }
 
     .profile__chevron {
-      color: var(--primary-color);
-
       transform: rotate(180deg);
     }
 
     .profile__name {
-      color: var(--hint-secondary-color);
     }
 
     .profile__avatar-frame {
-      filter: brightness(1.12);
     }
 
     .profile__avatar img {
-      transform: scale(1.04);
     }
   }
 
   &_active {
     .profile__name {
-      color: var(--primary-color);
     }
   }
 
@@ -836,72 +850,71 @@ onBeforeUnmount(() => {
     pointer-events: none;
 
     transform: translateY(-6px);
-    transition:
-      visibility 0.25s ease,
-      opacity 0.25s ease,
-      transform 0.25s ease;
+    transition: all 0.3s ease 0s;
   }
 
   &__dropdown-inner {
     overflow: hidden;
 
-    padding: 12px 0;
+    padding: 8px 0px;
 
-    border: 1px solid var(--border-fourth-color);
-    background-color: var(--bg-primary-color);
-    box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+    border: 1px solid var(--border-sixth-color);
+    border-radius: 8px;
+    background-color: var(--bg-fourth-color);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
   }
 
   &__link {
     display: flex;
+    flex: 1 1 100%;
     align-items: center;
     gap: 8px;
 
     width: 100%;
-    min-height: 33px;
+    min-height: 38px;
 
-    padding: 7px;
+    padding: 8px 7px;
 
-    border: 0;
-    outline: none;
     background-color: transparent;
 
-    color: var(--third-color);
+    color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    line-height: 120%;
-    text-align: left;
+    line-height: 100%;
+    letter-spacing: 0px;
+    text-align: center;
+    white-space: nowrap;
 
     cursor: pointer;
 
     transition: all 0.3s ease 0s;
-
-    &:focus-visible {
-      color: var(--hint-secondary-color);
-    }
-
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--hint-gradient-color);
-
-        color: var(--primary-color);
+        background-color: var(--sixth-color);
+        .profile-menu__link-icon {
+          opacity: 1;
+        }
       }
     }
 
     &-icon {
-      min-width: 19px;
-      height: 19px;
+      min-width: 24px;
+      height: 24px;
 
-      color: var(--hint-secondary-color);
+      color: var(--secondary-color);
+      @media (any-hover: hover) {
+        opacity: 0.5;
+      }
     }
 
     &.router-link-active {
-      background-color: var(--hint-gradient-color);
-
-      color: var(--primary-color);
+      background-color: var(--third-color);
 
       pointer-events: none;
+      .profile-menu__link-icon {
+        opacity: 1;
+      }
     }
   }
 
@@ -915,7 +928,7 @@ onBeforeUnmount(() => {
 }
 
 .profile {
-  @include adaptiveValue('gap', 14, 8);
+  @include adaptiveValue('gap', 16, 10);
 
   display: flex;
   align-items: center;
@@ -923,30 +936,24 @@ onBeforeUnmount(() => {
   min-width: 0;
 
   &__avatar-frame {
-    @include adaptiveValue('width', 58, 46);
-    @include adaptiveValue('min-width', 58, 46);
+    @include adaptiveValue('width', 50, 40);
+    @include adaptiveValue('min-width', 50, 40);
+    @include adaptiveValue('height', 50, 40);
 
     position: relative;
 
     display: flex;
-    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
 
-    height: auto;
-    aspect-ratio: 1 / 1;
-
-    background-image: url('../../assets/img/avarat-frame.png');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
+    border: 1px solid var(--fifth-color);
+    border-radius: 6px;
 
     pointer-events: none;
-
-    transition: filter 0.3s ease;
   }
 
   &__avatar {
+    @include adaptiveValue('width', 46, 36);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -954,11 +961,10 @@ onBeforeUnmount(() => {
 
     overflow: hidden;
 
-    width: 65%;
     height: auto;
     aspect-ratio: 1 / 1;
 
-    border-radius: 50%;
+    border-radius: 6px;
 
     transform: translate(-50%, -50%);
 
@@ -992,33 +998,35 @@ onBeforeUnmount(() => {
     min-width: 0;
 
     color: var(--primary-color);
-    font-family: var(--font-spectral);
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 120%;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 100%;
     text-overflow: ellipsis;
+    text-transform: uppercase;
     white-space: nowrap;
 
     transition: color 0.3s ease;
+    &:not(:last-child) {
+      margin-bottom: 3px;
+    }
   }
 
   &__count {
-    color: var(--hint-third-color);
+    color: var(--secondary-color);
     font-size: 12px;
     font-weight: 500;
-    line-height: 120%;
+    line-height: 100%;
   }
 
   &__chevron {
-    min-width: 8px;
-    height: 5px;
+    min-width: 12px;
+    height: 7px;
 
-    color: var(--hint-primary-color);
+    color: var(--secondary-color);
 
     transform: rotate(0deg);
-    transition:
-      color 0.3s ease,
-      transform 0.3s ease;
+    transition: all 0.3s ease 0s;
 
     @media (max-width: $md5) {
       @include hide-item;

@@ -3,52 +3,43 @@
     <div class="hero__bg _ibg">
       <img src="@/assets/img/hero-bg.jpg" alt="" />
     </div>
+    <div class="hero__decor hero__decor_left _ibg-contain">
+      <img src="@/assets/img/hero-left-bg.png" />
+    </div>
+    <div class="hero__decor hero__decor_right _ibg-contain">
+      <img src="@/assets/img/hero-right-bg.png" />
+    </div>
     <div class="hero__inner _cnt-home">
-      <div class="hero__subtitle _line-title">
-        <span>{{ $t('LUNAR DARK FANTASY COLLECTIBLE CARD GAME') }}</span>
-      </div>
       <div class="hero__title _h1">
-        {{ $t('THE MOON REMEMBERS') }}
+        <div>{{ $t('Master the Power') }}</div>
+        <div>{{ $t('of the Stars') }}</div>
       </div>
-      <div class="hero__label _h3">
-        {{ $t('WHAT THE WORLD HAS FORGOTTEN') }}
+      <BaseButton @click="openPlayPage" variant="play" class="hero__button">
+        {{ $t('Play now') }}
+      </BaseButton>
+      <div class="hero__info">
+        {{
+          $t(
+            'Build your deck. Choose your hero. Command the magic of distant galaxies.',
+          )
+        }}
       </div>
-      <div class="hero__info _h5">
-        {{ $t('Command forgotten powers.') }}
-      </div>
-      <div class="hero__actions">
-        <BaseButton
-          @click="openPlayPage"
-          class="hero__button hero__button_play"
-        >
-          {{ $t('Play now') }}
-        </BaseButton>
-
-        <BaseButton
-          @click="goToMarketPage"
-          variant="hint-bordered"
-          class="hero__button hero__button_market"
-        >
-          {{ $t('Build your deck') }}
-        </BaseButton>
-      </div>
-      <div class="hero__bottom">
-        <BaseButton icon="arrow" variant="arrow" class="hero__bottom-arrow" />
-        <div class="hero__bottom-label _h5">
-          <div>{{ $t('Scroll down') }}</div>
-          <div>{{ $t('to learn more about the game') }}</div>
-        </div>
-      </div>
+      <button
+        type="button"
+        class="hero__scroll"
+        aria-label="Scroll to universe section"
+        @click="scrollToUniverse"
+      >
+        <SvgIcon class="hero__scroll-icon" :icon="ScrollIcon" />
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-
 import BaseButton from '@/components/base/BaseButton.vue'
-
-const router = useRouter()
+import { ScrollIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 const playRedirectLink = import.meta.env.VITE_PLAY_REDIRECT_LINK
 
@@ -61,118 +52,142 @@ const openPlayPage = () => {
   window.open(playRedirectLink, '_blank', 'noopener,noreferrer')
 }
 
-const goToMarketPage = () => {
-  router.push({
-    name: 'ProductListPage',
+const scrollToUniverse = () => {
+  const universe = document.getElementById('universe')
+
+  if (!universe) return
+
+  const header = document.querySelector('header')
+
+  const headerHeight = header ? header.getBoundingClientRect().height : 0
+
+  const universeTop = universe.getBoundingClientRect().top + window.scrollY
+
+  const targetPosition = Math.max(0, universeTop - headerHeight - 25)
+
+  window.scrollTo({
+    top: targetPosition,
+    behavior: 'smooth',
   })
 }
 </script>
 
 <style lang="scss" scoped>
 .hero {
-  @include adaptiveValue('padding-top', 130, 75);
-  @include adaptiveValue('padding-bottom', 96, 25);
+  @include adaptiveValue('padding-top', 185, 75);
+  @include adaptiveValue('padding-bottom', 75, 50);
   position: relative;
-
-  display: flex;
-  align-items: center;
-
-  @media (min-width: $md5) {
-    min-height: 100vh;
-  }
   &__bg {
     position: absolute;
     top: 0;
     left: 0;
 
     width: 100%;
-    height: 100%;
+    height: 97%;
+  }
+
+  &__decor {
+    position: absolute;
+    &_left {
+      top: 25%;
+      left: 0;
+
+      width: 51%;
+      aspect-ratio: 1 / 0.91;
+    }
+
+    &_right {
+      top: 31%;
+      right: 0;
+
+      width: 44.5%;
+      aspect-ratio: 1 / 0.96;
+    }
   }
 
   &__inner {
     position: relative;
     z-index: 1;
-
-    width: 100%;
-
-    text-align: center;
-  }
-
-  &__subtitle {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 16, 15);
-    }
   }
 
   &__title {
+    text-align: center;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 96, 15);
-    }
-  }
-
-  &__label {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 64, 15);
-    }
-  }
-
-  &__info {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 64, 15);
-    }
-  }
-
-  &__actions {
-    @include adaptiveValue('gap', 16, 4);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 155, 15);
+      @include adaptiveValue('margin-bottom', 102, 18);
     }
   }
 
   &__button {
-    @include adaptiveValue('min-height', 48, 40);
-    max-width: 250px;
-    &_play {
-    }
-
-    &_market {
+    margin-right: auto;
+    margin-left: auto;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 64, 18);
     }
   }
 
-  &__bottom {
+  &__info {
+    max-width: 448px;
+
+    margin: 0 auto;
+
+    text-align: center;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 52, 18);
+    }
+  }
+
+  &__scroll {
+    @include adaptiveValue('min-width', 64, 40);
+    @include adaptiveValue('height', 64, 40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: fit-content;
+    width: fit-content;
+
+    margin: 0 auto;
+
+    background-color: transparent;
+
+    color: var(--secondary-color);
+
+    transition: opacity 0.3s ease 0s;
     @media (max-width: $md5) {
       @include hide-item;
     }
-    &-arrow {
-      margin-right: auto;
-      margin-left: auto;
+    &-icon {
+      width: fit-content;
+      min-width: 14px;
+      height: 22px;
 
-      pointer-events: none;
+      animation: scrollDown 1.8s ease-in-out infinite;
 
-      animation: scrollArrow 2s ease-in-out infinite;
-      &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 24, 15);
-      }
+      will-change: transform;
     }
-
-    &-label {
-      font-size: 14px;
-      line-height: 150%;
+    @media (any-hover: hover) {
+      opacity: 0.5;
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 }
 
-@keyframes scrollArrow {
+@keyframes scrollDown {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(-5px);
   }
 
   50% {
-    transform: translateY(8px);
+    transform: translateY(5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll-icon {
+    animation: none;
   }
 }
 </style>

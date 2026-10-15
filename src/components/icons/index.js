@@ -1,6 +1,12 @@
 export const ChevronDownIcon = `
-<svg width="9" height="8" viewBox="0 0 9 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M4.10521 6.95311C3.47846 6.80163 3.03559 6.08572 2.14983 4.65389C1.29357 3.26973 0.865436 2.57766 1.03753 2.01993C1.10868 1.78934 1.24381 1.57925 1.42995 1.40982C1.88018 1 2.75345 1 4.5 1C6.24655 1 7.11982 1 7.57005 1.40982C7.75619 1.57925 7.89132 1.78934 7.96247 2.01993C8.13456 2.57766 7.70643 3.26974 6.85017 4.65389C5.96441 6.08571 5.52154 6.80163 4.89479 6.95311C4.63609 7.01563 4.36391 7.01563 4.10521 6.95311Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6.00081 5.58L11 1" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`
+
+export const ScrollIcon = `
+<svg width="14" height="22" viewBox="0 0 14 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7 6.4V8.8M7 1C5.4087 1 3.88258 1.60686 2.75736 2.68707C1.63214 3.76727 1 5.23235 1 6.76V14.44C1 15.9676 1.63214 17.4327 2.75736 18.5129C3.88258 19.5931 5.4087 20.2 7 20.2C8.5913 20.2 10.1174 19.5931 11.2426 18.5129C12.3679 17.4327 13 15.9676 13 14.44V6.76C13 5.23235 12.3679 3.76727 11.2426 2.68707C10.1174 1.60686 8.5913 1 7 1Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
@@ -29,11 +35,9 @@ export const PlusIcon = `
 `
 
 export const CartIcon = `
-<svg width="24" height="29" viewBox="0 0 24 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6.33333 7.66699H17C19.5142 7.66699 20.7712 7.66699 21.5523 8.44804C22.3333 9.22909 22.3333 10.4862 22.3333 13.0003V18.3337C22.3333 22.7334 22.3333 24.9333 20.9665 26.3002C19.5997 27.667 17.3998 27.667 13 27.667H10.3333C5.93356 27.667 3.73367 27.667 2.36683 26.3002C1 24.9333 1 22.7334 1 18.3337V13.0003C1 10.4862 1 9.22909 1.78105 8.44804C2.5621 7.66699 3.81918 7.66699 6.33333 7.66699Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M17.0002 11C17.0002 5.84534 14.6123 1 11.6668 1C8.72131 1 6.3335 5.84534 6.3335 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2.3999 1.99316C1.84762 1.99316 1.3999 2.44088 1.3999 2.99316C1.3999 3.54545 1.84762 3.99316 2.3999 3.99316V2.99316V1.99316ZM4.69244 2.99316L5.65767 2.73175C5.53961 2.29585 5.14405 1.99316 4.69244 1.99316V2.99316ZM8.41781 16.7484L7.45259 17.0098C7.58285 17.4908 8.04737 17.8025 8.54185 17.7407L8.41781 16.7484ZM19.8805 15.3156L20.0045 16.3078C20.4292 16.2547 20.773 15.9373 20.8598 15.5182L19.8805 15.3156ZM21.5999 7.00511L22.5792 7.20771C22.6401 6.9132 22.5652 6.6069 22.3753 6.37368C22.1854 6.14047 21.9007 6.00511 21.5999 6.00511V7.00511ZM5.77901 7.00511L4.81378 7.26652V7.26652L5.77901 7.00511ZM2.3999 2.99316V3.99316H4.69244V2.99316V1.99316H2.3999V2.99316ZM8.41781 16.7484L8.54185 17.7407L20.0045 16.3078L19.8805 15.3156L19.7565 14.3233L8.29378 15.7561L8.41781 16.7484ZM19.8805 15.3156L20.8598 15.5182L22.5792 7.20771L21.5999 7.00511L20.6206 6.8025L18.9012 15.1129L19.8805 15.3156ZM4.69244 2.99316L3.72721 3.25458L4.81378 7.26652L5.77901 7.00511L6.74423 6.74369L5.65767 2.73175L4.69244 2.99316ZM5.77901 7.00511L4.81378 7.26652L7.45259 17.0098L8.41781 16.7484L9.38304 16.487L6.74423 6.74369L5.77901 7.00511ZM21.5999 7.00511V6.00511H5.77901V7.00511V8.00511H21.5999V7.00511ZM11.9999 20.5004H10.9999C10.9999 20.7766 10.776 21.0004 10.4999 21.0004V22.0004V23.0004C11.8806 23.0004 12.9999 21.8811 12.9999 20.5004H11.9999ZM10.4999 22.0004V21.0004C10.2238 21.0004 9.9999 20.7766 9.9999 20.5004H8.9999H7.9999C7.9999 21.8811 9.11919 23.0004 10.4999 23.0004V22.0004ZM8.9999 20.5004H9.9999C9.9999 20.2243 10.2238 20.0004 10.4999 20.0004V19.0004V18.0004C9.11919 18.0004 7.9999 19.1197 7.9999 20.5004H8.9999ZM10.4999 19.0004V20.0004C10.776 20.0004 10.9999 20.2243 10.9999 20.5004H11.9999H12.9999C12.9999 19.1197 11.8806 18.0004 10.4999 18.0004V19.0004ZM19.9999 20.5004H18.9999C18.9999 20.7766 18.776 21.0004 18.4999 21.0004V22.0004V23.0004C19.8806 23.0004 20.9999 21.8811 20.9999 20.5004H19.9999ZM18.4999 22.0004V21.0004C18.2238 21.0004 17.9999 20.7766 17.9999 20.5004H16.9999H15.9999C15.9999 21.8811 17.1192 23.0004 18.4999 23.0004V22.0004ZM16.9999 20.5004H17.9999C17.9999 20.2243 18.2238 20.0004 18.4999 20.0004V19.0004V18.0004C17.1192 18.0004 15.9999 19.1197 15.9999 20.5004H16.9999ZM18.4999 19.0004V20.0004C18.776 20.0004 18.9999 20.2243 18.9999 20.5004H19.9999H20.9999C20.9999 19.1197 19.8806 18.0004 18.4999 18.0004V19.0004Z" fill="currentColor"/>
 </svg>
-
 `
 
 export const FooterEmailIcon = `
@@ -205,12 +209,9 @@ export const LogoutIcon = `
 `
 
 export const WalletIcon = `
-<svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M15.6667 1H3.66667C2.19391 1 1 2.19391 1 3.66667C1 5.13943 2.19391 6.33333 3.66667 6.33333H21C21 5.09337 21 4.47339 20.8637 3.96472C20.4938 2.58436 19.4156 1.50617 18.0353 1.1363C17.5266 1 16.9066 1 15.6667 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M1 3.6665V16.9998C1 20.7711 1 22.6567 2.17157 23.8283C3.34315 24.9998 5.22876 24.9998 9 24.9998H17C20.7712 24.9998 22.6569 24.9998 23.8284 23.8283C25 22.6567 25 20.7711 25 16.9998V14.3332C25 10.5619 25 8.67632 23.8284 7.50474C22.6569 6.33317 20.7712 6.33317 17 6.33317H6.33333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M24.9998 13H22.3332C21.7132 13 21.4032 13 21.1489 13.0681C20.4587 13.2531 19.9196 13.7922 19.7347 14.4824C19.6665 14.7367 19.6665 15.0467 19.6665 15.6667C19.6665 16.2866 19.6665 16.5966 19.7347 16.851C19.9196 17.5412 20.4587 18.0803 21.1489 18.2652C21.4032 18.3333 21.7132 18.3333 22.3332 18.3333H24.9998" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 7L1.00469 19.36C1.00469 20.7738 2.15084 21.92 3.56469 21.92H17.6447C19.0585 21.92 20.2047 20.7738 20.2047 19.36V9.12C20.2047 7.94179 19.2496 6.98667 18.0714 6.98667H1.01882C1.01035 6.98667 1.00281 6.99201 1 7ZM1 7C1.00078 6.76037 15.4047 1 15.4047 1V6.4M15.1014 14.2233L15.0847 14.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
-
 `
 
 export const SearchIcon = `
@@ -222,122 +223,44 @@ export const SearchIcon = `
 `
 
 export const ProfileDropdownIcon = `<svg
-<svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.4997 4.95833C10.4997 2.77221 8.72747 1 6.54134 1C4.35521 1 2.58301 2.77221 2.58301 4.95833C2.58301 7.14446 4.35521 8.91667 6.54134 8.91667C8.72747 8.91667 10.4997 7.14446 10.4997 4.95833Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M12.0833 14.4587C12.0833 11.3981 9.60224 8.91699 6.54167 8.91699C3.48109 8.91699 1 11.3981 1 14.4587" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 16C2.32541 13.7892 5.23028 12.2762 9.76228 12.2762C14.2943 12.2762 17.1991 13.7892 18.5246 16M13.3623 4.6C13.3623 6.58823 11.7505 8.2 9.76228 8.2C7.77405 8.2 6.16228 6.58823 6.16228 4.6C6.16228 2.61177 7.77405 1 9.76228 1C11.7505 1 13.3623 2.61177 13.3623 4.6Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round"/>
 </svg>
 `
 
-export const WalletDropdownIcon = `<svg
-<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9.70833 1H2.58333C1.70888 1 1 1.70888 1 2.58333C1 3.45778 1.70888 4.16667 2.58333 4.16667H12.875C12.875 3.43044 12.875 3.06233 12.7941 2.7603C12.5745 1.94071 11.9343 1.30054 11.1147 1.08093C10.8127 1 10.4446 1 9.70833 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M1 2.5835V10.5002C1 12.7393 1 13.8589 1.69562 14.5545C2.39124 15.2502 3.51083 15.2502 5.75 15.2502H10.5C12.7392 15.2502 13.8588 15.2502 14.5544 14.5545C15.25 13.8589 15.25 12.7393 15.25 10.5002V8.91683C15.25 6.67766 15.25 5.55807 14.5544 4.86245C13.8588 4.16683 12.7392 4.16683 10.5 4.16683H4.16667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M15.2497 8.125H13.6663C13.2982 8.125 13.1142 8.125 12.9632 8.16546C12.5534 8.27527 12.2333 8.59536 12.1235 9.00515C12.083 9.15616 12.083 9.34022 12.083 9.70833C12.083 10.0764 12.083 10.2605 12.1235 10.4115C12.2333 10.8213 12.5534 11.1414 12.9632 11.2512C13.1142 11.2917 13.2982 11.2917 13.6663 11.2917H15.2497" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+export const WalletDropdownIcon = `
+<svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 7L1.00469 19.36C1.00469 20.7738 2.15084 21.92 3.56469 21.92H17.6447C19.0585 21.92 20.2047 20.7738 20.2047 19.36V9.12C20.2047 7.94179 19.2496 6.98667 18.0714 6.98667H1.01882C1.01035 6.98667 1.00281 6.99201 1 7ZM1 7C1.00078 6.76037 15.4047 1 15.4047 1V6.4M15.1014 14.2233L15.0847 14.24" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
-export const OrderDropdownIcon = `<svg
-<svg width="15" height="18" viewBox="0 0 15 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M7.33301 5.35449H8.52051C9.17635 5.35449 9.70801 5.88615 9.70801 6.54199M7.33301 5.35449H6.14551C5.48967 5.35449 4.95801 5.88615 4.95801 6.54199V6.93783C4.95801 7.59366 5.48967 8.12533 6.14551 8.12533H8.52051C9.17635 8.12533 9.70801 8.65699 9.70801 9.31283V9.70866C9.70801 10.3645 9.17635 10.8962 8.52051 10.8962H7.33301M7.33301 5.35449V4.16699M7.33301 10.8962H6.14551C5.48967 10.8962 4.95801 10.3645 4.95801 9.70866M7.33301 10.8962V12.0837" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M6.49417 16.4473L4.98139 15.4933C4.59745 15.2511 4.40548 15.1301 4.19242 15.1231C3.96219 15.1155 3.76682 15.2316 3.35194 15.4933C2.88729 15.7863 1.96336 16.5935 1.36571 16.2086C1 15.973 1 15.3747 1 14.1779V5.75002C1 3.51084 1 2.39125 1.6547 1.69562C2.3094 1 3.36313 1 5.47059 1H9.19608C11.3035 1 12.3573 1 13.012 1.69562C13.6667 2.39125 13.6667 3.51084 13.6667 5.75002V14.1779C13.6667 15.3747 13.6667 15.973 13.301 16.2086C12.7033 16.5935 11.7794 15.7863 11.3147 15.4933C10.9308 15.2511 10.7388 15.1301 10.5258 15.1231C10.2955 15.1155 10.1001 15.2316 9.68528 15.4933L8.1725 16.4473C7.76443 16.7046 7.56038 16.8333 7.33333 16.8333C7.10629 16.8333 6.90223 16.7046 6.49417 16.4473Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+export const OrderDropdownIcon = `
+<svg width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 15.2202V15.1428M9.5 15.2202V15.1428M9.5 11.0286V10.9512M13.5 11.0286V10.9512M2 6.91425H16M3.80952 1V2.54304M14 1V2.54285M14 2.54285H4C2.34315 2.54285 1 3.92436 1 5.62855V15.9143C1 17.6185 2.34315 19 4 19H14C15.6569 19 17 17.6185 17 15.9143L17 5.62855C17 3.92436 15.6569 2.54285 14 2.54285Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
-export const TransactionDropdownIcon = `<svg
-<svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g opacity="1">
-<path d="M11.0833 14.2502C14.5812 14.2502 17.4167 11.4147 17.4167 7.91683C17.4167 4.41902 14.5812 1.5835 11.0833 1.5835C7.58553 1.5835 4.75 4.41902 4.75 7.91683C4.75 11.4147 7.58553 14.2502 11.0833 14.2502Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-<path d="M2.49863 8.7085C1.91965 9.59326 1.58301 10.6508 1.58301 11.7871C1.58301 14.8963 4.1035 17.4168 7.21268 17.4168C8.34899 17.4168 9.40657 17.0802 10.2913 16.5012" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-<path d="M12.4859 6.4959C12.3148 5.77379 11.4436 5.1222 10.3979 5.60967C9.35223 6.09714 9.18611 7.66555 10.7679 7.83216C11.4828 7.90747 11.9489 7.74478 12.3756 8.20498C12.8024 8.66518 12.8817 9.94503 11.7907 10.2899C10.6998 10.6349 9.61961 10.0959 9.50195 9.33065M11.0728 4.75342V5.4414M11.0728 10.3961V11.0868" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
+export const TransactionDropdownIcon = `
+<svg width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4.6 5.8H13M4.6 10.6H13M2.56 1H15.04C15.9016 1 16.6 1.80589 16.6 2.8V19L14 17.2L11.4 19L8.8 17.2L6.2 19L3.6 17.2L1 19V2.8C1 1.80589 1.69844 1 2.56 1Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
-export const OffersDropdownIcon = `<svg
-  width="18"
-  height="18"
-  viewBox="0 0 18 18"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <path
-    d="M3.375 5.25H11.625C13.489 5.25 15 6.76104 15 8.625V12.75"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M5.625 3L3.375 5.25L5.625 7.5"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M14.625 12.75H6.375C4.51104 12.75 3 11.239 3 9.375V5.25"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M12.375 15L14.625 12.75L12.375 10.5"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <circle
-    cx="9"
-    cy="9"
-    r="1.5"
-    stroke="currentColor"
-    stroke-width="2"
-  />
+export const OffersDropdownIcon = `
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.5 1.5H16.5C17.6046 1.5 18.5 2.39543 18.5 3.5V9.5L9.5 18.5C8.91421 19.0858 7.96447 19.0858 7.37868 18.5L1.5 12.6213C0.914214 12.0355 0.914214 11.0858 1.5 10.5L10.5 1.5Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="14.5" cy="5.5" r="1.2" fill="currentColor"/>
 </svg>
 `
 
-export const WithdrawalsDropdownIcon = `<svg
-  width="18"
-  height="18"
-  viewBox="0 0 18 18"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <path
-    d="M3.25 6.5V3.875C3.25 2.83947 4.08947 2 5.125 2H12.875C13.9105 2 14.75 2.83947 14.75 3.875V6.5"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M9 5.25V14.75"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-  />
-  <path
-    d="M5.75 11.5L9 14.75L12.25 11.5"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M2 7.75V14.125C2 15.1605 2.83947 16 3.875 16H14.125C15.1605 16 16 15.1605 16 14.125V7.75"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+export const WithdrawalsDropdownIcon = `
+<svg width="22" height="23" viewBox="0 0 22 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 7V19.36C1 20.7738 2.14615 21.92 3.56 21.92H17.64C19.0538 21.92 20.2 20.7738 20.2 19.36V10.5M1 7C1 5.8 2 5 3.5 5H12M1 7H12M14 1L20 1M20 1V7M20 1L11 10" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
-export const LogoutDropdownIcon = `<svg
-<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M14.0625 2.90033C12.6786 1.71559 10.8812 1 8.91667 1C4.54441 1 1 4.54441 1 8.91667C1 13.2889 4.54441 16.8333 8.91667 16.8333C10.8812 16.8333 12.6786 16.1177 14.0625 14.933" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M13.667 5.75C13.667 5.75 16.8337 8.08221 16.8337 8.91669C16.8337 9.75117 13.667 12.0833 13.667 12.0833M16.4378 8.91669H6.54199" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+export const LogoutDropdownIcon = `
+<svg width="21" height="19" viewBox="0 0 21 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.2634 17.7998L16.9693 17.7998C17.5309 17.7998 18.0695 17.5786 18.4667 17.1847C18.8638 16.7909 19.0869 16.2568 19.0869 15.6998L19.0869 3.09981C19.0869 2.54285 18.8638 2.00871 18.4667 1.61488C18.0695 1.22106 17.5309 0.999806 16.9693 0.999806L13.2634 0.999805M13.0002 9.3998L1.0002 9.3998M5.58535 4.5998L1.0002 9.3998L5.58535 14.1998" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `

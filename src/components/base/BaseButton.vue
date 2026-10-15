@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ArrowIcon, BackIcon, ChevronDownIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | hint-bordered | arrow
+  variant: { type: String, default: 'primary' }, // primary | play
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -59,7 +59,6 @@ const buttonClasses = computed(() => [
 
 <style lang="scss" scoped>
 .btn {
-  @include adaptiveValue('min-height', 36, 40);
   position: relative;
   z-index: 1;
 
@@ -71,15 +70,18 @@ const buttonClasses = computed(() => [
 
   width: 100%;
   height: fit-content;
+  min-height: 40px;
 
   padding: 5px 10px;
 
   border: 1px solid transparent;
+  border-radius: 6px;
 
-  font-family: var(--font-spectral);
+  font-family: var(--font-inter);
   font-size: 14px;
   font-weight: 600;
   line-height: 120%;
+  letter-spacing: 0px;
   text-align: center;
   text-transform: uppercase;
 
@@ -104,10 +106,28 @@ const buttonClasses = computed(() => [
     gap: 10px;
   }
   &.primary {
-    border: 0px;
-    background: transparent;
+    background-color: var(--third-color);
 
     color: var(--primary-color);
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--bg-sixth-color);
+      }
+    }
+  }
+  &.play {
+    max-width: 311px;
+    min-height: 111px;
+
+    color: var(--secondary-color);
+    font-family: var(--font-texturina);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 100%;
+    text-transform: capitalize;
+    span {
+      margin-top: -15px;
+    }
     &::before {
       position: absolute;
       top: 0;
@@ -116,55 +136,16 @@ const buttonClasses = computed(() => [
       width: 100%;
       height: 100%;
 
-      background: var(--primary-gradient);
-      opacity: 1;
+      background-image: url('@/assets/img/play-button-bg.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
 
       content: '';
-
-      transition: opacity 0.3s ease 0s;
     }
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--hint-gradient-color);
-        &::before {
-          opacity: 0;
-        }
-      }
-    }
-  }
-  &.hint-bordered {
-    border-color: var(--hint-fifth-color);
-    background-color: transparent;
-
-    color: var(--primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--hint-fifth-color);
-      }
-    }
-  }
-  &.arrow {
-    @include adaptiveValue('min-width', 26, 40);
-    @include adaptiveValue('min-height', 26, 40);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: fit-content;
-
-    padding: 0px;
-
-    border-width: 2px;
-    border-color: var(--hint-secondary-color);
-    border-radius: 8px;
-    background-color: transparent;
-    opacity: 0.6;
-
-    color: var(--hint-secondary-color);
-
-    @media (any-hover: hover) {
-      &:hover {
-        opacity: 1;
+        transform: scale(0.97);
       }
     }
   }

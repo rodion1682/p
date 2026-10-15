@@ -7,7 +7,7 @@
 }
 
 ._h1 {
-  @include adaptiveValue('font-size', 120, 36);
+  @include adaptiveValue('font-size', 120, 35);
 }
 
 ._h2 {
@@ -31,7 +31,12 @@
 }
 
 ._h7 {
+  color: var(--secondary-color);
+  font-family: var(--font-inter);
   font-size: 18px;
+  font-weight: 400;
+  line-height: 27.4px;
+  letter-spacing: 0.7px;
 }
 
 ._h1,
@@ -46,6 +51,7 @@
 
 ._h4 {
   color: var(--fourth-color);
+  font-weight: 400;
 }
 
 ._h5 {

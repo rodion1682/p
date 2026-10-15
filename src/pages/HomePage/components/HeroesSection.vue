@@ -6,16 +6,9 @@
 
     <div class="heros__inner _cnt-home">
       <div class="heros__top">
-        <div class="heros__subtitle _line-title">
-          <span>{{ $t('LEGENDS OF VARELLUNE') }}</span>
-        </div>
-
-        <div class="heros__title _h3">
-          {{ $t('CHOOSE YOUR POWER.') }}
-        </div>
-
-        <div class="heros__description _h5">
-          {{ $t('Five legends. Five paths. One coming Eclipse.') }}
+        <div class="heros__title _h2">{{ $t('Choose Your Star') }}</div>
+        <div class="heros__subtitle _h7">
+          {{ $t('Five heroes. Five galaxies. Five ways to shape the battle.') }}
         </div>
       </div>
 

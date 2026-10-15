@@ -4,17 +4,31 @@
   --secondary-color: #f4c8b1;
   --third-color: #8e73ee;
   --fourth-color: #ffe2d3;
+  // #f4c8b1 50%
+  --fifth-color: rgb(244, 200, 177, 0.5);
+  // #8E73EE 50%
+  --sixth-color: rgb(142, 115, 238, 0.5);
 
   // BACKGROUNDS
   --bg-primary-color: #19163f;
   // #413D72 50%
   --bg-secondary-color: rgb(65, 61, 114, 0.5);
+  // #19163F 50%
+  --bg-third-color: rgb(25, 22, 63, 0.5);
+  --bg-fourth-color: #363262;
+  --bg-sixth-color: #5A4AD1;
 
   // BORDERS
   // #FFFFFF 20%
   --border-priamry-color: rgb(255, 255, 255, 0.2);
   // #FFE2D3 50%
   --border-secondary-color: rgb(255, 226, 211, 0.5);
+  // #F4C8B1 20%
+  --border-third-color: rgb(244, 200, 177, 0.2);
+  // #F4C8B1 30%
+  --border-fourth-color: rgb(244, 200, 177, 0.3);
+  // #FFC57C 20%
+  --border-sixth-color: rgb(255, 197, 124, 0.2);
 
   // HINTS
   --hint-primary-color: #4a77b2;

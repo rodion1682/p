@@ -6,6 +6,7 @@ import FinalSection from './components/FinalSection.vue'
 import HeroSection from './components/HeroSection.vue'
 import HeroesSection from './components/HeroesSection.vue'
 import TruthSection from './components/TruthSection.vue'
+import UniverseSection from './components/UniverseSection.vue'
 import WorldSection from './components/WorldSection.vue'
 
 const modalStore = useModalStore()
@@ -17,9 +18,11 @@ const handleModalClose = () => {
 
 <template>
   <HeroSection />
+  <UniverseSection />
+  <HeroesSection />
   <TruthSection />
   <BuildSection />
-  <HeroesSection />
+
   <CardsShowcase />
   <WorldSection />
   <FinalSection />
