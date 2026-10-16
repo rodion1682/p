@@ -1,74 +1,78 @@
 <template>
   <main class="faq-page">
     <div class="faq-page__background _ibg" aria-hidden="true">
-      <img src="@/assets/img/faq-bg.jpg" alt="" />
+      <img src="@/assets/img/product-list-bg.png" alt="" />
     </div>
 
-    <div class="faq-page__inner _cnt-home">
-      <section class="faq">
-        <h1 class="faq__title _h3">
-          {{ $t('FAQ') }}
-        </h1>
+    <div class="faq-page__container _cnt">
+      <div class="faq-page__decoration" aria-hidden="true">
+        <img src="@/assets/img/product-list-decor.png" alt="" />
+      </div>
 
-        <div v-if="isLoading" class="faq__items" aria-live="polite">
-          <div v-for="item in 7" :key="item" class="faq__skeleton">
-            <span class="faq__skeleton-line" />
+      <div class="faq-page__inner">
+        <section class="faq">
+          <h1 class="faq__title _h5">
+            {{ $t('Frequently Asked Questions') }}
+          </h1>
 
-            <span class="faq__skeleton-toggle">
-              <span />
-              <span />
-            </span>
-          </div>
-        </div>
-
-        <div v-else-if="faqItems.length" class="faq__items">
-          <div
-            v-for="(item, index) in faqItems"
-            :key="getItemKey(item, index)"
-            class="faq__item"
-            :class="{ faq__item_open: isOpen(index) }"
-          >
-            <button
-              type="button"
-              class="faq__question"
-              :aria-expanded="isOpen(index)"
-              :aria-controls="getAnswerId(index)"
-              @click="toggle(index)"
-            >
-              <span class="faq__question-text">
-                {{ getQuestion(item) }}
-              </span>
-
-              <span class="faq__toggle" aria-hidden="true">
-                <span class="faq__toggle-line" />
-                <span class="faq__toggle-line faq__toggle-line_vertical" />
-              </span>
-            </button>
-
-            <div
-              :id="getAnswerId(index)"
-              class="faq__answer-wrapper"
-              :class="{ 'faq__answer-wrapper_open': isOpen(index) }"
-            >
-              <div class="faq__answer-overflow">
-                <div class="faq__answer">
-                  <div class="faq__answer-content" v-html="getAnswer(item)" />
-                </div>
-              </div>
+          <div v-if="isLoading" class="faq__items" aria-live="polite">
+            <div v-for="index in 5" :key="index" class="faq__skeleton">
+              <span class="faq__skeleton-line" />
             </div>
           </div>
-        </div>
 
-        <div v-else class="faq__empty">
-          <div class="faq__empty-title _h3">
-            {{ $t('No questions found') }}
+          <div v-else-if="faqItems.length" class="faq__items">
+            <article
+              v-for="(item, index) in faqItems"
+              :key="getItemKey(item, index)"
+              class="faq__item"
+              :class="{ faq__item_open: isOpen(index) }"
+            >
+              <button
+                type="button"
+                class="faq__question"
+                :aria-expanded="isOpen(index)"
+                :aria-controls="getAnswerId(index)"
+                @click="toggle(index)"
+              >
+                <span class="faq__question-text _h6">
+                  {{ getQuestion(item) }}
+                </span>
+
+                <span
+                  v-if="isOpen(index)"
+                  class="faq__close"
+                  aria-hidden="true"
+                >
+                  <SvgIcon :icon="CloseIcon" class="faq__close-icon" />
+                </span>
+              </button>
+
+              <div
+                :id="getAnswerId(index)"
+                class="faq__answer-wrapper"
+                :class="{ 'faq__answer-wrapper_open': isOpen(index) }"
+              >
+                <div class="faq__answer-overflow">
+                  <div class="faq__answer">
+                    <div class="faq__answer-content" v-html="getAnswer(item)" />
+                  </div>
+                </div>
+              </div>
+            </article>
           </div>
 
-          <p class="faq__empty-text">
-            {{ $t('Frequently asked questions will appear here.') }}
-          </p>
-        </div>
-      </section>
+          <div v-else class="faq__empty">
+            <h2 class="faq__empty-title _h3">
+              {{ $t('No questions found') }}
+            </h2>
+
+            <p class="faq__empty-text">
+              {{ $t('Frequently asked questions will appear here.') }}
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
   </main>
 </template>
@@ -76,15 +80,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 
+import { CloseIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { useFaqStore } from '@/stores/faq'
 
 const faqStore = useFaqStore()
 
-const activeIndex = ref(0)
+const activeIndex = ref(null)
 
-const isLoading = computed(() => {
-  return Boolean(faqStore.isLoading)
-})
+const isLoading = computed(() => Boolean(faqStore.isLoading))
 
 const faqItems = computed(() => {
   const items =
@@ -93,234 +97,255 @@ const faqItems = computed(() => {
   return Array.isArray(items) ? items : []
 })
 
-const getItemKey = (item, index) => {
-  return item?.id ?? item?.uuid ?? `faq-${index}`
-}
+const getItemKey = (item, index) => item?.id ?? item?.uuid ?? `faq-${index}`
 
-const getQuestion = item => {
-  return item?.question || item?.title || item?.name || ''
-}
+const getQuestion = item => item?.question || item?.title || item?.name || ''
 
-const getAnswer = item => {
-  return item?.answer || item?.content || item?.description || item?.text || ''
-}
+const getAnswer = item =>
+  item?.answer || item?.content || item?.description || item?.text || ''
 
-const getAnswerId = index => {
-  return `faq-answer-${index}`
-}
+const getAnswerId = index => `faq-answer-${index}`
 
-const isOpen = index => {
-  return activeIndex.value === index
-}
+const isOpen = index => activeIndex.value === index
 
 const toggle = index => {
-  activeIndex.value = activeIndex.value === index ? null : index
+  activeIndex.value = isOpen(index) ? null : index
 }
 </script>
 
 <style lang="scss" scoped>
 .faq-page {
-  @include adaptiveValue('padding-top', 120, 75);
-  @include adaptiveValue('padding-bottom', 64, 25);
+  @include adaptiveValue('padding-bottom', 64, 30);
 
   position: relative;
 
   display: flex;
+  overflow: hidden;
   flex: 1 1 auto;
   flex-direction: column;
 
   width: 100%;
   min-width: 0;
+  min-height: 550px;
+
+  padding-top: 80px;
+
+  background-color: var(--bg-primary-color);
 
   &__background {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
     z-index: 0;
 
     width: 100%;
     height: 100%;
+    max-height: 915px;
 
     pointer-events: none;
 
-    &::after {
-      position: absolute;
-      inset: 0;
-
-      background: linear-gradient(
-        180deg,
-        rgb(10 13 20 / 18%) 0%,
-        rgb(16 21 30 / 25%) 50%,
-        rgb(18 24 34 / 65%) 100%
-      );
-
-      content: '';
+    img {
+      object-position: center top;
     }
+  }
+
+  &__container {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__decoration {
+    position: relative;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    width: 100%;
+    height: 32px;
+
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid var(--border-priamry-color);
 
     img {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+
       display: block;
 
-      width: 100%;
-      height: 100%;
+      width: min(250px, 55vw);
+      max-height: 50px;
 
-      object-fit: cover;
-      object-position: center top;
+      object-fit: contain;
+      object-position: center bottom;
+
+      transform: translateX(-50%);
     }
   }
 
   &__inner {
     position: relative;
-    z-index: 1;
+
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
 
     width: 100%;
+    min-width: 0;
+
+    margin: auto;
+  }
+
+  @media (max-width: $md4) {
+    &__decoration {
+      height: 25px;
+
+      margin-bottom: 18px;
+
+      img {
+        max-height: 36px;
+      }
+    }
   }
 }
 
 .faq {
   width: 100%;
-  max-width: 940px;
+  max-width: 1376px;
 
-  margin: 0 auto;
+  margin: auto;
 
   &__title {
-    @include adaptiveValue('margin-bottom', 38, 25);
-
-    color: var(--primary-color);
+    color: var(--secondary-color);
+    font-weight: 500;
+    line-height: 120%;
     text-align: center;
-    text-transform: uppercase;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 32, 18);
+    }
   }
 
   &__items {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 
     width: 100%;
   }
 
   &__item {
+    position: relative;
+
+    overflow: hidden;
+
     width: 100%;
     min-width: 0;
 
+    border: 1px solid var(--border-seventh-color);
+    border-radius: 12px;
+    background-color: var(--bg-tenth-color);
+
+    transition: all 0.3s ease 0s;
+
     &_open {
-      .faq__question {
-        border-color: var(--border-sixth-color);
-        background-color: var(--bg-fifth-color);
+      border-color: var(--border-eight-color);
+      background-color: var(--bg-nineth-color);
 
-        color: var(--hint-sixth-color);
-      }
-
-      .faq__toggle {
-        border-color: var(--hint-secondary-color);
-
-        color: var(--hint-secondary-color);
-      }
-
-      .faq__toggle-line_vertical {
-        opacity: 0;
-
-        transform: translate(-50%, -50%) rotate(90deg);
+      .faq__question-text {
+        color: var(--secondary-color);
       }
     }
   }
 
   &__question {
-    @include adaptiveValue('min-height', 54, 48);
-    @include adaptiveValue('padding-left', 38, 15);
-    @include adaptiveValue('padding-right', 14, 10);
-    @include adaptiveValue('gap', 25, 15);
+    @include adaptiveValue('padding-top', 17, 15);
+    @include adaptiveValue('padding-left', 54, 45);
+    @include adaptiveValue('padding-right', 54, 45);
+    @include adaptiveValue('padding-bottom', 23, 17);
+
+    position: relative;
 
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 
     width: 100%;
 
-    border: 1px solid var(--border-fourth-color);
+    padding-top: 12px;
+    padding-bottom: 12px;
+
+    border: 0;
     outline: none;
-    background-color: var(--bg-primary-color);
+    background: transparent;
 
     color: var(--primary-color);
-    text-align: left;
 
     cursor: pointer;
 
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transition: color 0.3s ease;
 
     &:focus-visible {
-      border-color: var(--hint-secondary-color);
+      outline: 2px solid var(--border-secondary-color);
+      outline-offset: -3px;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--border-secondary-color);
-
-        color: var(--hint-sixth-color);
-
-        .faq__toggle {
-          border-color: var(--hint-secondary-color);
-
-          color: var(--hint-secondary-color);
+        .faq__question-text {
+          color: var(--secondary-color);
         }
       }
     }
   }
 
   &__question-text {
-    @include adaptiveValue('font-size', 20, 15);
+    font-weight: 500;
+    line-height: 150%;
+    text-align: center;
 
-    display: block;
-
-    min-width: 0;
-
-    font-family: var(--font-spectral);
-    font-weight: 400;
-    line-height: 120%;
-    letter-spacing: 0.01em;
-
-    overflow-wrap: anywhere;
+    transition: color 0.3s ease 0s;
   }
 
-  &__toggle {
-    position: relative;
-
-    flex: 0 0 22px;
-
-    width: 22px;
-    height: 22px;
-
-    border: 1px solid var(--hint-primary-color);
-    border-radius: 6px;
-
-    color: var(--hint-primary-color);
-
-    transition:
-      border-color 0.3s ease,
-      color 0.3s ease;
-  }
-
-  &__toggle-line {
+  &__close {
     position: absolute;
     top: 50%;
-    left: 50%;
+    right: 15px;
 
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    width: 10px;
-    height: 1px;
+    width: 34px;
+    height: 34px;
 
-    background-color: currentColor;
+    color: var(--secondary-color);
 
-    transform: translate(-50%, -50%);
-    transition:
-      opacity 0.3s ease,
-      transform 0.3s ease;
+    transform: translateY(-50%);
+    transition: opacity 0.3s ease;
 
-    &_vertical {
-      transform: translate(-50%, -50%) rotate(90deg);
+    @media (any-hover: hover) {
+      opacity: 0.5;
+
+      .faq__question:hover & {
+        opacity: 1;
+      }
     }
+  }
+
+  &__close-icon {
+    width: 24px;
+    height: 24px;
+
+    color: inherit;
   }
 
   &__answer-wrapper {
@@ -347,37 +372,27 @@ const toggle = index => {
   }
 
   &__answer {
-    @include adaptiveValue('min-height', 154, 100);
-    @include adaptiveValue('padding-top', 38, 20);
-    @include adaptiveValue('padding-right', 38, 15);
-    @include adaptiveValue('padding-bottom', 38, 20);
-    @include adaptiveValue('padding-left', 38, 15);
+    @include adaptiveValue('padding-left', 55, 20);
+    @include adaptiveValue('padding-right', 55, 20);
+    @include adaptiveValue('padding-bottom', 28, 20);
 
-    margin-top: 4px;
-
-    border: 1px solid var(--border-fourth-color);
-    background-color: var(--bg-primary-color);
+    padding-top: 0;
   }
 
   &__answer-content {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 145%;
-
-    overflow-wrap: anywhere;
+    text-align: center;
 
     :deep(p) {
       margin: 0;
 
       &:not(:last-child) {
-        margin-bottom: 15px;
+        @include adaptiveValue('margin-bottom', 24, 18);
       }
     }
 
     :deep(a) {
-      color: var(--hint-secondary-color);
+      color: var(--hint-primary-color);
+      text-decoration: none;
 
       transition: color 0.3s ease;
 
@@ -390,8 +405,12 @@ const toggle = index => {
 
     :deep(ul),
     :deep(ol) {
-      margin: 12px 0;
+      display: inline-block;
+
+      margin: 12px auto;
       padding-left: 20px;
+
+      text-align: left;
     }
 
     :deep(li) {
@@ -402,23 +421,22 @@ const toggle = index => {
   }
 
   &__skeleton {
-    @include adaptiveValue('min-height', 54, 48);
-    @include adaptiveValue('padding-left', 38, 15);
-    @include adaptiveValue('padding-right', 14, 10);
-
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 25px;
+    justify-content: center;
+
+    min-height: 64px;
 
     border: 1px solid var(--border-fourth-color);
-    background-color: var(--bg-primary-color);
+    border-radius: 11px;
+    background-color: rgb(48 43 91 / 48%);
   }
 
   &__skeleton-line {
-    width: min(60%, 480px);
+    width: min(65%, 520px);
     height: 14px;
 
+    border-radius: 4px;
     background: linear-gradient(
       90deg,
       var(--bg-secondary-color) 25%,
@@ -428,35 +446,6 @@ const toggle = index => {
     background-size: 200% 100%;
 
     animation: faq-skeleton 1.5s linear infinite;
-  }
-
-  &__skeleton-toggle {
-    position: relative;
-
-    flex: 0 0 22px;
-
-    width: 22px;
-    height: 22px;
-
-    border: 1px solid var(--hint-primary-color);
-    border-radius: 6px;
-
-    span {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-
-      width: 10px;
-      height: 1px;
-
-      background-color: var(--hint-primary-color);
-
-      transform: translate(-50%, -50%);
-
-      &:last-child {
-        transform: translate(-50%, -50%) rotate(90deg);
-      }
-    }
   }
 
   &__empty {
@@ -470,72 +459,49 @@ const toggle = index => {
     padding: 30px;
 
     border: 1px solid var(--border-fourth-color);
-    background-color: var(--bg-primary-color);
+    border-radius: 11px;
+    background-color: rgb(48 43 91 / 48%);
 
     text-align: center;
   }
 
   &__empty-title {
-    color: var(--primary-color);
+    margin: 0 0 10px;
 
-    &:not(:last-child) {
-      margin-bottom: 10px;
-    }
+    color: var(--primary-color);
   }
 
   &__empty-text {
     color: var(--secondary-color);
+    font-family: var(--font-inter);
     font-size: 14px;
-    line-height: 145%;
+    line-height: 1.5;
   }
 
   @media (max-width: $md4) {
     &__items {
-      gap: 5px;
+      gap: 8px;
     }
 
-    &__question-text {
-      line-height: 130%;
+    &__question {
+      padding-right: 42px;
+      padding-left: 42px;
     }
 
-    &__toggle,
-    &__skeleton-toggle {
-      flex-basis: 20px;
+    &__close {
+      right: 5px;
+    }
 
+    &__close-icon {
       width: 20px;
       height: 20px;
-
-      border-radius: 5px;
-    }
-
-    &__toggle-line,
-    &__skeleton-toggle span {
-      width: 9px;
-    }
-  }
-
-  @media (max-width: $md7) {
-    &__question {
-      min-height: 46px;
-    }
-
-    &__question-text {
-      font-size: 14px;
-    }
-
-    &__answer-content {
-      font-size: 13px;
     }
   }
 }
 
 @keyframes faq-skeleton {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
+  to {
+    background-position-x: -200%;
   }
 }
 </style>
