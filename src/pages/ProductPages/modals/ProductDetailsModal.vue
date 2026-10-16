@@ -14,18 +14,17 @@
 
     <div v-else-if="error" class="product-details product-details_error">
       <div class="product-details__state">
-        <div class="product-details__state-title _h3">
+        <h2 class="product-details__state-title _h4">
           {{ $t('Unable to load product') }}
-        </div>
+        </h2>
 
-        <div class="product-details__state-message">
+        <p class="product-details__state-message">
           {{ error }}
-        </div>
+        </p>
 
         <BaseButton
           type="button"
           variant="hint-bordered"
-          class="product-details__state-button"
           @click="fetchProductData"
         >
           {{ $t('Try again') }}
@@ -35,23 +34,23 @@
 
     <div v-else-if="currentProduct" class="product-details">
       <div class="product-details__preview">
-        <div class="product-details__back">
-          <img :src="cardBackImage" :alt="cardBackAlt" />
+        <div v-if="heroImage" class="product-details__hero" aria-hidden="true">
+          <img :src="heroImage" alt="" />
         </div>
 
         <div class="product-details__card">
           <img
-            v-if="currentProduct.image_2"
-            :src="currentProduct.image_2"
+            v-if="currentProduct.image"
+            :src="currentProduct.image"
             :alt="currentProduct.name"
-            class="product-details__card-frame"
+            class="product-details__card-image"
           />
 
           <img
-            v-if="currentProduct.image"
-            :src="currentProduct.image"
+            v-if="currentProduct.image_2"
+            :src="currentProduct.image_2"
             alt=""
-            class="product-details__card-image"
+            class="product-details__card-frame"
           />
 
           <div v-if="cardName" class="product-details__card-name">
@@ -94,61 +93,43 @@
           </h2>
 
           <div class="product-details__stats">
-            <div
-              class="product-details__stats-row product-details__stats-row_head"
-            >
-              <div class="product-details__stats-cell">
-                {{ $t('Hero') }}
+            <div class="product-details__stats-column">
+              <div class="product-details__stat">
+                <span>{{ $t('Hero') }}:</span>
+                <strong>{{ currentProduct.hero?.name || '—' }}</strong>
               </div>
 
-              <div class="product-details__stats-cell">
-                {{ $t('Type') }}
+              <div class="product-details__stat">
+                <span>{{ $t('Type') }}:</span>
+                <strong>{{ formatValue(currentProduct.type) }}</strong>
               </div>
 
-              <div class="product-details__stats-cell">
-                {{ $t('Rarity') }}
-              </div>
-              <div class="product-details__stats-cell">
-                {{ $t('Mana') }}
-              </div>
-
-              <div class="product-details__stats-cell">
-                {{ $t('Attack') }}
-              </div>
-
-              <div class="product-details__stats-cell">
-                {{ $t('Health') }}
+              <div class="product-details__stat">
+                <span>{{ $t('Rarity') }}:</span>
+                <strong>{{ formatValue(currentProduct.rarity) }}</strong>
               </div>
             </div>
 
-            <div class="product-details__stats-row">
-              <div class="product-details__stats-cell">
-                {{ currentProduct.hero?.name || '' }}
+            <div class="product-details__stats-column">
+              <div class="product-details__stat">
+                <span>{{ $t('Mana') }}:</span>
+                <strong>{{ displayValue(currentProduct.mana_cost) }}</strong>
               </div>
 
-              <div class="product-details__stats-cell">
-                {{ formatValue(currentProduct.type) }}
+              <div class="product-details__stat">
+                <span>{{ $t('Attack') }}:</span>
+                <strong>{{ displayValue(currentProduct.attack) }}</strong>
               </div>
 
-              <div class="product-details__stats-cell">
-                {{ formatValue(currentProduct.rarity) }}
-              </div>
-              <div class="product-details__stats-cell">
-                {{ displayValue(currentProduct.mana_cost) }}
-              </div>
-
-              <div class="product-details__stats-cell">
-                {{ displayValue(currentProduct.attack) }}
-              </div>
-
-              <div class="product-details__stats-cell">
-                {{ displayValue(currentProduct.health) }}
+              <div class="product-details__stat">
+                <span>{{ $t('Health') }}:</span>
+                <strong>{{ displayValue(currentProduct.health) }}</strong>
               </div>
             </div>
           </div>
 
           <div class="product-details__description">
-            <div class="product-details__description-label">
+            <div class="product-details__section-label">
               {{ $t('Description:') }}
             </div>
 
@@ -158,31 +139,33 @@
             />
           </div>
 
-          <div
-            class="product-details__switcher"
-            role="group"
-            :aria-label="$t('Purchase mode')"
-          >
-            <BaseButton
-              type="button"
-              class="product-details__switch product-details__switch_first"
-              :variant="purchaseMode === 'buy' ? 'primary' : 'hint-bordered'"
-              :aria-pressed="purchaseMode === 'buy'"
-              @click="setPurchaseMode('buy')"
+          <div class="product-details__switcher-wrap">
+            <div
+              class="product-details__switcher"
+              role="group"
+              :aria-label="$t('Purchase mode')"
             >
-              {{ $t('Buy') }}
-            </BaseButton>
+              <BaseButton
+                type="button"
+                class="product-details__switch product-details__switch_first"
+                :variant="purchaseMode === 'buy' ? 'primary' : 'hint-bordered'"
+                :aria-pressed="purchaseMode === 'buy'"
+                @click="setPurchaseMode('buy')"
+              >
+                {{ $t('Buy card') }}
+              </BaseButton>
 
-            <BaseButton
-              type="button"
-              class="product-details__switch product-details__switch_last"
-              :variant="purchaseMode === 'rent' ? 'primary' : 'hint-bordered'"
-              :aria-pressed="purchaseMode === 'rent'"
-              :disabled="!canRent"
-              @click="setPurchaseMode('rent')"
-            >
-              {{ $t('Rent') }}
-            </BaseButton>
+              <BaseButton
+                type="button"
+                class="product-details__switch product-details__switch_last"
+                :variant="purchaseMode === 'rent' ? 'primary' : 'hint-bordered'"
+                :aria-pressed="purchaseMode === 'rent'"
+                :disabled="!canRent"
+                @click="setPurchaseMode('rent')"
+              >
+                {{ $t('Rent card') }}
+              </BaseButton>
+            </div>
           </div>
         </div>
 
@@ -217,7 +200,7 @@
               <button
                 type="button"
                 class="product-details__quantity-button"
-                :disabled="quantity <= 1 || isSubmitting"
+                :disabled="Number(quantity) <= 1 || isSubmitting"
                 :aria-label="$t('Decrease quantity')"
                 @click="decreaseQuantity"
               >
@@ -258,6 +241,7 @@
               :placeholder="!selectedRentalPrice"
               variant="aside"
               bordered
+              absolute
             >
               <template #default="{ close }">
                 <button
@@ -276,9 +260,7 @@
                   role="option"
                   @click="selectRentalPeriod(period.rental_period_id, close)"
                 >
-                  <span class="dropdown-option__label">
-                    {{ $t(period.label) }}
-                  </span>
+                  {{ $t(period.label) }}
                 </button>
               </template>
             </BaseDropdown>
@@ -332,6 +314,7 @@ import PriceFormatter from '@/components/PriceFormatter.vue'
 import { useToast } from '@/composables/useToast'
 
 import { useCartStore } from '@/stores/cart'
+import { useHeroesStore } from '@/stores/heroes'
 import { useProductStore } from '@/stores/product'
 import { useUserStore } from '@/stores/user'
 
@@ -363,6 +346,7 @@ const emit = defineEmits(['close', 'update:show'])
 const router = useRouter()
 const toast = useToast()
 
+const heroesStore = useHeroesStore()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const userStore = useUserStore()
@@ -382,6 +366,22 @@ const activeRequestId = ref(0)
 const currentProduct = computed(() => {
   return productStore.currentProduct
 })
+
+const productHero = computed(() => {
+  const hero = currentProduct.value?.hero
+  if (!hero) return null
+  return (
+    heroesStore.getHeroById(hero.id) ||
+    heroesStore.heroes.find(
+      item =>
+        item.slug === hero.slug ||
+        item.name?.toLowerCase() === hero.name?.toLowerCase(),
+    ) ||
+    hero
+  )
+})
+
+const heroImage = computed(() => productHero.value?.image_plain || null)
 
 const cardName = computed(() => {
   return (
@@ -646,7 +646,10 @@ const fetchProductData = async () => {
   error.value = ''
 
   try {
-    await productStore.fetchProductDetails(props.productId)
+    await Promise.all([
+      productStore.fetchProductDetails(props.productId),
+      heroesStore.ensureHeroes().catch(() => []),
+    ])
 
     if (requestId !== activeRequestId.value) {
       return
@@ -894,16 +897,18 @@ watch(
 
 <style lang="scss" scoped>
 .product-details {
+  @include adaptiveValue('gap', 42, 18);
+  @include adaptiveValue('padding-top', 22, 10);
+  @include adaptiveValue('padding-bottom', 22, 10);
+
   position: relative;
 
-  display: flex;
-  overflow: visible;
+  display: grid;
   align-items: center;
-  gap: 20px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 
   width: 100%;
-  max-width: 1000px;
-  min-height: 520px;
+  min-height: 510px;
 
   margin: 0 auto;
 
@@ -913,7 +918,7 @@ watch(
     align-items: center;
     justify-content: center;
 
-    min-height: 480px;
+    min-height: 400px;
   }
 
   &__loader {
@@ -922,65 +927,56 @@ watch(
   }
 
   &__state {
-    width: min(100%, 500px);
-
-    margin: auto;
+    max-width: 450px;
 
     text-align: center;
   }
 
   &__state-title {
-    &:not(:last-child) {
-      margin-bottom: 18px;
-    }
+    margin-bottom: 18px;
+
+    color: var(--secondary-color);
   }
 
   &__state-message {
+    margin-bottom: 24px;
+
     color: var(--error-color);
-
-    &:not(:last-child) {
-      margin-bottom: 24px;
-    }
-  }
-
-  &__state-button {
-    width: 100%;
-    max-width: 260px;
-
-    margin-right: auto;
-    margin-left: auto;
   }
 
   &__preview {
     position: relative;
 
     display: flex;
-    flex: 0 1 43%;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
 
-    min-width: 330px;
+    width: 100%;
+    min-width: 0;
     min-height: 500px;
   }
 
-  &__back {
+  &__hero {
     position: absolute;
-    top: 50%;
-    left: 0;
+    bottom: -8%;
+    left: -32%;
     z-index: 1;
 
-    width: 75%;
-    aspect-ratio: 1;
+    width: 88%;
+    height: 96%;
 
-    transform: translateY(-50%) translateX(-4%);
+    pointer-events: none;
 
     img {
       display: block;
 
       width: 100%;
-      height: auto;
+      height: 100%;
 
       object-fit: contain;
+      object-position: center bottom;
+
+      filter: drop-shadow(0 15px 22px rgb(0 0 0 / 35%));
     }
   }
 
@@ -988,40 +984,39 @@ watch(
     position: relative;
     z-index: 2;
 
-    width: min(100%, 355px);
+    width: min(76%, 345px);
     aspect-ratio: 0.69;
 
-    margin-left: auto;
+    margin-right: 0;
 
     container-type: inline-size;
-  }
 
-  &__card-frame {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-
-    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 15px 24px rgb(0 0 0 / 25%));
   }
 
   &__card-image {
     position: absolute;
     top: 14%;
-    left: 50%;
-    z-index: 2;
+    left: 11%;
+    z-index: 3;
 
     width: 78%;
     height: 48%;
 
     object-fit: cover;
+  }
 
-    transform: translateX(-50%);
+  &__card-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
   }
 
   &__card-name {
@@ -1033,16 +1028,13 @@ watch(
     overflow: hidden;
 
     width: 65%;
-    height: fit-content;
 
     padding: 0 5%;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1;
-    text-align: left;
+    font-size: clamp(10px, 4.5cqi, 16px);
+    line-height: 1.1;
     text-overflow: ellipsis;
     white-space: nowrap;
 
@@ -1065,8 +1057,7 @@ watch(
 
     color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: clamp(9px, 3.8cqi, 14px);
     line-height: 120%;
     text-align: center;
 
@@ -1091,118 +1082,59 @@ watch(
     z-index: 4;
 
     display: flex;
-    overflow: hidden;
     align-items: center;
     justify-content: center;
 
+    width: 12%;
     aspect-ratio: 1;
 
     border-radius: 50%;
 
-    color: var(--primary-color);
+    color: #fff;
     font-family: var(--font-spectral);
-    font-size: clamp(14px, 12cqi, 30px);
+    font-size: clamp(14px, 9cqi, 30px);
     font-weight: 700;
     line-height: 1;
-
-    paint-order: stroke fill;
-
-    -webkit-text-fill-color: var(--primary-color);
-    -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
+    text-shadow: 0 1px 3px rgb(0 0 0 / 60%);
 
     &_mana {
-      top: 5.1%;
-      left: 7.5%;
+      top: 5%;
+      left: 7%;
 
       width: 14%;
 
-      background: radial-gradient(
-        circle at 50% 42%,
-        #4fa9df 0%,
-        #2c8bc4 28%,
-        #176fa8 48%,
-        #07578b 68%,
-        #003b66 86%,
-        #002a4b 100%
-      );
-      box-shadow:
-        inset 0 0 4px rgb(0 10 25 / 35%),
-        inset 0 3px 5px rgb(0 15 30 / 45%),
-        inset 0 -5px 8px rgb(0 8 20 / 75%),
-        inset 4px 0 6px rgb(0 12 28 / 40%),
-        inset -4px 0 6px rgb(0 12 28 / 40%),
-        0 1px 3px rgb(0 0 0 / 60%),
-        0 0 5px rgb(0 20 40 / 50%);
-
-      -webkit-text-stroke-color: #01588a;
+      border: 2px solid #87c8ef;
+      background: radial-gradient(circle at 40% 25%, #55b6ed, #00528d 75%);
     }
 
     &_attack {
       right: 6%;
       bottom: 4%;
 
-      width: 12%;
-
-      background: radial-gradient(
-        circle at 50% 42%,
-        #c44976 0%,
-        #a92e5d 28%,
-        #8c1e4b 48%,
-        #70123c 68%,
-        #52092e 86%,
-        #35051f 100%
-      );
-      box-shadow:
-        inset 0 0 4px rgb(45 0 20 / 35%),
-        inset 0 3px 5px rgb(55 0 25 / 45%),
-        inset 0 -5px 8px rgb(35 0 18 / 75%),
-        inset 4px 0 6px rgb(45 0 22 / 40%),
-        inset -4px 0 6px rgb(45 0 22 / 40%),
-        0 1px 3px rgb(0 0 0 / 60%),
-        0 0 5px rgb(40 0 20 / 50%);
-
-      -webkit-text-stroke-color: #72153e;
+      border: 2px solid #d779a2;
+      background: radial-gradient(circle at 40% 25%, #e05a81, #650c3b 75%);
     }
 
     &_health {
       bottom: 4%;
       left: 6%;
 
-      width: 12%;
-
-      background: radial-gradient(
-        circle at 50% 42%,
-        #42a995 0%,
-        #268878 28%,
-        #146d62 48%,
-        #09564f 68%,
-        #03413e 86%,
-        #022d2d 100%
-      );
-      box-shadow:
-        inset 0 0 4px rgb(0 25 23 / 35%),
-        inset 0 3px 5px rgb(0 35 30 / 45%),
-        inset 0 -5px 8px rgb(0 18 20 / 75%),
-        inset 4px 0 6px rgb(0 25 25 / 40%),
-        inset -4px 0 6px rgb(0 25 25 / 40%),
-        0 1px 3px rgb(0 0 0 / 60%),
-        0 0 5px rgb(0 25 25 / 50%);
-
-      -webkit-text-stroke-color: #07584f;
+      border: 2px solid #80d9c0;
+      background: radial-gradient(circle at 40% 25%, #65d2a5, #07584c 75%);
     }
   }
 
   &__content {
     position: relative;
-    z-index: 5;
+    z-index: 3;
 
     display: flex;
-    overflow: visible;
-    flex: 1 1 57%;
     flex-direction: column;
+    justify-content: space-between;
 
+    width: 100%;
     min-width: 0;
-    min-height: 480px;
+    min-height: 475px;
   }
 
   &__main {
@@ -1210,102 +1142,88 @@ watch(
   }
 
   &__title {
-    color: var(--primary-color);
+    @include adaptiveValue('font-size', 32, 24);
+    @include adaptiveValue('margin-bottom', 32, 20);
+
+    margin-top: 0;
+
+    color: var(--secondary-color);
+    font-family: var(--font-spectral);
+    font-weight: 500;
+    line-height: 120%;
     text-align: left;
     text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 44, 25);
-    }
   }
 
   &__stats {
+    @include adaptiveValue('column-gap', 45, 16);
+    @include adaptiveValue('margin-bottom', 32, 22);
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
     width: 100%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 25);
-    }
   }
 
-  &__stats-row {
+  &__stats-column {
+    @include adaptiveValue('gap', 20, 14);
+
     display: flex;
-    align-items: center;
+    flex-direction: column;
 
-    &_head {
-      border-bottom: 1px solid var(--border-secondary-color);
-
-      .product-details__stats-cell {
-        padding-top: 0;
-        padding-bottom: 14px;
-
-        color: var(--hint-third-color);
-        font-size: 13px;
-      }
-    }
+    min-width: 0;
   }
 
-  &__stats-cell {
-    flex: 1 1 0;
+  &__stat {
+    @include adaptiveValue('column-gap', 16, 8);
+
+    display: grid;
+    align-items: start;
+    grid-template-columns: minmax(50px, 0.5fr) minmax(0, 1fr);
 
     min-width: 0;
 
-    padding-top: 16px;
-    padding-right: 10px;
-
-    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
-    font-weight: 500;
-    text-align: left;
+    line-height: 140%;
 
-    &:nth-child(1) {
-      flex-grow: 1.15;
+    span {
+      color: var(--seventh-color);
+      font-weight: 400;
     }
 
-    &:nth-child(3) {
-      flex-grow: 1.35;
-    }
+    strong {
+      color: var(--primary-color);
+      font-weight: 500;
 
-    &:nth-child(4),
-    &:nth-child(5),
-    &:nth-child(6) {
-      flex-grow: 0.7;
-    }
-
-    &:last-child {
-      padding-right: 0;
-
-      text-align: right;
+      overflow-wrap: anywhere;
     }
   }
 
   &__description {
-    color: var(--secondary-color);
+    @include adaptiveValue('margin-bottom', 28, 20);
+
+    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
     line-height: 150%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 36, 24);
-    }
   }
 
-  &__description-label,
+  &__section-label,
   &__control-label {
-    color: var(--hint-third-color);
+    color: var(--seventh-color);
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 500;
+    line-height: 140%;
   }
 
-  &__description-label {
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+  &__section-label {
+    margin-bottom: 12px;
   }
 
   &__description-content {
-    max-width: 580px;
+    max-width: 100%;
 
     color: var(--primary-color);
 
@@ -1313,130 +1231,122 @@ watch(
       margin: 0;
 
       &:not(:last-child) {
-        margin-bottom: 15px;
+        margin-bottom: 10px;
       }
     }
+  }
+
+  &__switcher-wrap {
+    @include adaptiveValue('padding-top', 26, 18);
+    @include adaptiveValue('margin-bottom', 36, 22);
+
+    border-top: 1px solid var(--border-fourth-color);
   }
 
   &__switcher {
     display: flex;
 
-    width: 100%;
-    max-width: 212px;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 60, 30);
-    }
+    width: fit-content;
+    max-width: 100%;
   }
 
   &__switch {
-    @include adaptiveValue('min-height', 36, 40);
+    @include adaptiveValue('min-height', 40, 36);
 
-    font-family: var(--font-spectral);
-    font-size: 14px;
+    min-width: 115px;
+
+    padding-right: 16px;
+    padding-left: 16px;
+
+    font-family: var(--font-inter);
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
 
     &_first {
-      border-right: 0;
+      border-bottom-right-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    &_last {
+      border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
     }
   }
 
   &__bottom {
-    position: relative;
-    z-index: 10;
+    @include adaptiveValue('gap', 22, 12);
 
-    display: flex;
-    overflow: visible;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 30px;
+    display: grid;
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr) minmax(0, 1fr);
 
     width: 100%;
-
-    padding-top: 20px;
   }
 
   &__price,
   &__quantity,
   &__rental {
     display: flex;
-    flex: 1 1 130px;
     flex-direction: column;
     gap: 12px;
 
     min-width: 0;
   }
 
-  &__price {
-    flex-basis: 145px;
-  }
-
-  &__quantity {
-    flex-grow: 0;
-  }
-
-  &__rental {
-    position: relative;
-    z-index: 50;
-
-    overflow: visible;
-    flex-grow: 0;
-  }
-
   &__price-value {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 10px;
+
+    min-height: 42px;
   }
 
   &__old-price {
-    opacity: 0.45;
+    opacity: 0.5;
 
     text-decoration: line-through;
   }
 
   &__quantity-controls {
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    justify-content: space-between;
 
     width: fit-content;
-    min-height: 36px;
+    height: 40px;
 
-    border: 1px solid var(--border-secondary-color);
-    background-color: transparent;
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 6px;
+    background-color: var(--bg-secondary-color);
   }
 
   &__quantity-button {
     display: flex;
-    flex: 0 0 36px;
     align-items: center;
     justify-content: center;
 
-    width: 36px;
-    min-width: 36px;
+    width: 32px;
+    height: 100%;
 
     padding: 0;
 
     border: 0;
-    outline: none;
-    background-color: transparent;
+    background: transparent;
 
-    color: var(--hint-secondary-color);
-    font-family: var(--font-inter);
+    color: var(--secondary-color);
     font-size: 22px;
-    font-weight: 300;
     line-height: 1;
 
     cursor: pointer;
 
     transition:
       color 0.3s ease,
-      background-color 0.3s ease,
-      opacity 0.3s ease;
+      background-color 0.3s ease;
 
     &:disabled {
-      opacity: 0.3;
+      opacity: 0.35;
 
       cursor: not-allowed;
     }
@@ -1451,77 +1361,53 @@ watch(
   }
 
   &__quantity-input {
-    width: 44px;
+    width: 30px;
+    height: 100%;
 
-    padding: 0 4px;
+    padding: 0;
 
     border: 0;
     outline: none;
-    background-color: transparent;
+    background: transparent;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
-    font-weight: 500;
     text-align: center;
 
     appearance: textfield;
 
     &::-webkit-inner-spin-button,
     &::-webkit-outer-spin-button {
-      margin: 0;
-
       appearance: none;
     }
   }
 
-  &__rental-dropdown {
+  &__rental {
     position: relative;
-    z-index: 60;
+    z-index: 10;
+  }
 
-    overflow: visible;
-
-    :deep(.dropdown) {
-      position: relative;
-      z-index: 60;
-
-      overflow: visible;
-    }
-
-    :deep(.dropdown__content) {
-      z-index: 1000;
-
-      overflow: visible;
-
-      width: 100%;
-      min-width: 190px;
-    }
-
-    :deep(.dropdown__menu) {
-      z-index: 1001;
-
-      overflow: visible;
-
-      min-width: 190px;
-    }
+  &__rental-dropdown {
+    width: 100%;
+    min-width: 0;
   }
 
   &__button {
-    @include adaptiveValue('min-height', 48, 40);
+    @include adaptiveValue('min-height', 44, 40);
 
-    flex: 1 1 160px;
+    width: 100%;
+    min-width: 0;
 
-    width: auto;
-    min-width: 160px;
-    max-width: 180px;
-
-    font-family: var(--font-spectral);
-    font-size: 14px;
+    font-family: var(--font-inter);
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
   }
 
   &__button-loader {
+    display: inline-block;
+
     width: 20px;
     height: 20px;
 
@@ -1530,193 +1416,208 @@ watch(
 
     animation: product-details-spin 0.8s linear infinite;
 
-    border-bottom-color: transparent;
     border-right-color: transparent;
   }
 
+  @media (max-width: $md2) {
+    &__hero {
+      left: -22%;
+
+      width: 80%;
+    }
+
+    &__card {
+      width: min(78%, 325px);
+    }
+  }
+
   @media (max-width: $md3) {
-    gap: 30px;
+    gap: 20px;
+
+    min-height: 0;
 
     &__preview {
-      flex: 0 1 38%;
+      min-height: 400px;
+    }
 
-      min-width: 250px;
+    &__hero {
+      left: -12%;
+
+      width: 75%;
+      height: 90%;
+    }
+
+    &__card {
+      width: min(80%, 285px);
     }
 
     &__content {
-      flex: 1 1 62%;
+      min-height: 410px;
     }
 
-    &__back {
-      width: 75%;
+    &__stats {
+      column-gap: 14px;
+    }
+
+    &__stat {
+      gap: 4px;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     &__bottom {
-      gap: 15px;
-    }
-
-    &__price,
-    &__quantity,
-    &__rental {
-      flex: 1 1 calc(50% - 8px);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     &__button {
-      flex: 1 1 100%;
-
-      width: 100%;
-      max-width: none;
+      grid-column: 1 / -1;
     }
   }
 
   @media (max-width: $md4) {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 28px;
+    grid-template-columns: minmax(0, 1fr);
 
     &__preview {
-      flex: none;
+      justify-content: center;
 
-      width: 100%;
-      min-width: 0;
+      height: min(80vw, 470px);
       min-height: 0;
-
-      &:not(:last-child) {
-        margin-bottom: 35px;
-      }
     }
 
-    &__back {
-      left: 10%;
+    &__hero {
+      bottom: -4%;
+      left: 4%;
 
-      width: min(62vw, 280px);
+      width: 55%;
+      height: 100%;
     }
 
     &__card {
-      width: min(72vw, 340px);
+      width: min(62%, 300px);
 
-      margin-right: auto;
-      margin-left: auto;
-
-      transform: translateX(8%);
+      margin-left: 22%;
     }
 
     &__content {
-      flex: none;
-
-      width: 100%;
       min-height: 0;
     }
 
     &__title {
       text-align: center;
     }
-  }
 
-  @media (max-width: $md6) {
     &__stats {
-      overflow-x: auto;
-
-      scrollbar-width: thin;
+      column-gap: 24px;
     }
 
-    &__stats-row {
-      width: 500px;
-      min-width: 500px;
-    }
-
-    &__switcher {
-      max-width: none;
+    &__stat {
+      grid-template-columns: minmax(65px, 0.5fr) minmax(0, 1fr);
     }
 
     &__bottom {
-      flex-direction: column;
-      flex-wrap: nowrap;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__preview {
+      height: min(95vw, 400px);
     }
 
-    &__price,
-    &__quantity,
-    &__rental {
-      flex: none;
-      align-items: center;
+    &__hero {
+      left: -5%;
 
+      width: 65%;
+    }
+
+    &__card {
+      width: min(65%, 255px);
+
+      margin-left: 24%;
+    }
+
+    &__stats {
+      gap: 15px;
+    }
+
+    &__stat {
+      gap: 5px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__switcher {
       width: 100%;
+    }
+
+    &__switch {
+      flex: 1 1 50%;
+
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__preview {
+      height: min(100vw, 350px);
+    }
+
+    &__hero {
+      left: -8%;
+
+      width: 70%;
+    }
+
+    &__card {
+      width: min(66%, 225px);
+    }
+
+    &__bottom {
+      gap: 18px 12px;
     }
 
     &__price-value {
-      justify-content: center;
-    }
-
-    &__rental-dropdown {
-      :deep(.dropdown__content),
-      :deep(.dropdown__menu) {
-        width: 100%;
-        min-width: 100%;
-      }
+      min-height: 40px;
     }
 
     &__button {
-      flex: none;
-
-      width: 100%;
-      min-width: 0;
-      max-width: none;
+      grid-column: 1 / -1;
     }
   }
 }
 
 .dropdown-option {
-  position: relative;
-  z-index: 1002;
-
   display: flex;
   align-items: center;
 
   width: 100%;
-  min-width: 190px;
-  min-height: 44px;
+  min-height: 40px;
 
   padding: 10px 14px;
 
   border: 0;
-  outline: none;
+  border-radius: 5px;
   background-color: transparent;
 
   color: var(--secondary-color);
   font-family: var(--font-inter);
   font-size: 14px;
-  font-weight: 500;
   text-align: left;
 
   cursor: pointer;
 
-  transition:
-    color 0.3s ease,
-    background-color 0.3s ease;
-
   &_selected {
-    background-color: var(--hint-gradient-color);
+    background-color: var(--bg-secondary-color);
 
     color: var(--primary-color);
 
     pointer-events: none;
   }
 
-  &__label {
-    overflow: hidden;
-
-    width: 100%;
-    min-width: 0;
-
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   @media (any-hover: hover) {
     &:not(&_selected):hover {
-      background-color: var(--border-fourth-color);
+      background-color: var(--bg-fourth-color);
 
-      color: var(--hint-secondary-color);
+      color: var(--primary-color);
     }
   }
 }
@@ -1725,11 +1626,5 @@ watch(
   to {
     transform: rotate(360deg);
   }
-}
-
-:global(.product-details-modal__content) {
-  overflow: visible;
-
-  width: 100%;
 }
 </style>

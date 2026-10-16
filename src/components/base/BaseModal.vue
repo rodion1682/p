@@ -344,9 +344,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.product-details-modal {
-}
-
 .base-modal {
   position: fixed;
   inset: 0;
@@ -361,7 +358,9 @@ defineExpose({
   width: 100%;
   height: 100%;
 
-  background-color: rgb(0, 0, 0, 0.5);
+  padding: 40px 20px;
+
+  background-color: rgb(0 0 0 / 50%);
 
   -webkit-backdrop-filter: blur(64px);
   backdrop-filter: blur(64px);
@@ -373,7 +372,7 @@ defineExpose({
     z-index: 1;
 
     width: 100%;
-    max-height: calc(100dvh - 40px);
+    max-height: calc(100dvh - 80px);
 
     margin: auto;
 
@@ -396,6 +395,9 @@ defineExpose({
 
     &_product {
       max-width: 1140px;
+
+      border-color: var(--border-fourth-color);
+      background-color: var(--bg-primary-color);
     }
 
     &_full {
@@ -410,8 +412,10 @@ defineExpose({
       overflow: visible;
     }
   }
+
   &__decor {
     @include adaptiveValue('width', 216, 100);
+
     position: absolute;
     top: 0;
     left: 50%;
@@ -419,18 +423,22 @@ defineExpose({
 
     aspect-ratio: 1 / 0.22;
 
+    pointer-events: none;
+
     transform: translate(-50%, -100%);
   }
+
   &__frame {
-    @include adaptiveValue('padding-top', 24, 30);
-    @include adaptiveValue('padding-bottom', 24, 30);
+    @include adaptiveValue('padding-top', 24, 20);
+    @include adaptiveValue('padding-bottom', 24, 20);
+
     position: relative;
 
     overflow-x: hidden;
     overflow-y: auto;
 
     width: 100%;
-    max-height: calc(100dvh - 50px);
+    max-height: calc(100dvh - 80px);
 
     padding-right: 10px;
     padding-left: 10px;
@@ -439,7 +447,6 @@ defineExpose({
     background-color: var(--bg-primary-colorr);
 
     scrollbar-color: var(--border-secondary-color) transparent;
-
     scrollbar-width: thin;
 
     &::-webkit-scrollbar {
@@ -456,9 +463,30 @@ defineExpose({
     }
   }
 
+  &__inner_product {
+    .base-modal__frame {
+      @include adaptiveValue('padding-top', 42, 24);
+      @include adaptiveValue('padding-bottom', 42, 24);
+      @include adaptiveValue('padding-left', 48, 16);
+      @include adaptiveValue('padding-right', 48, 16);
+
+      background-color: #191538;
+    }
+
+    .base-modal__content {
+      width: 100%;
+    }
+
+    .base-modal__close {
+      @include adaptiveValue('top', 16, 8);
+      @include adaptiveValue('right', 16, 8);
+    }
+  }
+
   &__close {
     @include adaptiveValue('top', 17, 12);
     @include adaptiveValue('right', 17, 12);
+
     position: absolute;
     z-index: 10;
 
@@ -471,6 +499,7 @@ defineExpose({
 
     padding: 0;
 
+    border: 0;
     outline: none;
     background-color: transparent;
 
@@ -478,10 +507,11 @@ defineExpose({
 
     cursor: pointer;
 
-    transition: opacity 0.3s ease 0s;
+    transition: opacity 0.3s ease;
 
     @media (any-hover: hover) {
       opacity: 0.5;
+
       &:hover {
         opacity: 1;
       }
@@ -527,6 +557,46 @@ defineExpose({
     }
   }
 
+  @media (max-width: $md3) {
+    padding: 30px 15px;
+
+    &__inner {
+      max-height: calc(100dvh - 60px);
+    }
+
+    &__frame {
+      max-height: calc(100dvh - 60px);
+    }
+
+    &__inner_product {
+      .base-modal__frame {
+        @include adaptiveValue('padding-left', 30, 16);
+        @include adaptiveValue('padding-right', 30, 16);
+      }
+    }
+  }
+
+  @media (max-width: $md4) {
+    padding: 25px 12px;
+
+    &__inner {
+      max-height: calc(100dvh - 50px);
+    }
+
+    &__frame {
+      max-height: calc(100dvh - 50px);
+    }
+
+    &__inner_product {
+      .base-modal__frame {
+        padding-top: 32px;
+        padding-right: 18px;
+        padding-bottom: 24px;
+        padding-left: 18px;
+      }
+    }
+  }
+
   @media (max-width: $md5) {
     align-items: flex-end;
 
@@ -545,9 +615,45 @@ defineExpose({
       border-radius: 12px 12px 0 0;
     }
 
+    &__frame {
+      max-height: 92dvh;
+
+      border-radius: 12px 12px 0 0;
+    }
+
+    &__inner_product {
+      background-color: #191538;
+
+      .base-modal__frame {
+        max-height: 92dvh;
+
+        padding-top: 35px;
+        padding-right: 15px;
+        padding-bottom: 25px;
+        padding-left: 15px;
+
+        background-color: #191538;
+      }
+    }
+
     &__close {
       top: 8px;
       right: 8px;
+    }
+
+    &__decor {
+      width: 120px;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__inner_product {
+      .base-modal__frame {
+        padding-top: 30px;
+        padding-right: 12px;
+        padding-bottom: 20px;
+        padding-left: 12px;
+      }
     }
   }
 }
