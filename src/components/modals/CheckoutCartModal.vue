@@ -178,26 +178,37 @@ import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
+import PriceFormatter from '@/components/PriceFormatter.vue'
 
 import { useStaticPages } from '@/composables/useStaticPages'
 import { useToast } from '@/composables/useToast'
 
 import { useAuthStore } from '@/stores/auth'
-import { useCartStore } from '@/stores/cart'
 import { useCountriesStore } from '@/stores/countries'
 import { useCurrencyStore } from '@/stores/currency'
 import { usePurchaseStore } from '@/stores/purchase'
 import { useSettingsStore } from '@/stores/settings'
 import { useTopUpStore } from '@/stores/topup'
 import { useUserStore } from '@/stores/user'
-import PriceFormatter from '../PriceFormatter.vue'
+
+const CHECKOUT_STORAGE_KEY = 'checkout_contact_data'
+
+const CONTACT_FIELDS = [
+  'name',
+  'surname',
+  'phone',
+  'email',
+  'country',
+  'city',
+  'postCode',
+  'address',
+]
 
 const props = defineProps({
   show: {
     type: Boolean,
     required: true,
   },
-
   total: {
     type: [Number, String],
     default: 0,
@@ -206,24 +217,23 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'back'])
 
+const router = useRouter()
+const toast = useToast()
+
 const currencyStore = useCurrencyStore()
 const topupStore = useTopUpStore()
 const authStore = useAuthStore()
 const countriesStore = useCountriesStore()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
-const cartStore = useCartStore()
 const purchaseStore = usePurchaseStore()
 
-const router = useRouter()
-const toast = useToast()
-
 const { termsPage, privacyPage, getPageUrl } = useStaticPages()
-
 const { checkoutFormData } = storeToRefs(topupStore)
 
 const isLoading = ref(false)
 const formErrors = ref({})
+const storageReady = ref(false)
 
 const currencyCode = computed(() => {
   const code =
@@ -253,81 +263,18 @@ const normalizedCartTotal = computed(() => {
 })
 
 const formattedCartTotal = computed(() => {
-  const amount = Number(normalizedCartTotal.value ?? 0)
-
-  const safeAmount = Number.isFinite(amount) ? amount : 0
-
-  const code = currencyCode.value || 'EUR'
-
-  const symbol = currencySymbol.value || '€'
+  const amount = normalizedCartTotal.value
 
   try {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: code,
+      currency: currencyCode.value,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(safeAmount)
-  } catch (error) {
-    return `${safeAmount.toFixed(2)}${symbol}`
+    }).format(amount)
+  } catch {
+    return `${amount.toFixed(2)} ${currencySymbol.value}`
   }
-})
-
-const getCountryLabel = country => {
-  if (!country) {
-    return ''
-  }
-
-  if (typeof country.title === 'string') {
-    return country.title
-  }
-
-  if (country.title && typeof country.title === 'object') {
-    const translated =
-      country.title.en ||
-      country.title.name ||
-      country.title.label ||
-      Object.values(country.title).find(value => typeof value === 'string')
-
-    if (translated) {
-      return translated
-    }
-  }
-
-  if (typeof country.name === 'string') {
-    return country.name
-  }
-
-  if (typeof country.label === 'string') {
-    return country.label
-  }
-
-  if (typeof country.code === 'string') {
-    return country.code
-  }
-
-  return ''
-}
-
-const countryOptions = computed(() => {
-  const countries = countriesStore.countries || []
-
-  return countries
-    .map(country => ({
-      label: getCountryLabel(country),
-
-      value: country.id ?? country.value ?? country.code,
-
-      disabled:
-        country.disabled === true ||
-        country.status === false ||
-        country.status === 0,
-    }))
-    .filter(country => {
-      return (
-        country.label && country.value !== null && country.value !== undefined
-      )
-    })
 })
 
 const normalizeCountryValue = country => {
@@ -342,15 +289,50 @@ const normalizeCountryValue = country => {
   return country
 }
 
+const getCountryLabel = country => {
+  if (!country) return ''
+
+  if (typeof country.title === 'string') {
+    return country.title
+  }
+
+  if (country.title && typeof country.title === 'object') {
+    const translated =
+      country.title.en ||
+      country.title.name ||
+      country.title.label ||
+      Object.values(country.title).find(value => typeof value === 'string')
+
+    if (translated) return translated
+  }
+
+  return country.name || country.label || country.code || ''
+}
+
+const countryOptions = computed(() => {
+  return (countriesStore.countries || [])
+    .map(country => ({
+      label: getCountryLabel(country),
+      value: country.id ?? country.value ?? country.code,
+      disabled:
+        country.disabled === true ||
+        country.status === false ||
+        country.status === 0,
+    }))
+    .filter(country => {
+      return (
+        country.label && country.value !== null && country.value !== undefined
+      )
+    })
+})
+
 const selectedPaymentMethod = computed(() => {
   const methods =
     settingsStore.paymentMethods ||
     settingsStore.settings?.payment_methods ||
     []
 
-  if (!Array.isArray(methods)) {
-    return null
-  }
+  if (!Array.isArray(methods)) return null
 
   return methods.find(method => method.code === topupStore.paymentType) || null
 })
@@ -361,39 +343,133 @@ const formatText = value => {
     .replace(/\b\w/g, character => character.toUpperCase())
 }
 
+const getStoredCheckoutData = () => {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    const raw = localStorage.getItem(CHECKOUT_STORAGE_KEY)
+
+    if (!raw) return {}
+
+    const parsed = JSON.parse(raw)
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+
+    return parsed
+  } catch (error) {
+    console.error('Unable to read checkout contact data:', error)
+    return {}
+  }
+}
+
+const saveStoredCheckoutData = data => {
+  if (typeof window === 'undefined') return
+
+  try {
+    const saved = {}
+
+    for (const field of CONTACT_FIELDS) {
+      saved[field] =
+        field === 'country'
+          ? normalizeCountryValue(data[field])
+          : String(data[field] ?? '')
+    }
+
+    localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(saved))
+  } catch (error) {
+    console.error('Unable to save checkout contact data:', error)
+  }
+}
+
+const getProfileCountry = profile => {
+  return normalizeCountryValue(profile?.country_id ?? profile?.country ?? '')
+}
+
+const getProfileData = () => {
+  const profile = userStore.user || {}
+  const authUser = authStore.user || {}
+
+  return {
+    name: profile.name || authUser.name || '',
+    surname: profile.surname || authUser.surname || '',
+    phone: profile.phone || authUser.phone || '',
+    email: authUser.email || profile.email || '',
+    country: getProfileCountry(profile),
+    city: profile.city || '',
+    postCode: profile.post_code || profile.postCode || profile.zip || '',
+    address: profile.address || '',
+  }
+}
+
+const prefillFormData = () => {
+  const profile = getProfileData()
+  const stored = getStoredCheckoutData()
+  const current = checkoutFormData.value || {}
+
+  const result = {}
+
+  for (const field of CONTACT_FIELDS) {
+    if (field === 'country') {
+      result.country =
+        normalizeCountryValue(current.country) ||
+        normalizeCountryValue(stored.country) ||
+        normalizeCountryValue(profile.country) ||
+        ''
+
+      continue
+    }
+
+    result[field] = current[field] || stored[field] || profile[field] || ''
+  }
+
+  if (authStore.user?.email) {
+    result.email = authStore.user.email
+  }
+
+  result.termsAccepted = false
+
+  topupStore.setCheckoutFormData(result)
+
+  storageReady.value = true
+}
+
+const persistCheckoutForm = () => {
+  if (!storageReady.value || !checkoutFormData.value) {
+    return
+  }
+
+  saveStoredCheckoutData(checkoutFormData.value)
+}
+
 const isFormValid = computed(() => {
   const formData = checkoutFormData.value
 
-  if (!formData) {
-    return false
-  }
+  if (!formData) return false
 
   return Boolean(
-    formData.name &&
-    formData.surname &&
-    formData.phone &&
+    formData.name?.trim() &&
+    formData.surname?.trim() &&
+    formData.phone?.trim() &&
     normalizeCountryValue(formData.country) &&
-    formData.city &&
-    formData.address &&
-    formData.postCode &&
+    formData.city?.trim() &&
+    formData.address?.trim() &&
+    formData.postCode?.trim() &&
     formData.termsAccepted &&
-    (authStore.user?.email || formData.email) &&
+    (authStore.user?.email || formData.email?.trim()) &&
     topupStore.paymentType,
   )
 })
 
 const clearFieldError = field => {
-  if (!formErrors.value[field]) {
-    return
-  }
+  if (!formErrors.value[field]) return
 
-  const nextErrors = {
-    ...formErrors.value,
-  }
+  const errors = { ...formErrors.value }
 
-  delete nextErrors[field]
+  delete errors[field]
 
-  formErrors.value = nextErrors
+  formErrors.value = errors
 }
 
 const resetErrors = () => {
@@ -404,9 +480,7 @@ const validateForm = () => {
   const errors = {}
   const formData = checkoutFormData.value
 
-  if (!formData) {
-    return false
-  }
+  if (!formData) return false
 
   if (!formData.name?.trim()) {
     errors.name = 'First name is required'
@@ -422,12 +496,11 @@ const validateForm = () => {
     errors.phone = 'Please enter a valid phone number'
   }
 
-  if (!authStore.user?.email && !formData.email?.trim()) {
+  const email = authStore.user?.email || formData.email || ''
+
+  if (!email.trim()) {
     errors.email = 'Email is required'
-  } else if (
-    formData.email &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
-  ) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     errors.email = 'Please enter a valid email address'
   }
 
@@ -465,7 +538,7 @@ const validateForm = () => {
 }
 
 const applyApiErrors = error => {
-  const apiErrors = error.response?.data?.errors
+  const apiErrors = error?.response?.data?.errors
 
   if (apiErrors && typeof apiErrors === 'object') {
     const mappedErrors = {}
@@ -492,8 +565,8 @@ const applyApiErrors = error => {
   }
 
   const message =
-    error.response?.data?.message ||
-    error.message ||
+    error?.response?.data?.message ||
+    error?.message ||
     'An error occurred during checkout'
 
   formErrors.value = {
@@ -518,9 +591,7 @@ const scrollToFirstError = async () => {
 }
 
 const handlePay = async () => {
-  if (isLoading.value) {
-    return
-  }
+  if (isLoading.value) return
 
   resetErrors()
 
@@ -533,7 +604,6 @@ const handlePay = async () => {
 
   try {
     const formData = checkoutFormData.value
-
     const countryId = normalizeCountryValue(formData.country)
 
     const paymentType =
@@ -541,27 +611,19 @@ const handlePay = async () => {
 
     const purchaseData = {
       name: formData.name.trim(),
-
       surname: formData.surname.trim(),
-
       email: authStore.user?.email || formData.email.trim(),
-
       phone: formData.phone.trim(),
-
       country: countryId,
-
       country_id: countryId,
-
       city: formData.city.trim(),
-
       address: formData.address.trim(),
-
       postCode: formData.postCode.trim(),
-
       post_code: formData.postCode.trim(),
-
       paymentType,
     }
+
+    persistCheckoutForm()
 
     const response = await purchaseStore.purchaseCartItems(purchaseData)
 
@@ -570,7 +632,6 @@ const handlePay = async () => {
 
       if (response.redirect_url) {
         window.location.assign(response.redirect_url)
-
         return
       }
 
@@ -592,8 +653,8 @@ const handlePay = async () => {
     applyApiErrors(error)
 
     purchaseStore.error =
-      error.response?.data?.message ||
-      error.message ||
+      error?.response?.data?.message ||
+      error?.message ||
       'An error occurred during checkout'
 
     await scrollToFirstError()
@@ -602,98 +663,63 @@ const handlePay = async () => {
   }
 }
 
-const getProfileCountry = profile => {
-  return normalizeCountryValue(profile.country_id ?? profile.country ?? '')
-}
-
-const prefillFormData = () => {
-  const profile = userStore.user || {}
-
-  const authUser = authStore.user || {}
-
-  const current = checkoutFormData.value || {}
-
-  topupStore.setCheckoutFormData({
-    name: current.name || profile.name || '',
-
-    surname: current.surname || profile.surname || '',
-
-    phone: current.phone || profile.phone || '',
-
-    email: authUser.email || current.email || profile.email || '',
-
-    country:
-      normalizeCountryValue(current.country) || getProfileCountry(profile),
-
-    city: current.city || profile.city || '',
-
-    address: current.address || profile.address || '',
-
-    postCode:
-      current.postCode ||
-      profile.post_code ||
-      profile.postCode ||
-      profile.zip ||
-      '',
-
-    termsAccepted: Boolean(current.termsAccepted),
-  })
-}
-
 const initializeModal = async () => {
   isLoading.value = true
+  storageReady.value = false
   resetErrors()
 
   try {
-    await Promise.all([
+    const results = await Promise.allSettled([
       countriesStore.countries?.length
         ? Promise.resolve()
         : countriesStore.fetchCountries(),
 
-      userStore.user ? Promise.resolve() : userStore.fetchProfile(),
+      userStore.fetchProfile(),
 
       settingsStore.settings
         ? Promise.resolve()
         : settingsStore.fetchSettings(),
     ])
 
-    await nextTick()
-
-    prefillFormData()
-  } catch (error) {
-    console.error('Failed to initialize cart checkout modal:', error)
-
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'Unable to prepare checkout.'
-
-    formErrors.value = {
-      ...formErrors.value,
-      general: message,
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        console.error('Checkout initialization request failed:', result.reason)
+      }
     }
-
-    toast.error(message)
+  } catch (error) {
+    console.error('Failed to initialize checkout:', error)
   } finally {
+    prefillFormData()
     isLoading.value = false
   }
 }
 
 const close = () => {
-  if (isLoading.value) {
-    return
-  }
+  if (isLoading.value) return
 
+  persistCheckoutForm()
   resetErrors()
 
   emit('close')
 }
 
 watch(
+  checkoutFormData,
+  () => {
+    persistCheckoutForm()
+  },
+  {
+    deep: true,
+  },
+)
+
+watch(
   () => props.show,
-  value => {
-    if (value) {
+  show => {
+    if (show) {
       initializeModal()
+    } else {
+      storageReady.value = false
     }
   },
   {
@@ -704,11 +730,9 @@ watch(
 watch(
   () => authStore.user?.email,
   email => {
-    if (email && checkoutFormData.value) {
-      topupStore.setCheckoutFormData({
-        email,
-      })
-    }
+    if (!email || !checkoutFormData.value) return
+
+    topupStore.setCheckoutFormData({ email })
   },
 )
 </script>

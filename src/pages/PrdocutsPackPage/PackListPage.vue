@@ -4,200 +4,167 @@
       <img src="@/assets/img/product-list-bg.png" alt="" />
     </div>
 
-    <div class="packs-page__inner _cnt">
-      <section class="packs-page__catalog catalog">
-        <div class="catalog__top">
-          <h1 class="catalog__title _h3">
-            {{ $t('Card Packs') }}
-          </h1>
-        </div>
+    <div class="packs-page__container _cnt">
+      <div class="packs-page__decoration" aria-hidden="true">
+        <img src="@/assets/img/product-list-decor.png" alt="" />
+      </div>
 
-        <div class="catalog__body">
-          <LoadingSpinner v-if="loading" class="catalog__loader" />
-
-          <div v-else-if="error" class="catalog__empty empty">
-            <div class="empty__title _h3">
-              {{ $t('Unable to load packs') }}
-            </div>
-
-            <div class="empty__text">
-              {{ error }}
-            </div>
-
-            <BaseButton
-              type="button"
-              variant="hint-bordered"
-              class="empty__button"
-              @click="reloadCatalog"
-            >
-              {{ $t('Try again') }}
-            </BaseButton>
+      <div class="packs-page__inner">
+        <div class="packs-page__catalog catalog">
+          <div class="catalog__top">
+            <h1 class="catalog__title _h3">
+              {{ $t('Packs') }}
+            </h1>
           </div>
 
-          <div v-else-if="packs.length" class="catalog__items">
-            <div
-              v-for="pack in packs"
-              :key="pack.id"
-              class="catalog__item pack-item"
-            >
-              <PackCard
-                :product="pack"
-                class="pack-item__card"
-                @open="openPackDetails"
-              />
-            </div>
-          </div>
+          <div class="catalog__body">
+            <LoadingSpinner v-if="loading" class="catalog__loader" />
 
-          <div v-else class="catalog__empty empty">
-            <div class="empty__title _h3">
-              {{ $t('No packs found') }}
-            </div>
+            <div v-else-if="error" class="catalog__empty empty">
+              <h2 class="empty__title _h4">
+                {{ $t('Unable to load packs') }}
+              </h2>
 
-            <BaseButton
-              type="button"
-              variant="hint-bordered"
-              class="empty__button"
-              @click="resetFilters"
-            >
-              {{ $t('Clear all') }}
-            </BaseButton>
-          </div>
-        </div>
-
-        <div
-          v-if="!loading && packs.length && totalPages > 1"
-          class="catalog__pagination pagination"
-        >
-          <div class="pagination__info">
-            {{ $t('Results') }}
-            {{ resultStart }}–{{ resultEnd }}
-            {{ $t('out of') }}
-            {{ pagination.total }}
-          </div>
-
-          <PaginationComponent
-            class="pagination__component"
-            :total-pages="totalPages"
-            :current-page="Number(filters.page)"
-            :is-small="isMobileView"
-            @update:current-page="onPageChange"
-          />
-        </div>
-      </section>
-
-      <aside class="packs-page__aside my-packs">
-        <div class="my-packs__top">
-          <div class="my-packs__title _h4">
-            {{ $t('My Packs') }}
-          </div>
-
-          <div
-            v-if="false"
-            class="my-packs__search"
-            :class="{
-              'my-packs__search_active':
-                isOwnedSearchFocused || ownedSearch.length,
-            }"
-          >
-            <BaseInput
-              v-model="ownedSearch"
-              class="my-packs__search-input"
-              :placeholder="$t('Search')"
-              :aria-label="$t('Search my packs')"
-              autocomplete="off"
-              @focus="isOwnedSearchFocused = true"
-              @blur="isOwnedSearchFocused = false"
-              @keydown.enter.prevent="applyOwnedSearchImmediately"
-            >
-              <template #suffix>
-                <SvgIcon :icon="SearchIcon" class="my-packs__search-icon" />
-              </template>
-            </BaseInput>
-          </div>
-        </div>
-
-        <div class="my-packs__frame">
-          <div class="my-packs__body">
-            <LoadingSpinner v-if="ownedLoading" class="owned-packs__loader" />
-
-            <div v-else-if="ownedError" class="owned-packs__state">
-              <div class="owned-packs__state-title">
-                {{ $t('Unable to load your packs') }}
-              </div>
-
-              <div class="owned-packs__state-text">
-                {{ ownedError }}
-              </div>
+              <p class="empty__text">
+                {{ error }}
+              </p>
 
               <BaseButton
                 type="button"
                 variant="hint-bordered"
-                class="owned-packs__state-button"
-                @click="fetchOwnedPacks"
+                class="empty__button"
+                @click="reloadCatalog"
               >
                 {{ $t('Try again') }}
               </BaseButton>
             </div>
 
-            <div
-              v-else-if="filteredOwnedPacks.length"
-              class="owned-packs__items"
-            >
-              <button
-                v-for="pack in filteredOwnedPacks"
-                :key="getOwnedPackKey(pack)"
-                type="button"
-                class="owned-packs__item"
-                :aria-label="`${$t('Open')} ${getPackName(pack)}`"
-                @click="openUnpackModal(pack)"
-              >
-                <div class="owned-packs__image">
-                  <img :src="getPackImage(pack)" :alt="getPackName(pack)" />
-                </div>
-
-                <div class="owned-packs__info">
-                  <div class="owned-packs__name">
-                    {{ getPackName(pack) }}
-                  </div>
-
-                  <div
-                    v-if="getPackQuantity(pack) > 1"
-                    class="owned-packs__quantity"
-                  >
-                    ×{{ getPackQuantity(pack) }}
-                  </div>
-                </div>
-              </button>
+            <div v-else-if="packs.length" class="catalog__items">
+              <PackCard
+                v-for="pack in packs"
+                :key="pack.id"
+                :product="pack"
+                class="catalog__card"
+                @open="openPackDetails"
+              />
             </div>
 
-            <div v-else class="owned-packs__state">
-              <template v-if="hasAppliedOwnedSearch">
-                <div class="owned-packs__state-title">
-                  {{ $t('No matching packs found') }}
-                </div>
+            <div v-else class="catalog__empty empty">
+              <h2 class="empty__title _h4">
+                {{ $t('No packs found') }}
+              </h2>
 
-                <div class="owned-packs__state-text">
-                  {{ $t('Delete the search value and try another pack name.') }}
-                </div>
-              </template>
+              <BaseButton
+                type="button"
+                variant="hint-bordered"
+                class="empty__button"
+                @click="resetFilters"
+              >
+                {{ $t('Clear all') }}
+              </BaseButton>
+            </div>
+          </div>
 
-              <template v-else>
-                <div class="owned-packs__state-title">
+          <div
+            v-if="!loading && packs.length && totalPages > 1"
+            class="catalog__pagination pagination"
+          >
+            <div class="pagination__info">
+              {{ $t('Results') }}
+              {{ resultStart }}–{{ resultEnd }}
+              {{ $t('out of') }}
+              {{ pagination.total }}
+            </div>
+
+            <PaginationComponent
+              class="pagination__component"
+              :total-pages="totalPages"
+              :current-page="Number(filters.page)"
+              :is-small="isMobileView"
+              @update:current-page="onPageChange"
+            />
+          </div>
+        </div>
+
+        <aside class="packs-page__aside my-packs">
+          <div class="my-packs__top">
+            <h2 class="my-packs__title _h4">
+              {{ $t('My Packs') }}
+            </h2>
+          </div>
+
+          <div class="my-packs__frame">
+            <div class="my-packs__body">
+              <LoadingSpinner v-if="ownedLoading" class="owned-packs__loader" />
+
+              <div v-else-if="ownedError" class="owned-packs__state">
+                <h3 class="owned-packs__state-title">
+                  {{ $t('Unable to load your packs') }}
+                </h3>
+
+                <p class="owned-packs__state-text">
+                  {{ ownedError }}
+                </p>
+
+                <BaseButton
+                  type="button"
+                  variant="hint-bordered"
+                  class="owned-packs__state-button"
+                  @click="fetchOwnedPacks"
+                >
+                  {{ $t('Try again') }}
+                </BaseButton>
+              </div>
+
+              <div v-else-if="ownedPacks.length" class="owned-packs__items">
+                <button
+                  v-for="pack in ownedPacks"
+                  :key="getOwnedPackKey(pack)"
+                  type="button"
+                  class="owned-packs__item"
+                  :aria-label="`${$t('Open')} ${getPackName(pack)}`"
+                  @click="openUnpackModal(pack)"
+                >
+                  <span class="owned-packs__image">
+                    <img
+                      :src="getPackImage(pack)"
+                      :alt="getPackName(pack)"
+                      loading="lazy"
+                    />
+                  </span>
+
+                  <span class="owned-packs__info">
+                    <span class="owned-packs__name">
+                      {{ getPackName(pack) }}
+                    </span>
+
+                    <span
+                      v-if="getPackQuantity(pack) > 1"
+                      class="owned-packs__quantity"
+                    >
+                      ×{{ getPackQuantity(pack) }}
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              <div v-else class="owned-packs__state">
+                <p class="owned-packs__state-title">
                   {{ $t("You don't have any card packs yet.") }}
-                </div>
+                </p>
 
-                <div class="owned-packs__state-text">
+                <p class="owned-packs__state-text">
                   {{
                     $t(
                       'Purchase a pack to open it and increase your chances of winning.',
                     )
                   }}
-                </div>
-              </template>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
     </div>
 
     <PackDetailsModal
@@ -218,14 +185,11 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import defaultImage from '@/assets/images/default-image.png'
 import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
-import { SearchIcon } from '@/components/icons'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProductList } from '@/composables/useProductList'
@@ -235,9 +199,7 @@ import PackCard from './components/PackCard.vue'
 import PackDetailsModal from './modals/PackDetailsModal.vue'
 import UnpackPackModal from './modals/UnpackPackModal.vue'
 
-const OWNED_SEARCH_DELAY = 400
 const OWNED_PACKS_PER_PAGE = 200
-
 const STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
 
 const isMobileView = useMediaQuery('(max-width: 767.98px)')
@@ -245,10 +207,6 @@ const isMobileView = useMediaQuery('(max-width: 767.98px)')
 const ownedPacks = ref([])
 const ownedLoading = ref(true)
 const ownedError = ref('')
-
-const ownedSearch = ref('')
-const appliedOwnedSearch = ref('')
-const isOwnedSearchFocused = ref(false)
 
 const selectedPackId = ref(null)
 const selectedPack = ref(null)
@@ -258,7 +216,6 @@ const selectedOwnedPackId = ref(null)
 const selectedOwnedPack = ref(null)
 const isUnpackModalOpen = ref(false)
 
-let ownedSearchTimer = null
 let ownedPacksRequestId = 0
 
 const {
@@ -271,10 +228,6 @@ const {
   resetFilters: originalResetFilters,
   fetchPacks,
 } = useProductList()
-
-const hasAppliedOwnedSearch = computed(() => {
-  return appliedOwnedSearch.value.length > 0
-})
 
 const totalPages = computed(() => {
   const total = Number(pagination.total) || 0
@@ -445,7 +398,6 @@ const groupOwnedPackInstances = instances => {
     if (existingGroup) {
       existingGroup.quantity += 1
       existingGroup.instances.push(instance)
-
       return
     }
 
@@ -540,7 +492,6 @@ const fetchOwnedPacks = async () => {
     if (requestError?.response?.status === 401) {
       ownedPacks.value = []
       ownedError.value = ''
-
       return
     }
 
@@ -610,73 +561,29 @@ const handlePackOpened = async ({ packId, cards }) => {
   await fetchOwnedPacks()
 }
 
-const filteredOwnedPacks = computed(() => {
-  const search = appliedOwnedSearch.value.toLocaleLowerCase()
-
-  if (!search) {
-    return ownedPacks.value
-  }
-
-  return ownedPacks.value.filter(pack => {
-    const name = String(getPackName(pack)).toLocaleLowerCase()
-
-    return name.includes(search)
-  })
-})
-
-const applyOwnedSearch = value => {
-  appliedOwnedSearch.value = String(value || '')
-    .trim()
-    .toLocaleLowerCase()
-}
-
-const applyOwnedSearchImmediately = () => {
-  if (ownedSearchTimer) {
-    window.clearTimeout(ownedSearchTimer)
-    ownedSearchTimer = null
-  }
-
-  applyOwnedSearch(ownedSearch.value)
-}
-
-watch(ownedSearch, value => {
-  if (ownedSearchTimer) {
-    window.clearTimeout(ownedSearchTimer)
-  }
-
-  ownedSearchTimer = window.setTimeout(() => {
-    applyOwnedSearch(value)
-    ownedSearchTimer = null
-  }, OWNED_SEARCH_DELAY)
-})
-
 onMounted(() => {
   fetchOwnedPacks()
 })
 
 onBeforeUnmount(() => {
   ownedPacksRequestId += 1
-
-  if (ownedSearchTimer) {
-    window.clearTimeout(ownedSearchTimer)
-    ownedSearchTimer = null
-  }
 })
 </script>
 
 <style lang="scss" scoped>
 .packs-page {
-  @include adaptiveValue('padding-top', 97, 75);
-  @include adaptiveValue('padding-bottom', 40, 25);
+  @include adaptiveValue('padding-top', 78, 60);
+  @include adaptiveValue('padding-bottom', 44, 28);
 
   position: relative;
 
   display: flex;
+  overflow: hidden;
   flex: 1 1 auto;
 
   width: 100%;
   min-width: 0;
-  min-height: 780px;
+  min-height: 550px;
 
   background-color: var(--bg-primary-color);
 
@@ -696,40 +603,83 @@ onBeforeUnmount(() => {
     }
   }
 
-  &__inner {
-    @include adaptiveValue('gap', 48, 20);
-
+  &__container {
     position: relative;
     z-index: 1;
 
-    display: grid;
-    align-items: start;
-    grid-template-columns: minmax(0, 1fr) 330px;
+    display: flex;
+    flex-direction: column;
 
     width: 100%;
-  }
-
-  &__catalog {
     min-width: 0;
   }
 
+  &__decoration {
+    position: relative;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    width: 100%;
+    height: 32px;
+
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid var(--border-priamry-color);
+
+    img {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+
+      display: block;
+
+      width: min(250px, 55vw);
+      max-height: 50px;
+
+      object-fit: contain;
+      object-position: center bottom;
+
+      transform: translateX(-50%);
+    }
+  }
+
+  &__inner {
+    @include adaptiveValue('gap', 45, 20);
+
+    display: grid;
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__catalog,
   &__aside {
     min-width: 0;
   }
 
   @media (max-width: $md3) {
     &__inner {
-      display: flex;
-      flex-direction: column;
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    &__catalog,
     &__aside {
       width: 100%;
     }
+  }
 
-    &__aside {
-      order: -1;
+  @media (max-width: $md4) {
+    &__decoration {
+      height: 25px;
+
+      margin-bottom: 18px;
+
+      img {
+        max-height: 36px;
+      }
     }
   }
 }
@@ -738,18 +688,45 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
 
+  width: 100%;
   min-width: 0;
 
-  &__top {
-    text-align: center;
+  .catalog {
+    &__top {
+      position: relative;
+      left: calc((330px + 45px) / 2);
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 42, 25);
+      width: 100%;
+
+      text-align: center;
+
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 34, 22);
+      }
+    }
+
+    @media (max-width: $md2) {
+      &__top {
+        left: calc((330px + 20px) / 2);
+      }
+    }
+
+    @media (max-width: $md3) {
+      &__top {
+        left: 0;
+      }
     }
   }
 
   &__title {
+    @include adaptiveValue('font-size', 32, 26);
+
+    margin: 0;
+
     color: var(--primary-color);
+    font-weight: 500;
+    line-height: 1.2;
+    text-transform: none;
   }
 
   &__body {
@@ -757,7 +734,8 @@ onBeforeUnmount(() => {
     flex: 1 1 auto;
     flex-direction: column;
 
-    min-height: 500px;
+    width: 100%;
+    min-height: 340px;
   }
 
   &__loader {
@@ -765,17 +743,65 @@ onBeforeUnmount(() => {
   }
 
   &__items {
-    @include adaptiveValue('gap', 64, 20);
+    @include adaptiveValue('column-gap', 60, 16);
+    @include adaptiveValue('row-gap', 30, 20);
 
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    position: relative;
+    left: 0;
+
+    display: grid;
+    align-items: start;
     justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 230px));
+
+    width: 100%;
+    max-width: 520px;
+
+    margin: 0 auto;
   }
 
-  &__item {
+  @media (min-width: 1600px) {
+    &__items {
+      left: calc((330px + 45px) / 2);
+    }
+  }
+
+  @media (max-width: $md2) {
+    &__items {
+      grid-template-columns: repeat(2, minmax(0, 205px));
+
+      max-width: 430px;
+    }
+  }
+
+  @media (max-width: $md3) {
+    &__items {
+      grid-template-columns: repeat(2, minmax(0, 230px));
+
+      max-width: 520px;
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__items {
+      column-gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 359.98px) {
+    &__items {
+      grid-template-columns: minmax(0, 220px);
+
+      max-width: 220px;
+    }
+  }
+
+  &__card {
     width: 100%;
-    max-width: 310px;
+    min-width: 0;
   }
 
   &__empty {
@@ -783,163 +809,201 @@ onBeforeUnmount(() => {
   }
 
   &__pagination {
-    @include adaptiveValue('margin-top', 48, 25);
+    @include adaptiveValue('margin-top', 35, 22);
+  }
+
+  :deep(.pack-card) {
+    width: 100%;
+    max-width: none;
+
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :deep(.pack-card__body) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+
+    padding: 0;
+
+    background: transparent;
+  }
+
+  :deep(.pack-card__title) {
+    order: 2;
+
+    width: 100%;
+
+    margin: 0;
+    margin-top: 14px;
+
+    color: var(--secondary-color);
+    font-family: var(--font-inter);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    text-transform: none;
+  }
+
+  :deep(.pack-card__preview) {
+    display: block;
+    order: 1;
+
+    width: 100%;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+  }
+
+  :deep(.pack-card__image) {
+    display: flex;
+    overflow: visible;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: auto;
+    aspect-ratio: 0.75;
+
+    background: transparent;
+
+    img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: contain;
+
+      transition: transform 0.3s ease;
+    }
+  }
+
+  :deep(.pack-card__preview:hover .pack-card__image img) {
+    transform: translateY(-5px);
+  }
+
+  :deep(.pack-card__footer) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    order: 3;
+    gap: 10px;
+
+    width: 100%;
+
+    margin-top: 12px;
+  }
+
+  :deep(.pack-card__price) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+
+    margin: 0;
+  }
+
+  :deep(.pack-card__cart) {
+    width: 100%;
+    max-width: 180px;
   }
 
   @media (max-width: $md2) {
     &__items {
-      gap: 25px;
-    }
-
-    &__item {
-      max-width: 280px;
+      grid-template-columns: repeat(2, minmax(0, 205px));
     }
   }
 
-  @media (max-width: $md4) {
-    &__item {
-      max-width: min(100%, 320px);
-    }
-  }
-}
-
-.pack-item {
-  text-align: center;
-
-  &__title {
-    color: var(--primary-color);
-    font-weight: 500;
-    text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
+  @media (max-width: $md3) {
+    &__items {
+      grid-template-columns: repeat(2, minmax(0, 230px));
     }
   }
 
-  &__card {
-    width: 100%;
+  @media (max-width: $md6) {
+    &__items {
+      column-gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    :deep(.pack-card__title) {
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 359.98px) {
+    &__items {
+      grid-template-columns: minmax(0, 220px);
+    }
   }
 }
 
 .my-packs {
-  position: sticky;
-  top: 90px;
+  position: relative;
 
-  height: fit-content;
+  width: 100%;
+  min-width: 0;
 
   &__top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;
+
+    min-height: 39px;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
+      @include adaptiveValue('margin-bottom', 18, 14);
     }
   }
 
   &__title {
+    @include adaptiveValue('font-size', 24, 21);
+
+    margin: 0;
+
     color: var(--primary-color);
     font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
     text-transform: none;
   }
 
-  &__search {
-    width: 40px;
-
-    transition: width 0.3s ease;
-
-    :deep(.base-input__control) {
-      padding-right: 38px;
-      padding-left: 10px;
-
-      border-color: transparent;
-      background-color: transparent;
-
-      &::placeholder {
-        opacity: 0;
-      }
-    }
-
-    &_active {
-      width: 150px;
-
-      :deep(.base-input__control) {
-        border-color: var(--border-fourth-color);
-        background-color: var(--bg-secondary-color);
-
-        &::placeholder {
-          opacity: 1;
-        }
-      }
-    }
-
-    @media (any-hover: hover) {
-      &:hover {
-        width: 150px;
-
-        :deep(.base-input__control) {
-          border-color: var(--border-fourth-color);
-          background-color: var(--bg-secondary-color);
-
-          &::placeholder {
-            opacity: 1;
-          }
-        }
-      }
-    }
-  }
-
-  &__search-icon {
-    width: 18px;
-    min-width: 18px;
-    height: 18px;
-
-    color: var(--hint-secondary-color);
-  }
-
   &__frame {
-    min-height: 520px;
+    @include adaptiveValue('min-height', 385, 270);
 
-    border: 1px solid var(--border-secondary-color);
-    background-color: rgb(24 28 37 / 84%);
+    overflow: hidden;
+
+    width: 100%;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 12px;
+    background: rgb(51 46 91 / 75%);
   }
 
   &__body {
-    min-height: 520px;
+    @include adaptiveValue('min-height', 383, 268);
 
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+
+    padding: 15px;
   }
 
   @media (max-width: $md3) {
-    position: relative;
-    top: auto;
-
     &__frame,
     &__body {
-      min-height: 250px;
-    }
-  }
-
-  @media (max-width: $md5) {
-    &__top {
-      flex-wrap: wrap;
-    }
-
-    &__search,
-    &__search_active {
-      width: 100%;
-    }
-
-    &__search {
-      :deep(.base-input__control) {
-        border-color: var(--border-fourth-color);
-        background-color: var(--bg-secondary-color);
-
-        &::placeholder {
-          opacity: 1;
-        }
-      }
+      min-height: 220px;
     }
   }
 }
@@ -948,28 +1012,33 @@ onBeforeUnmount(() => {
   &__loader {
     display: flex;
 
-    margin: 50px auto;
+    margin: auto;
   }
 
   &__items {
     display: flex;
     flex-direction: column;
+    gap: 4px;
+
+    width: 100%;
   }
 
   &__item {
     display: grid;
     align-items: center;
-    gap: 18px;
-    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 15px;
+    grid-template-columns: 62px minmax(0, 1fr);
 
     width: 100%;
+    min-height: 72px;
 
-    padding: 10px;
+    padding: 8px 10px;
 
-    border: 0;
-    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
 
-    color: inherit;
+    color: var(--primary-color);
     text-align: left;
 
     cursor: pointer;
@@ -978,37 +1047,40 @@ onBeforeUnmount(() => {
       background-color 0.3s ease,
       border-color 0.3s ease;
 
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: rgb(255 255 255 / 3%);
-
-        .owned-packs__image {
-          transform: translateY(-3px);
-        }
-
-        .owned-packs__name {
-          color: var(--primary-color);
-        }
-      }
+    &:focus-visible {
+      border-color: var(--border-secondary-color);
+      outline: none;
     }
 
-    &:focus-visible {
-      outline: 1px solid var(--hint-secondary-color);
-      outline-offset: -1px;
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--border-priamry-color);
+        background-color: rgb(255 255 255 / 5%);
+
+        .owned-packs__image img {
+          transform: translateY(-3px);
+        }
+      }
     }
   }
 
   &__image {
-    width: 82px;
-    aspect-ratio: 0.7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    transition: transform 0.3s ease;
+    width: 62px;
+    height: 60px;
 
     img {
+      display: block;
+
       width: 100%;
       height: 100%;
 
       object-fit: contain;
+
+      transition: transform 0.3s ease;
     }
   }
 
@@ -1016,7 +1088,7 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 
     min-width: 0;
   }
@@ -1024,61 +1096,60 @@ onBeforeUnmount(() => {
   &__name {
     overflow: hidden;
 
-    color: var(--secondary-color);
+    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    line-height: 140%;
+    line-height: 1.4;
     text-overflow: ellipsis;
-    white-space: nowrap;
-
-    transition: color 0.3s ease;
   }
 
   &__quantity {
     flex-shrink: 0;
 
-    color: var(--hint-third-color);
+    color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
   }
 
   &__state {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 20px;
 
-    min-height: 490px;
+    width: 100%;
 
-    padding: 30px 15px;
+    padding: 28px 12px;
 
     text-align: center;
   }
 
   &__state-title {
-    max-width: 250px;
+    max-width: 240px;
 
-    color: var(--secondary-color);
+    margin: 0;
+
+    color: var(--primary-color);
+    font-family: var(--font-inter);
     font-size: 14px;
-    line-height: 140%;
-
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+    font-weight: 400;
+    line-height: 1.4;
   }
 
   &__state-text {
-    max-width: 250px;
+    max-width: 240px;
+
+    margin: 0;
 
     color: var(--secondary-color);
+    font-family: var(--font-inter);
     font-size: 13px;
-    line-height: 140%;
-
-    &:not(:last-child) {
-      margin-bottom: 20px;
-    }
+    font-weight: 400;
+    line-height: 1.4;
   }
 
   &__state-button {
@@ -1089,31 +1160,17 @@ onBeforeUnmount(() => {
   @media (max-width: $md3) {
     &__items {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    &__item {
-      grid-template-columns: 70px minmax(0, 1fr);
-    }
-
-    &__image {
-      width: 70px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     &__state {
-      min-height: 220px;
-    }
-  }
-
-  @media (max-width: $md4) {
-    &__items {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: center;
     }
   }
 
   @media (max-width: $md6) {
     &__items {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 }
@@ -1124,29 +1181,26 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
 
-  min-height: 350px;
+  min-height: 280px;
 
-  padding: 30px;
+  padding: 25px;
 
   text-align: center;
 
   &__title {
-    color: var(--primary-color);
+    margin: 0 0 14px;
 
-    &:not(:last-child) {
-      margin-bottom: 14px;
-    }
+    color: var(--primary-color);
   }
 
   &__text {
     max-width: 420px;
 
-    color: var(--secondary-color);
-    line-height: 150%;
+    margin: 0 0 20px;
 
-    &:not(:last-child) {
-      margin-bottom: 24px;
-    }
+    color: var(--secondary-color);
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   &__button {
@@ -1166,7 +1220,7 @@ onBeforeUnmount(() => {
   &__info {
     color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
   }
 

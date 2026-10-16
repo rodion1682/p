@@ -20,18 +20,11 @@
       class="pack-details pack-details_error"
     >
       <div class="pack-details__state">
-        <div class="pack-details__state-title _h3">
-          {{ $t('Unable to load pack') }}
-        </div>
-
-        <div class="pack-details__state-message">
-          {{ error }}
-        </div>
-
+        <h2 class="_h4">{{ $t('Unable to load pack') }}</h2>
+        <p>{{ error }}</p>
         <BaseButton
           type="button"
           variant="hint-bordered"
-          class="pack-details__state-button"
           @click="fetchPackDetails"
         >
           {{ $t('Try again') }}
@@ -51,37 +44,20 @@
 
       <div class="pack-details__content">
         <div class="pack-details__main">
-          <h2 :id="titleId" class="pack-details__title _h4">
-            {{ packName }}
-          </h2>
+          <h2 :id="titleId" class="pack-details__title _h4">{{ packName }}</h2>
 
           <div v-if="hasPackStats" class="pack-details__stats">
-            <div class="pack-details__stats-row pack-details__stats-row_head">
-              <div class="pack-details__stats-cell">
-                {{ $t('Cards') }}
-              </div>
-
-              <div
-                v-for="item in rarityProbabilities"
-                :key="`head-${item.rarity}`"
-                class="pack-details__stats-cell"
-              >
-                {{ formatRarity(item.rarity) }}
-              </div>
+            <div v-if="cardCount" class="pack-details__stat">
+              <span>{{ $t('Cards') }}:</span>
+              <strong>{{ cardCount }}</strong>
             </div>
-
-            <div class="pack-details__stats-row">
-              <div class="pack-details__stats-cell">
-                {{ cardCount }}
-              </div>
-
-              <div
-                v-for="item in rarityProbabilities"
-                :key="`value-${item.rarity}`"
-                class="pack-details__stats-cell"
-              >
-                {{ formatProbability(item.probability) }}
-              </div>
+            <div
+              v-for="item in rarityProbabilities"
+              :key="item.rarity"
+              class="pack-details__stat"
+            >
+              <span>{{ formatRarity(item.rarity) }}:</span>
+              <strong>{{ formatProbability(item.probability) }}</strong>
             </div>
           </div>
 
@@ -92,16 +68,10 @@
             <div
               v-for="item in guaranteedRarities"
               :key="item.rarity"
-              class="pack-details__guaranteed-item"
+              class="pack-details__stat"
             >
-              <span class="pack-details__guaranteed-label">
-                {{ formatRarity(item.rarity) }}
-              </span>
-
-              <span class="pack-details__guaranteed-value">
-                {{ item.quantity }}
-                {{ $t('guaranteed') }}
-              </span>
+              <span>{{ formatRarity(item.rarity) }}:</span>
+              <strong>{{ item.quantity }} {{ $t('guaranteed') }}</strong>
             </div>
           </div>
 
@@ -109,23 +79,18 @@
             <div class="pack-details__description-label">
               {{ $t('Description:') }}
             </div>
-
             <div
               v-if="currentPack.description"
               class="pack-details__description-content"
               v-html="currentPack.description"
             />
-
             <div v-else class="pack-details__description-content">—</div>
           </div>
         </div>
 
         <div class="pack-details__bottom">
           <div class="pack-details__price">
-            <div class="pack-details__control-label">
-              {{ $t('Price:') }}
-            </div>
-
+            <div class="pack-details__control-label">{{ $t('Price:') }}</div>
             <PriceFormatter
               :price="packPrice"
               size="size-32"
@@ -134,10 +99,7 @@
           </div>
 
           <div v-if="!isInCart" class="pack-details__quantity">
-            <div class="pack-details__control-label">
-              {{ $t('Q-ty:') }}
-            </div>
-
+            <div class="pack-details__control-label">{{ $t('Q-ty:') }}</div>
             <div class="pack-details__quantity-controls">
               <button
                 type="button"
@@ -148,18 +110,16 @@
               >
                 −
               </button>
-
               <input
                 v-model="quantity"
                 type="text"
                 inputmode="numeric"
                 class="pack-details__quantity-input"
                 :disabled="isSubmitting"
-                aria-label="Quantity"
+                :aria-label="$t('Quantity')"
                 @blur="normalizeQuantity"
                 @keydown.enter="normalizeQuantity"
               />
-
               <button
                 type="button"
                 class="pack-details__quantity-button"
@@ -184,9 +144,8 @@
               class="pack-details__button-loader"
               aria-hidden="true"
             />
-
             <template v-else>
-              {{ isInCart ? $t('Remove from cart') : $t('Buy') }}
+              {{ isInCart ? $t('Remove from cart') : $t('Buy pack') }}
             </template>
           </BaseButton>
         </div>
@@ -528,18 +487,16 @@ watch(
 
 <style lang="scss" scoped>
 .pack-details {
+  @include adaptiveValue('gap', 42, 18);
+  @include adaptiveValue('padding-top', 10, 0);
+  @include adaptiveValue('padding-bottom', 10, 0);
+
   display: grid;
-  align-items: stretch;
-  gap: 20px;
-  grid-template-columns:
-    minmax(330px, 44%)
-    minmax(0, 1fr);
+  align-items: center;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 
   width: 100%;
-  max-width: 1000px;
-  min-height: 530px;
-
-  margin: 0 auto;
+  min-height: 510px;
 
   &_loading,
   &_error {
@@ -547,42 +504,25 @@ watch(
     align-items: center;
     justify-content: center;
 
-    min-height: 500px;
+    min-height: 400px;
   }
 
   &__loader {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
   }
 
   &__state {
-    width: min(100%, 480px);
+    max-width: 450px;
 
-    margin: auto;
-
+    color: var(--secondary-color);
     text-align: center;
-  }
 
-  &__state-title {
-    &:not(:last-child) {
-      margin-bottom: 16px;
+    p {
+      margin: 16px 0 24px;
+
+      color: var(--error-color);
     }
-  }
-
-  &__state-message {
-    color: var(--error-color);
-
-    &:not(:last-child) {
-      margin-bottom: 24px;
-    }
-  }
-
-  &__state-button {
-    width: 100%;
-    max-width: 220px;
-
-    margin-right: auto;
-    margin-left: auto;
   }
 
   &__preview {
@@ -591,6 +531,7 @@ watch(
     justify-content: center;
 
     min-width: 0;
+    min-height: 480px;
   }
 
   &__image {
@@ -598,179 +539,110 @@ watch(
 
     width: 100%;
     max-width: 430px;
-    max-height: 545px;
+    max-height: 500px;
 
     object-fit: contain;
 
-    filter: drop-shadow(0 20px 35px rgb(0 0 0 / 30%));
+    filter: drop-shadow(0 18px 28px rgb(0 0 0 / 25%));
   }
 
   &__content {
     display: flex;
     flex-direction: column;
+    align-self: stretch;
+    justify-content: space-between;
 
     min-width: 0;
   }
 
   &__main {
     flex: 1 1 auto;
+
+    min-width: 0;
   }
 
   &__title {
+    @include adaptiveValue('margin-bottom', 34, 22);
     color: var(--primary-color);
     text-align: left;
     text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 48, 25);
-    }
   }
 
-  &__stats {
-    width: 100%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 48, 25);
-    }
+  &__stats,
+  &__guaranteed {
+    @include adaptiveValue('margin-bottom', 26, 18);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
-  &__stats-row {
+  &__stat {
     display: grid;
-    align-items: center;
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    align-items: baseline;
+    gap: 12px;
+    grid-template-columns: 92px minmax(0, 1fr);
 
-    &_head {
-      border-bottom: 1px solid var(--border-secondary-color);
-
-      .pack-details__stats-cell {
-        padding-top: 0;
-        padding-bottom: 14px;
-
-        color: var(--hint-third-color);
-        font-size: 13px;
-      }
-    }
-  }
-
-  &__stats-cell {
-    min-width: 0;
-
-    padding-top: 16px;
-    padding-right: 10px;
-    padding-bottom: 5px;
-
-    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
-    font-weight: 500;
-    text-align: left;
+    line-height: 1.35;
 
-    &:last-child {
-      padding-right: 0;
-
-      text-align: right;
+    span {
+      color: var(--secondary-color);
     }
-  }
 
-  &__guaranteed {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 24px;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 20);
+    strong {
+      color: var(--primary-color);
+      font-weight: 500;
     }
-  }
-
-  &__guaranteed-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-
-    font-family: var(--font-inter);
-    font-size: 13px;
-  }
-
-  &__guaranteed-label {
-    color: var(--hint-third-color);
-  }
-
-  &__guaranteed-value {
-    color: var(--primary-color);
   }
 
   &__description {
-    color: var(--secondary-color);
     font-family: var(--font-inter);
     font-size: 14px;
-    line-height: 150%;
+    line-height: 1.5;
   }
 
   &__description-label,
   &__control-label {
-    color: var(--hint-third-color);
+    color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
   }
 
   &__description-label {
-    &:not(:last-child) {
-      margin-bottom: 16px;
-    }
+    margin-bottom: 14px;
   }
 
   &__description-content {
     overflow-y: auto;
 
-    max-height: 170px;
+    max-height: 175px;
 
-    padding-right: 10px;
+    padding-right: 8px;
 
     color: var(--primary-color);
 
-    scrollbar-color: var(--hint-primary-color) transparent;
+    scrollbar-color: var(--border-secondary-color) transparent;
     scrollbar-width: thin;
 
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      border-radius: 4px;
-      background-color: var(--hint-primary-color);
-    }
-
     :deep(p) {
-      margin: 0;
-
-      &:not(:last-child) {
-        margin-bottom: 18px;
-      }
+      margin: 0 0 14px;
     }
 
-    :deep(ul),
-    :deep(ol) {
-      margin: 15px 0;
-      padding-left: 20px;
+    :deep(p:last-child) {
+      margin-bottom: 0;
     }
   }
 
   &__bottom {
-    @include adaptiveValue('gap', 45, 20);
-
+    @include adaptiveValue('gap', 30, 12);
     display: grid;
     align-items: end;
-    grid-template-columns:
-      minmax(150px, 1fr)
-      minmax(120px, auto)
-      minmax(170px, 190px);
+    grid-template-columns: minmax(0, 1fr) auto minmax(130px, 155px);
 
-    padding-top: 25px;
+    margin-top: 22px;
+    padding-top: 26px;
   }
 
   &__price,
@@ -788,120 +660,98 @@ watch(
 
   &__quantity-controls {
     display: flex;
-    align-items: stretch;
+    align-items: center;
 
     width: fit-content;
-    min-height: 36px;
+    height: 38px;
 
     border: 1px solid var(--border-secondary-color);
-    background-color: transparent;
+    border-radius: 5px;
+    background: var(--bg-secondary-color);
   }
 
   &__quantity-button {
     display: flex;
-    flex: 0 0 36px;
     align-items: center;
     justify-content: center;
 
-    width: 36px;
-    min-width: 36px;
+    width: 30px;
+    height: 36px;
 
     padding: 0;
 
     border: 0;
-    outline: none;
-    background-color: transparent;
+    background: transparent;
 
-    color: var(--hint-secondary-color);
-    font-family: var(--font-inter);
+    color: var(--secondary-color);
     font-size: 22px;
-    font-weight: 300;
-    line-height: 1;
 
     cursor: pointer;
 
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease,
-      opacity 0.3s ease;
-
     &:disabled {
-      opacity: 0.3;
+      opacity: 0.4;
 
       cursor: not-allowed;
     }
 
     @media (any-hover: hover) {
       &:not(:disabled):hover {
-        background-color: var(--bg-fourth-color);
-
         color: var(--primary-color);
       }
     }
   }
 
   &__quantity-input {
-    width: 44px;
+    width: 28px;
+    height: 36px;
 
-    padding: 0 4px;
+    padding: 0;
 
     border: 0;
-    outline: none;
-    background-color: transparent;
+    outline: 0;
+    background: transparent;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
-    font-weight: 500;
     text-align: center;
-
-    appearance: textfield;
-
-    &::-webkit-inner-spin-button,
-    &::-webkit-outer-spin-button {
-      margin: 0;
-
-      appearance: none;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-    }
   }
 
   &__button {
-    @include adaptiveValue('min-height', 48, 40);
-
     width: 100%;
+    min-height: 40px;
 
-    font-family: var(--font-spectral);
-    font-size: 14px;
+    font-family: var(--font-inter);
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
   }
 
   &__button-loader {
-    width: 20px;
-    height: 20px;
+    display: inline-block;
+
+    width: 18px;
+    height: 18px;
 
     border: 2px solid currentColor;
     border-radius: 50%;
 
     animation: pack-details-spin 0.8s linear infinite;
 
-    border-bottom-color: transparent;
     border-right-color: transparent;
   }
 
   @media (max-width: $md3) {
-    gap: 30px;
-    grid-template-columns:
-      minmax(260px, 38%)
-      minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+
+    min-height: 0;
+
+    &__preview {
+      min-height: 360px;
+    }
 
     &__bottom {
-      gap: 15px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr) auto;
     }
 
     &__button {
@@ -910,51 +760,38 @@ watch(
   }
 
   @media (max-width: $md4) {
-    display: block;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
 
     &__preview {
-      &:not(:last-child) {
-        margin-bottom: 30px;
-      }
+      min-height: 0;
     }
 
     &__image {
-      width: min(72vw, 380px);
-      max-height: 420px;
+      width: min(100%, 330px);
+      max-height: 390px;
     }
 
     &__title {
       text-align: center;
     }
-  }
-
-  @media (max-width: $md6) {
-    &__stats {
-      overflow-x: auto;
-    }
-
-    &__stats-row {
-      min-width: 390px;
-    }
 
     &__bottom {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    &__price,
-    &__quantity {
-      align-items: center;
-    }
-
-    &__price-value {
-      margin-right: auto;
-      margin-left: auto;
+      grid-template-columns: minmax(0, 1fr) auto minmax(125px, 150px);
     }
 
     &__button {
-      width: 100%;
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__bottom {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    &__button {
+      grid-column: 1 / -1;
     }
   }
 }
@@ -967,5 +804,6 @@ watch(
 
 :global(.pack-details-modal__content) {
   width: 100%;
+  min-width: 0;
 }
 </style>
