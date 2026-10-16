@@ -8,20 +8,18 @@
     @close="handleClose"
     @update:show="handleShowUpdate"
   >
+    <template v-if="heroImage && currentProduct && !loading" #hero>
+      <img :src="heroImage" alt="" />
+    </template>
+
     <div v-if="loading" class="product-details product-details_loading">
       <LoadingSpinner class="product-details__loader" />
     </div>
 
     <div v-else-if="error" class="product-details product-details_error">
       <div class="product-details__state">
-        <h2 class="product-details__state-title _h4">
-          {{ $t('Unable to load product') }}
-        </h2>
-
-        <p class="product-details__state-message">
-          {{ error }}
-        </p>
-
+        <h2 class="_h4">{{ $t('Unable to load product') }}</h2>
+        <p>{{ error }}</p>
         <BaseButton
           type="button"
           variant="hint-bordered"
@@ -34,10 +32,6 @@
 
     <div v-else-if="currentProduct" class="product-details">
       <div class="product-details__preview">
-        <div v-if="heroImage" class="product-details__hero" aria-hidden="true">
-          <img :src="heroImage" alt="" />
-        </div>
-
         <div class="product-details__card">
           <img
             v-if="currentProduct.image"
@@ -129,17 +123,17 @@
           </div>
 
           <div class="product-details__description">
-            <div class="product-details__section-label">
+            <div class="product-details__label">
               {{ $t('Description:') }}
             </div>
 
             <div
-              class="product-details__description-content"
+              class="product-details__description-text"
               v-html="currentProduct.description || '—'"
             />
           </div>
 
-          <div class="product-details__switcher-wrap">
+          <div class="product-details__purchase">
             <div
               class="product-details__switcher"
               role="group"
@@ -171,7 +165,7 @@
 
         <div class="product-details__bottom">
           <div class="product-details__price">
-            <div class="product-details__control-label">
+            <div class="product-details__label">
               {{ $t('Price:') }}
             </div>
 
@@ -180,19 +174,19 @@
                 v-if="hasOldPrice"
                 class="product-details__old-price"
                 :price="oldPrice"
-                size="size-20"
+                size="size-28"
               />
 
               <PriceFormatter
                 v-if="hasValue(displayPrice)"
                 :price="displayPrice"
-                size="size-32"
+                size="size-40"
               />
             </div>
           </div>
 
           <div v-if="purchaseMode === 'buy'" class="product-details__quantity">
-            <div class="product-details__control-label">
+            <div class="product-details__label">
               {{ $t('Q-ty:') }}
             </div>
 
@@ -231,7 +225,7 @@
           </div>
 
           <div v-else class="product-details__rental">
-            <div class="product-details__control-label">
+            <div class="product-details__label">
               {{ $t('Rent Period:') }}
             </div>
 
@@ -898,10 +892,8 @@ watch(
 <style lang="scss" scoped>
 .product-details {
   @include adaptiveValue('gap', 42, 18);
-  @include adaptiveValue('padding-top', 22, 10);
-  @include adaptiveValue('padding-bottom', 22, 10);
-
-  position: relative;
+  @include adaptiveValue('padding-top', 10, 0);
+  @include adaptiveValue('padding-bottom', 10, 0);
 
   display: grid;
   align-items: center;
@@ -909,8 +901,6 @@ watch(
 
   width: 100%;
   min-height: 510px;
-
-  margin: 0 auto;
 
   &_loading,
   &_error {
@@ -922,26 +912,19 @@ watch(
   }
 
   &__loader {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
   }
 
   &__state {
     max-width: 450px;
 
-    text-align: center;
-  }
-
-  &__state-title {
-    margin-bottom: 18px;
-
     color: var(--secondary-color);
-  }
+    text-align: center;
 
-  &__state-message {
-    margin-bottom: 24px;
-
-    color: var(--error-color);
+    p {
+      margin: 16px 0 24px;
+    }
   }
 
   &__preview {
@@ -951,47 +934,19 @@ watch(
     align-items: center;
     justify-content: flex-end;
 
-    width: 100%;
     min-width: 0;
-    min-height: 500px;
-  }
-
-  &__hero {
-    position: absolute;
-    bottom: -8%;
-    left: -32%;
-    z-index: 1;
-
-    width: 88%;
-    height: 96%;
-
-    pointer-events: none;
-
-    img {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-
-      object-fit: contain;
-      object-position: center bottom;
-
-      filter: drop-shadow(0 15px 22px rgb(0 0 0 / 35%));
-    }
+    min-height: 490px;
   }
 
   &__card {
     position: relative;
-    z-index: 2;
 
-    width: min(76%, 345px);
+    width: min(85%, 350px);
     aspect-ratio: 0.69;
-
-    margin-right: 0;
 
     container-type: inline-size;
 
-    filter: drop-shadow(0 15px 24px rgb(0 0 0 / 25%));
+    filter: drop-shadow(0 14px 24px rgb(0 0 0 / 30%));
   }
 
   &__card-image {
@@ -1011,8 +966,6 @@ watch(
     inset: 0;
     z-index: 2;
 
-    display: block;
-
     width: 100%;
     height: 100%;
 
@@ -1021,7 +974,7 @@ watch(
 
   &__card-name {
     position: absolute;
-    top: 8.1%;
+    top: 8%;
     left: 55%;
     z-index: 3;
 
@@ -1032,13 +985,11 @@ watch(
     padding: 0 5%;
 
     color: var(--primary-color);
-    font-family: var(--font-inter);
     font-size: clamp(10px, 4.5cqi, 16px);
-    line-height: 1.1;
+    line-height: 110%;
+    text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
-
-    pointer-events: none;
 
     transform: translateX(-50%);
   }
@@ -1056,12 +1007,9 @@ watch(
     max-height: 17%;
 
     color: var(--secondary-color);
-    font-family: var(--font-inter);
     font-size: clamp(9px, 3.8cqi, 14px);
     line-height: 120%;
     text-align: center;
-
-    pointer-events: none;
 
     transform: translateX(-50%);
 
@@ -1071,19 +1019,14 @@ watch(
     :deep(p) {
       margin: 0;
     }
-
-    :deep(br) {
-      display: none;
-    }
   }
 
   &__card-stat {
     position: absolute;
     z-index: 4;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
 
     width: 12%;
     aspect-ratio: 1;
@@ -1125,25 +1068,17 @@ watch(
   }
 
   &__content {
-    position: relative;
-    z-index: 3;
-
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 
-    width: 100%;
     min-width: 0;
-    min-height: 475px;
-  }
-
-  &__main {
-    flex: 1 1 auto;
+    min-height: 470px;
   }
 
   &__title {
     @include adaptiveValue('font-size', 32, 24);
-    @include adaptiveValue('margin-bottom', 32, 20);
+    @include adaptiveValue('margin-bottom', 34, 20);
 
     margin-top: 0;
 
@@ -1151,22 +1086,19 @@ watch(
     font-family: var(--font-spectral);
     font-weight: 500;
     line-height: 120%;
-    text-align: left;
     text-transform: none;
   }
 
   &__stats {
     @include adaptiveValue('column-gap', 45, 16);
-    @include adaptiveValue('margin-bottom', 32, 22);
+    @include adaptiveValue('margin-bottom', 32, 20);
 
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    width: 100%;
   }
 
   &__stats-column {
-    @include adaptiveValue('gap', 20, 14);
+    @include adaptiveValue('gap', 20, 12);
 
     display: flex;
     flex-direction: column;
@@ -1175,21 +1107,18 @@ watch(
   }
 
   &__stat {
-    @include adaptiveValue('column-gap', 16, 8);
-
     display: grid;
     align-items: start;
-    grid-template-columns: minmax(50px, 0.5fr) minmax(0, 1fr);
+    gap: 12px;
+    grid-template-columns: minmax(55px, 0.5fr) minmax(0, 1fr);
 
     min-width: 0;
 
-    font-family: var(--font-inter);
     font-size: 14px;
     line-height: 140%;
 
     span {
       color: var(--seventh-color);
-      font-weight: 400;
     }
 
     strong {
@@ -1204,29 +1133,20 @@ watch(
     @include adaptiveValue('margin-bottom', 28, 20);
 
     color: var(--primary-color);
-    font-family: var(--font-inter);
     font-size: 14px;
     line-height: 150%;
   }
 
-  &__section-label,
-  &__control-label {
+  &__label {
+    margin-bottom: 12px;
+
     color: var(--seventh-color);
-    font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 500;
     line-height: 140%;
   }
 
-  &__section-label {
-    margin-bottom: 12px;
-  }
-
-  &__description-content {
-    max-width: 100%;
-
-    color: var(--primary-color);
-
+  &__description-text {
     :deep(p) {
       margin: 0;
 
@@ -1236,9 +1156,9 @@ watch(
     }
   }
 
-  &__switcher-wrap {
+  &__purchase {
     @include adaptiveValue('padding-top', 26, 18);
-    @include adaptiveValue('margin-bottom', 36, 22);
+    @include adaptiveValue('margin-bottom', 34, 22);
 
     border-top: 1px solid var(--border-fourth-color);
   }
@@ -1255,10 +1175,8 @@ watch(
 
     min-width: 115px;
 
-    padding-right: 16px;
-    padding-left: 16px;
+    padding: 0 16px;
 
-    font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
@@ -1287,10 +1205,6 @@ watch(
   &__price,
   &__quantity,
   &__rental {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
     min-width: 0;
   }
 
@@ -1299,8 +1213,9 @@ watch(
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-
-    min-height: 42px;
+    :deep(.price) {
+      flex-direction: row-reverse;
+    }
   }
 
   &__old-price {
@@ -1312,7 +1227,6 @@ watch(
   &__quantity-controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
 
     width: fit-content;
     height: 40px;
@@ -1323,9 +1237,8 @@ watch(
   }
 
   &__quantity-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
 
     width: 32px;
     height: 100%;
@@ -1337,13 +1250,8 @@ watch(
 
     color: var(--secondary-color);
     font-size: 22px;
-    line-height: 1;
 
     cursor: pointer;
-
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
 
     &:disabled {
       opacity: 0.35;
@@ -1354,14 +1262,12 @@ watch(
     @media (any-hover: hover) {
       &:not(:disabled):hover {
         background-color: var(--bg-fourth-color);
-
-        color: var(--primary-color);
       }
     }
   }
 
   &__quantity-input {
-    width: 30px;
+    width: 32px;
     height: 100%;
 
     padding: 0;
@@ -1371,26 +1277,13 @@ watch(
     background: transparent;
 
     color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
     text-align: center;
 
     appearance: textfield;
-
-    &::-webkit-inner-spin-button,
-    &::-webkit-outer-spin-button {
-      appearance: none;
-    }
-  }
-
-  &__rental {
-    position: relative;
-    z-index: 10;
   }
 
   &__rental-dropdown {
     width: 100%;
-    min-width: 0;
   }
 
   &__button {
@@ -1399,7 +1292,6 @@ watch(
     width: 100%;
     min-width: 0;
 
-    font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
@@ -1419,18 +1311,6 @@ watch(
     border-right-color: transparent;
   }
 
-  @media (max-width: $md2) {
-    &__hero {
-      left: -22%;
-
-      width: 80%;
-    }
-
-    &__card {
-      width: min(78%, 325px);
-    }
-  }
-
   @media (max-width: $md3) {
     gap: 20px;
 
@@ -1440,23 +1320,12 @@ watch(
       min-height: 400px;
     }
 
-    &__hero {
-      left: -12%;
-
-      width: 75%;
-      height: 90%;
-    }
-
     &__card {
-      width: min(80%, 285px);
+      width: min(85%, 285px);
     }
 
     &__content {
       min-height: 410px;
-    }
-
-    &__stats {
-      column-gap: 14px;
     }
 
     &__stat {
@@ -1465,7 +1334,7 @@ watch(
     }
 
     &__bottom {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     &__button {
@@ -1474,28 +1343,18 @@ watch(
   }
 
   @media (max-width: $md4) {
-    gap: 28px;
+    gap: 25px;
     grid-template-columns: minmax(0, 1fr);
 
     &__preview {
       justify-content: center;
 
-      height: min(80vw, 470px);
+      height: min(80vw, 450px);
       min-height: 0;
     }
 
-    &__hero {
-      bottom: -4%;
-      left: 4%;
-
-      width: 55%;
-      height: 100%;
-    }
-
     &__card {
-      width: min(62%, 300px);
-
-      margin-left: 22%;
+      width: min(65%, 300px);
     }
 
     &__content {
@@ -1506,34 +1365,18 @@ watch(
       text-align: center;
     }
 
-    &__stats {
-      column-gap: 24px;
-    }
-
     &__stat {
-      grid-template-columns: minmax(65px, 0.5fr) minmax(0, 1fr);
-    }
-
-    &__bottom {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(55px, 0.5fr) minmax(0, 1fr);
     }
   }
 
   @media (max-width: $md6) {
     &__preview {
-      height: min(95vw, 400px);
-    }
-
-    &__hero {
-      left: -5%;
-
-      width: 65%;
+      height: min(95vw, 380px);
     }
 
     &__card {
-      width: min(65%, 255px);
-
-      margin-left: 24%;
+      width: min(75%, 255px);
     }
 
     &__stats {
@@ -1558,29 +1401,15 @@ watch(
 
   @media (max-width: $md7) {
     &__preview {
-      height: min(100vw, 350px);
-    }
-
-    &__hero {
-      left: -8%;
-
-      width: 70%;
+      height: min(100vw, 330px);
     }
 
     &__card {
-      width: min(66%, 225px);
+      width: min(78%, 225px);
     }
 
     &__bottom {
       gap: 18px 12px;
-    }
-
-    &__price-value {
-      min-height: 40px;
-    }
-
-    &__button {
-      grid-column: 1 / -1;
     }
   }
 }
@@ -1596,11 +1425,9 @@ watch(
 
   border: 0;
   border-radius: 5px;
-  background-color: transparent;
+  background: transparent;
 
   color: var(--secondary-color);
-  font-family: var(--font-inter);
-  font-size: 14px;
   text-align: left;
 
   cursor: pointer;

@@ -8,53 +8,60 @@
         role="presentation"
         @mousedown="handleBackdropClick"
       >
-        <div
-          ref="innerRef"
-          class="base-modal__inner"
-          :class="innerClasses"
-          :style="attrs.style"
-          role="dialog"
-          aria-modal="true"
-          :aria-labelledby="props.labelledby || undefined"
-          :aria-describedby="props.describedby || undefined"
-          tabindex="-1"
-          @mousedown.stop
-        >
-          <div class="base-modal__decor _ibg-contain">
-            <img src="@/assets/img/modal-decor.png" />
+        <div class="base-modal__layout">
+          <div v-if="$slots.hero" class="base-modal__hero" aria-hidden="true">
+            <slot name="hero" />
           </div>
-          <div class="base-modal__frame">
-            <button
-              v-if="!props.hideCloseButton"
-              type="button"
-              class="base-modal__close"
-              :class="props.closeButtonClass"
-              :aria-label="props.closeLabel"
-              @click="handleClose"
-            >
-              <slot name="close-icon">
-                <SvgIcon :icon="CloseIcon" class="base-modal__close-icon" />
-              </slot>
-            </button>
 
-            <div
-              v-if="$slots.header"
-              class="base-modal__header"
-              :class="props.headerClass"
-            >
-              <slot name="header" />
+          <div
+            ref="innerRef"
+            class="base-modal__inner"
+            :class="innerClasses"
+            :style="attrs.style"
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="props.labelledby || undefined"
+            :aria-describedby="props.describedby || undefined"
+            tabindex="-1"
+            @mousedown.stop
+          >
+            <div class="base-modal__decor _ibg-contain">
+              <img src="@/assets/img/modal-decor.png" alt="" />
             </div>
 
-            <div class="base-modal__content" :class="props.contentClass">
-              <slot />
-            </div>
+            <div class="base-modal__frame">
+              <button
+                v-if="!props.hideCloseButton"
+                type="button"
+                class="base-modal__close"
+                :class="props.closeButtonClass"
+                :aria-label="props.closeLabel"
+                @click="handleClose"
+              >
+                <slot name="close-icon">
+                  <SvgIcon :icon="CloseIcon" class="base-modal__close-icon" />
+                </slot>
+              </button>
 
-            <div
-              v-if="$slots.footer"
-              class="base-modal__footer"
-              :class="props.footerClass"
-            >
-              <slot name="footer" />
+              <div
+                v-if="$slots.header"
+                class="base-modal__header"
+                :class="props.headerClass"
+              >
+                <slot name="header" />
+              </div>
+
+              <div class="base-modal__content" :class="props.contentClass">
+                <slot />
+              </div>
+
+              <div
+                v-if="$slots.footer"
+                class="base-modal__footer"
+                :class="props.footerClass"
+              >
+                <slot name="footer" />
+              </div>
             </div>
           </div>
         </div>
@@ -358,7 +365,7 @@ defineExpose({
   width: 100%;
   height: 100%;
 
-  padding: 40px 20px;
+  padding: 60px 20px;
 
   background-color: rgb(0 0 0 / 50%);
 
@@ -367,12 +374,47 @@ defineExpose({
 
   overscroll-behavior: contain;
 
+  &__layout {
+    position: relative;
+
+    width: 100%;
+    max-width: 1140px;
+
+    margin: auto;
+
+    isolation: isolate;
+  }
+
+  &__hero {
+    position: absolute;
+    bottom: -10%;
+    left: -33%;
+    z-index: 2;
+
+    width: 49%;
+    aspect-ratio: 1 / 0.95;
+
+    pointer-events: none;
+
+    :deep(img) {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: contain;
+      object-position: center bottom;
+
+      filter: drop-shadow(0 15px 24px rgb(0 0 0 / 30%));
+    }
+  }
+
   &__inner {
     position: relative;
     z-index: 1;
 
     width: 100%;
-    max-height: calc(100dvh - 80px);
+    max-height: calc(100dvh - 120px);
 
     margin: auto;
 
@@ -396,8 +438,7 @@ defineExpose({
     &_product {
       max-width: 1140px;
 
-      border-color: var(--border-fourth-color);
-      background-color: var(--bg-primary-color);
+      background-color: #191538;
     }
 
     &_full {
@@ -438,7 +479,7 @@ defineExpose({
     overflow-y: auto;
 
     width: 100%;
-    max-height: calc(100dvh - 80px);
+    max-height: calc(100dvh - 120px);
 
     padding-right: 10px;
     padding-left: 10px;
@@ -451,10 +492,6 @@ defineExpose({
 
     &::-webkit-scrollbar {
       width: 5px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: transparent;
     }
 
     &::-webkit-scrollbar-thumb {
@@ -471,15 +508,6 @@ defineExpose({
       @include adaptiveValue('padding-right', 48, 16);
 
       background-color: #191538;
-    }
-
-    .base-modal__content {
-      width: 100%;
-    }
-
-    .base-modal__close {
-      @include adaptiveValue('top', 16, 8);
-      @include adaptiveValue('right', 16, 8);
     }
   }
 
@@ -501,7 +529,7 @@ defineExpose({
 
     border: 0;
     outline: none;
-    background-color: transparent;
+    background: transparent;
 
     color: var(--secondary-color);
 
@@ -519,26 +547,15 @@ defineExpose({
   }
 
   &__close-icon {
-    display: flex;
-
     width: 24px;
     height: 24px;
 
     color: inherit;
   }
 
-  &__header {
-    position: relative;
-    z-index: 1;
-
-    width: 100%;
-
-    &:not(:last-child) {
-      margin-bottom: clamp(20px, 3vw, 36px);
-    }
-  }
-
-  &__content {
+  &__header,
+  &__content,
+  &__footer {
     position: relative;
     z-index: 1;
 
@@ -546,54 +563,40 @@ defineExpose({
     min-width: 0;
   }
 
-  &__footer {
-    position: relative;
-    z-index: 1;
+  &__header:not(:last-child) {
+    margin-bottom: clamp(20px, 3vw, 36px);
+  }
 
-    width: 100%;
+  &__footer:not(:first-child) {
+    margin-top: clamp(20px, 3vw, 36px);
+  }
 
-    &:not(:first-child) {
-      margin-top: clamp(20px, 3vw, 36px);
+  @media (max-width: $md2) {
+    &__hero {
+      left: -16%;
+
+      width: 35%;
     }
   }
 
   @media (max-width: $md3) {
-    padding: 30px 15px;
+    padding: 40px 15px;
 
-    &__inner {
-      max-height: calc(100dvh - 60px);
-    }
-
+    &__inner,
     &__frame {
-      max-height: calc(100dvh - 60px);
-    }
-
-    &__inner_product {
-      .base-modal__frame {
-        @include adaptiveValue('padding-left', 30, 16);
-        @include adaptiveValue('padding-right', 30, 16);
-      }
+      max-height: calc(100dvh - 80px);
     }
   }
 
   @media (max-width: $md4) {
-    padding: 25px 12px;
+    padding: 35px 12px;
 
-    &__inner {
-      max-height: calc(100dvh - 50px);
-    }
-
+    &__inner,
     &__frame {
-      max-height: calc(100dvh - 50px);
+      max-height: calc(100dvh - 70px);
     }
-
-    &__inner_product {
-      .base-modal__frame {
-        padding-top: 32px;
-        padding-right: 18px;
-        padding-bottom: 24px;
-        padding-left: 18px;
-      }
+    &__hero {
+      @include hide-item;
     }
   }
 
@@ -602,12 +605,13 @@ defineExpose({
 
     padding: 0;
 
+    &__layout {
+      margin: auto 0 0;
+    }
+
     &__inner {
-      width: 100%;
       max-width: none;
       max-height: 92dvh;
-
-      margin: auto 0 0;
 
       border-right: 0;
       border-bottom: 0;
@@ -622,38 +626,17 @@ defineExpose({
     }
 
     &__inner_product {
-      background-color: #191538;
-
       .base-modal__frame {
-        max-height: 92dvh;
-
-        padding-top: 35px;
-        padding-right: 15px;
-        padding-bottom: 25px;
-        padding-left: 15px;
-
-        background-color: #191538;
+        padding: 35px 15px 25px;
       }
     }
 
-    &__close {
-      top: 8px;
-      right: 8px;
+    &__hero {
+      display: none;
     }
 
     &__decor {
       width: 120px;
-    }
-  }
-
-  @media (max-width: $md7) {
-    &__inner_product {
-      .base-modal__frame {
-        padding-top: 30px;
-        padding-right: 12px;
-        padding-bottom: 20px;
-        padding-left: 12px;
-      }
     }
   }
 }
@@ -662,7 +645,8 @@ defineExpose({
 .base-modal-fade-leave-active {
   transition: opacity 0.3s ease;
 
-  .base-modal__inner {
+  .base-modal__inner,
+  .base-modal__hero {
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
@@ -678,16 +662,23 @@ defineExpose({
 
     transform: translateY(15px) scale(0.98);
   }
+
+  .base-modal__hero {
+    opacity: 0;
+
+    transform: translateX(-15px);
+  }
 }
 
 .base-modal-fade-enter-to,
 .base-modal-fade-leave-from {
   opacity: 1;
 
-  .base-modal__inner {
+  .base-modal__inner,
+  .base-modal__hero {
     opacity: 1;
 
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
