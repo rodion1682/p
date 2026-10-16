@@ -7,9 +7,7 @@
     <button
       type="button"
       class="collection-page__filters-toggle"
-      :class="{
-        'collection-page__filters-toggle_open': isFiltersOpen,
-      }"
+      :class="{ 'collection-page__filters-toggle_open': isFiltersOpen }"
       :aria-expanded="isFiltersOpen"
       aria-controls="collection-filters"
       :aria-label="isFiltersOpen ? $t('Close filters') : $t('Open filters')"
@@ -23,7 +21,7 @@
 
     <Transition name="filters-overlay">
       <button
-        v-if="isFiltersOpen"
+        v-if="isFiltersOpen && isFiltersMobile"
         type="button"
         class="collection-page__filters-overlay"
         :aria-label="$t('Close filters')"
@@ -76,9 +74,8 @@
                 type="button"
                 class="dropdown-option"
                 :class="{
-                  'dropdown-option_selected': option.value === filters.sort,
+                  'dropdown-option_selected': filters.sort === option.value,
                 }"
-                :aria-selected="option.value === filters.sort"
                 @click="selectSort(option.value, close)"
               >
                 {{ $t(option.label) }}
@@ -95,9 +92,6 @@
       <BaseInput
         v-model="collectionFilters.search"
         class="top__search"
-        :class="{
-          top__search_filled: collectionFilters.search.trim().length > 0,
-        }"
         :placeholder="$t('Search')"
       >
         <template #suffix>
@@ -111,6 +105,7 @@
         id="collection-filters"
         class="collection-page__aside aside"
         :class="{ aside_open: isFiltersOpen }"
+        :aria-hidden="isFiltersMobile && !isFiltersOpen"
       >
         <div class="aside__header">
           <h2 class="aside__title _h6">
@@ -145,7 +140,7 @@
                   :class="{
                     'dropdown-option_selected': !collectionFilters.hero,
                   }"
-                  @click="selectHero('', close)"
+                  @click="selectFilter('hero', '', close)"
                 >
                   {{ $t('All') }}
                 </button>
@@ -156,12 +151,10 @@
                   type="button"
                   class="dropdown-option"
                   :class="{
-                    'dropdown-option_selected': isSelected(
-                      option.value,
-                      collectionFilters.hero,
-                    ),
+                    'dropdown-option_selected':
+                      String(collectionFilters.hero) === String(option.value),
                   }"
-                  @click="selectHero(option.value, close)"
+                  @click="selectFilter('hero', option.value, close)"
                 >
                   {{ option.label }}
                 </button>
@@ -174,15 +167,7 @@
 
             <BaseDropdown
               class="filter-group__dropdown"
-              :label="
-                selectedRarityOption
-                  ? formatOptionLabel(
-                      selectedRarityOption.label ??
-                        selectedRarityOption.name ??
-                        selectedRarityOption.value,
-                    )
-                  : $t('All')
-              "
+              :label="selectedRarityOption?.label || $t('All')"
               variant="aside"
               bordered
               absolute
@@ -194,31 +179,23 @@
                   :class="{
                     'dropdown-option_selected': !collectionFilters.rarity,
                   }"
-                  @click="selectRarity('', close)"
+                  @click="selectFilter('rarity', '', close)"
                 >
                   {{ $t('All') }}
                 </button>
 
                 <button
                   v-for="option in rarityOptions"
-                  :key="option.value ?? option.id ?? option"
+                  :key="option.value"
                   type="button"
                   class="dropdown-option"
                   :class="{
-                    'dropdown-option_selected': isSelected(
-                      option.value ?? option.id ?? option,
-                      collectionFilters.rarity,
-                    ),
+                    'dropdown-option_selected':
+                      String(collectionFilters.rarity) === String(option.value),
                   }"
-                  @click="
-                    selectRarity(option.value ?? option.id ?? option, close)
-                  "
+                  @click="selectFilter('rarity', option.value, close)"
                 >
-                  {{
-                    formatOptionLabel(
-                      option.label ?? option.name ?? option.value ?? option,
-                    )
-                  }}
+                  {{ option.label }}
                 </button>
               </template>
             </BaseDropdown>
@@ -229,15 +206,7 @@
 
             <BaseDropdown
               class="filter-group__dropdown"
-              :label="
-                selectedTypeOption
-                  ? formatOptionLabel(
-                      selectedTypeOption.label ??
-                        selectedTypeOption.name ??
-                        selectedTypeOption.value,
-                    )
-                  : $t('All')
-              "
+              :label="selectedTypeOption?.label || $t('All')"
               variant="aside"
               bordered
               absolute
@@ -249,31 +218,23 @@
                   :class="{
                     'dropdown-option_selected': !collectionFilters.type,
                   }"
-                  @click="selectType('', close)"
+                  @click="selectFilter('type', '', close)"
                 >
                   {{ $t('All') }}
                 </button>
 
                 <button
                   v-for="option in typeOptions"
-                  :key="option.value ?? option.id ?? option"
+                  :key="option.value"
                   type="button"
                   class="dropdown-option"
                   :class="{
-                    'dropdown-option_selected': isSelected(
-                      option.value ?? option.id ?? option,
-                      collectionFilters.type,
-                    ),
+                    'dropdown-option_selected':
+                      String(collectionFilters.type) === String(option.value),
                   }"
-                  @click="
-                    selectType(option.value ?? option.id ?? option, close)
-                  "
+                  @click="selectFilter('type', option.value, close)"
                 >
-                  {{
-                    formatOptionLabel(
-                      option.label ?? option.name ?? option.value ?? option,
-                    )
-                  }}
+                  {{ option.label }}
                 </button>
               </template>
             </BaseDropdown>
@@ -284,15 +245,7 @@
 
             <BaseDropdown
               class="filter-group__dropdown"
-              :label="
-                selectedFrameOption
-                  ? formatOptionLabel(
-                      selectedFrameOption.label ??
-                        selectedFrameOption.name ??
-                        selectedFrameOption.value,
-                    )
-                  : $t('All')
-              "
+              :label="selectedFrameOption?.label || $t('All')"
               variant="aside"
               bordered
               absolute
@@ -304,31 +257,24 @@
                   :class="{
                     'dropdown-option_selected': !collectionFilters.frameType,
                   }"
-                  @click="selectFrameType('', close)"
+                  @click="selectFilter('frameType', '', close)"
                 >
                   {{ $t('All') }}
                 </button>
 
                 <button
                   v-for="option in frameOptions"
-                  :key="option.value ?? option.id ?? option"
+                  :key="option.value"
                   type="button"
                   class="dropdown-option"
                   :class="{
-                    'dropdown-option_selected': isSelected(
-                      option.value ?? option.id ?? option,
-                      collectionFilters.frameType,
-                    ),
+                    'dropdown-option_selected':
+                      String(collectionFilters.frameType) ===
+                      String(option.value),
                   }"
-                  @click="
-                    selectFrameType(option.value ?? option.id ?? option, close)
-                  "
+                  @click="selectFilter('frameType', option.value, close)"
                 >
-                  {{
-                    formatOptionLabel(
-                      option.label ?? option.name ?? option.value ?? option,
-                    )
-                  }}
+                  {{ option.label }}
                 </button>
               </template>
             </BaseDropdown>
@@ -339,11 +285,7 @@
 
             <BaseDropdown
               class="filter-group__dropdown"
-              :label="
-                selectedRentalStatusOption
-                  ? $t(selectedRentalStatusOption.label)
-                  : $t('All')
-              "
+              :label="selectedRentalStatusOption?.label || $t('All')"
               variant="aside"
               bordered
               absolute
@@ -464,9 +406,9 @@
           class="content__pagination pagination"
         >
           <div class="pagination__dropdown">
-            <span class="pagination__dropdown-label">
-              {{ $t('Items per page') }}:
-            </span>
+            <div class="pagination__dropdown-label">
+              {{ $t('Items per page:') }}
+            </div>
 
             <BaseDropdown
               class="pagination__dropdown-box"
@@ -494,70 +436,39 @@
             </BaseDropdown>
           </div>
 
-          <div v-if="showPagination" class="pagination__pagination">
-            <div class="pagination__pages">
-              <button
-                type="button"
-                class="pagination__button"
-                :disabled="Number(filters.page) <= 1"
-                :aria-label="$t('Previous page')"
-                @click="onPageChange(Number(filters.page) - 1)"
-              >
-                ‹
-              </button>
-
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                type="button"
-                class="pagination__button"
-                :class="{
-                  pagination__button_active: Number(filters.page) === page,
-                }"
-                :aria-current="
-                  Number(filters.page) === page ? 'page' : undefined
-                "
-                @click="onPageChange(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                type="button"
-                class="pagination__button"
-                :disabled="Number(filters.page) >= totalPages"
-                :aria-label="$t('Next page')"
-                @click="onPageChange(Number(filters.page) + 1)"
-              >
-                ›
-              </button>
-            </div>
-          </div>
+          <PaginationComponent
+            v-if="showPagination"
+            class="pagination__pagination"
+            :total-pages="totalPages"
+            :current-page="Number(filters.page)"
+            :is-small="isMobileView"
+            @update:current-page="onPageChange"
+          />
         </div>
       </div>
     </div>
-  </main>
 
-  <MyCardDetailsModal
-    v-model:show="isProductDetailsOpen"
-    :product-id="selectedProductId"
-    :collection-item="selectedCollectionItem"
-    :rented="isRentedCollection"
-    @close="closeProduct"
-    @sold="handleCardSold"
-  />
+    <MyCardDetailsModal
+      v-model:show="isProductDetailsOpen"
+      :product-id="selectedProductId"
+      :collection-item="selectedCollectionItem"
+      :rented="isRentedCollection"
+      @close="closeProduct"
+      @sold="handleCardSold"
+    />
+  </main>
 </template>
 
 <script setup>
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import { CloseIcon, SearchIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
+import PaginationComponent from '@/components/PaginationComponent.vue'
 
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProductList } from '@/composables/useProductList'
@@ -576,70 +487,16 @@ const FilterIcon = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
-      d="M4 6H20"
+      d="M4 6H20M7 12H17M10 18H14"
       stroke="currentColor"
       stroke-width="1.5"
       stroke-linecap="round"
-    />
-    <path
-      d="M7 12H17"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-    <path
-      d="M10 18H14"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-    <circle
-      cx="8"
-      cy="6"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
-    />
-    <circle
-      cx="15"
-      cy="12"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
-    />
-    <circle
-      cx="12"
-      cy="18"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
     />
   </svg>
 `
 
-const rentalStatusOptions = [
-  {
-    value: 'active',
-    label: 'Active',
-  },
-  {
-    value: 'expired',
-    label: 'Expired',
-  },
-  {
-    value: 'cancelled',
-    label: 'Cancelled',
-  },
-]
-
-const route = useRoute()
-const router = useRouter()
-
-const heroesStore = useHeroesStore()
 const navigationStore = useNavigationStore()
+const heroesStore = useHeroesStore()
 
 const isMobileView = useMediaQuery('(max-width: 767.98px)')
 const isFiltersMobile = useMediaQuery('(max-width: 991.98px)')
@@ -649,27 +506,18 @@ const { isFiltersOpen } = storeToRefs(navigationStore)
 const {
   COLLECTION_SORT_OPTIONS,
   ITEMS_PER_PAGE_OPTIONS,
-
   collectionMode,
   isRentedCollection,
   collectionProducts,
-
   loading,
   error,
-  initialized,
-
   filters,
   availableFilters,
   pagination,
-
   updateFilters,
   resetFilters: resetStoreFilters,
   fetchCollectionProducts,
 } = useProductList()
-
-const selectedProductId = ref(null)
-const selectedCollectionItem = ref(null)
-const isProductDetailsOpen = ref(false)
 
 const collectionFilters = reactive({
   search: '',
@@ -686,47 +534,25 @@ const appliedFilters = reactive({
   frameType: '',
 })
 
-const normalizeValue = value => {
-  return String(value ?? '')
+const selectedProductId = ref(null)
+const selectedCollectionItem = ref(null)
+const isProductDetailsOpen = ref(false)
+
+const normalize = value =>
+  String(value ?? '')
     .trim()
     .toLowerCase()
-}
 
-const isSelected = (value, selectedValue) => {
-  return normalizeValue(value) === normalizeValue(selectedValue)
-}
-
-const formatOptionLabel = value => {
-  if (!value) {
-    return ''
-  }
-
-  const text = String(value).replaceAll('_', ' ').trim()
-
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
-}
-
-const getCard = product => {
-  if (!product) {
-    return {}
-  }
-
-  return (
-    product?.card ||
-    product?.product?.card ||
-    product?.product ||
-    product?.item?.card ||
-    product?.item ||
-    product ||
-    {}
-  )
-}
+const getCard = product =>
+  product?.card ??
+  product?.product?.card ??
+  product?.product ??
+  product?.item?.card ??
+  product?.item ??
+  product ??
+  {}
 
 const getCardId = product => {
-  if (!product) {
-    return null
-  }
-
   if (isRentedCollection.value) {
     return (
       product?.card_id ??
@@ -734,7 +560,6 @@ const getCardId = product => {
       product?.product?.card_id ??
       product?.product?.card?.id ??
       product?.item?.card_id ??
-      product?.item?.card?.id ??
       null
     )
   }
@@ -756,9 +581,7 @@ const getProductKey = product => {
     return (
       product?.rental_id ??
       product?.id ??
-      `${getCardId(product)}-${
-        product?.rental_period_id ?? product?.rental_period?.id ?? 'rental'
-      }`
+      `${getCardId(product)}-${product?.rental_period_id ?? 'rental'}`
     )
   }
 
@@ -770,165 +593,155 @@ const getProductKey = product => {
   )
 }
 
-const getCardName = product => {
-  const card = getCard(product)
+const normalizeOptions = source => {
+  const values = Array.isArray(source) ? source : Object.values(source ?? {})
 
-  return card?.name || card?.title || product?.card_name || product?.name || ''
+  return values
+    .map(option => {
+      if (option && typeof option === 'object') {
+        return {
+          value: option.value ?? option.id ?? option.slug ?? option.name,
+          label: String(
+            option.label ??
+              option.name ??
+              option.title ??
+              option.value ??
+              option.id ??
+              '',
+          ),
+        }
+      }
+
+      return {
+        value: option,
+        label: String(option ?? ''),
+      }
+    })
+    .filter(option => option.value !== undefined && option.value !== null)
 }
 
-const getCardHeroId = product => {
-  const card = getCard(product)
+const heroOptions = computed(() =>
+  normalizeOptions(availableFilters.value?.heroes ?? heroesStore.heroes ?? []),
+)
 
-  return (
-    card?.hero_id ??
-    card?.hero?.id ??
-    product?.hero_id ??
-    product?.hero?.id ??
-    ''
-  )
-}
+const rarityOptions = computed(() =>
+  normalizeOptions(availableFilters.value?.rarities ?? []),
+)
 
-const getCardRarity = product => {
-  const card = getCard(product)
+const typeOptions = computed(() =>
+  normalizeOptions(
+    availableFilters.value?.types ?? availableFilters.value?.card_types ?? [],
+  ),
+)
 
-  return (
-    card?.rarity?.name ??
-    card?.rarity?.slug ??
-    card?.rarity ??
-    product?.rarity?.name ??
-    product?.rarity ??
-    ''
-  )
-}
+const frameOptions = computed(() =>
+  normalizeOptions(
+    availableFilters.value?.frame_types ?? availableFilters.value?.frames ?? [],
+  ),
+)
 
-const getCardType = product => {
-  const card = getCard(product)
+const rentalStatusOptions = [
+  { value: 'active', label: 'Active' },
+  { value: 'expired', label: 'Expired' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
 
-  return (
-    card?.type?.name ??
-    card?.type?.slug ??
-    card?.type ??
-    product?.type?.name ??
-    product?.type ??
-    ''
-  )
-}
+const findOption = (options, value) =>
+  options.find(option => normalize(option.value) === normalize(value))
 
-const getCardFrameId = product => {
-  const card = getCard(product)
+const selectedSortOption = computed(() =>
+  COLLECTION_SORT_OPTIONS.find(
+    option => normalize(option.value) === normalize(filters.sort),
+  ),
+)
 
-  return (
-    card?.card_frame_set_id ??
-    card?.frame_type?.id ??
-    card?.frame?.id ??
-    product?.card_frame_set_id ??
-    product?.frame_type_id ??
-    ''
-  )
-}
+const selectedHeroOption = computed(() =>
+  findOption(heroOptions.value, collectionFilters.hero),
+)
 
-const heroOptions = computed(() => {
-  return (heroesStore.heroes || []).map(hero => ({
-    label: hero.name,
-    value: hero.id,
-  }))
-})
+const selectedRarityOption = computed(() =>
+  findOption(rarityOptions.value, collectionFilters.rarity),
+)
 
-const rarityOptions = computed(() => {
-  return Array.isArray(availableFilters.rarities)
-    ? availableFilters.rarities
-    : []
-})
+const selectedTypeOption = computed(() =>
+  findOption(typeOptions.value, collectionFilters.type),
+)
 
-const typeOptions = computed(() => {
-  return Array.isArray(availableFilters.types) ? availableFilters.types : []
-})
+const selectedFrameOption = computed(() =>
+  findOption(frameOptions.value, collectionFilters.frameType),
+)
 
-const frameOptions = computed(() => {
-  return Array.isArray(availableFilters.frameTypes)
-    ? availableFilters.frameTypes
-    : []
-})
+const selectedRentalStatusOption = computed(() =>
+  findOption(rentalStatusOptions, filters.rentalStatus),
+)
 
-const selectedHeroOption = computed(() => {
-  return heroOptions.value.find(option => {
-    return isSelected(option.value, collectionFilters.hero)
-  })
-})
-
-const selectedRarityOption = computed(() => {
-  return rarityOptions.value.find(option => {
-    return isSelected(option.value, collectionFilters.rarity)
-  })
-})
-
-const selectedTypeOption = computed(() => {
-  return typeOptions.value.find(option => {
-    return isSelected(option.value, collectionFilters.type)
-  })
-})
-
-const selectedFrameOption = computed(() => {
-  return frameOptions.value.find(option => {
-    return isSelected(option.value, collectionFilters.frameType)
-  })
-})
-
-const selectedSortOption = computed(() => {
-  return COLLECTION_SORT_OPTIONS.find(option => {
-    return option.value === filters.sort
-  })
-})
-
-const selectedRentalStatusOption = computed(() => {
-  return rentalStatusOptions.find(option => {
-    return option.value === filters.rentalStatus
-  })
-})
-
-const hasLocalFilters = computed(() => {
-  return Boolean(
+const hasLocalFilters = computed(() =>
+  Boolean(
     collectionFilters.search.trim() ||
     appliedFilters.hero ||
     appliedFilters.rarity ||
     appliedFilters.type ||
-    appliedFilters.frameType ||
-    filters.rentalStatus,
-  )
-})
+    appliedFilters.frameType,
+  ),
+)
+
+const matchesFilter = (actual, expected) => {
+  if (!expected) return true
+
+  if (actual && typeof actual === 'object') {
+    return [actual.id, actual.value, actual.slug, actual.name].some(
+      value => normalize(value) === normalize(expected),
+    )
+  }
+
+  return normalize(actual) === normalize(expected)
+}
 
 const visibleProducts = computed(() => {
-  const search = normalizeValue(collectionFilters.search)
+  const search = normalize(collectionFilters.search)
 
-  return collectionProducts.value.filter(product => {
-    if (search && !normalizeValue(getCardName(product)).includes(search)) {
+  return (collectionProducts.value ?? []).filter(product => {
+    const card = getCard(product)
+
+    const title =
+      card?.name ?? card?.title ?? product?.name ?? product?.title ?? ''
+
+    if (search && !normalize(title).includes(search)) {
       return false
     }
 
     if (
-      appliedFilters.hero &&
-      !isSelected(getCardHeroId(product), appliedFilters.hero)
+      !matchesFilter(
+        card?.hero_id ?? card?.hero ?? product?.hero_id,
+        appliedFilters.hero,
+      )
     ) {
       return false
     }
 
     if (
-      appliedFilters.rarity &&
-      !isSelected(getCardRarity(product), appliedFilters.rarity)
+      !matchesFilter(
+        card?.rarity ?? card?.rarity_id ?? product?.rarity,
+        appliedFilters.rarity,
+      )
     ) {
       return false
     }
 
     if (
-      appliedFilters.type &&
-      !isSelected(getCardType(product), appliedFilters.type)
+      !matchesFilter(
+        card?.type ?? card?.card_type ?? product?.type,
+        appliedFilters.type,
+      )
     ) {
       return false
     }
 
     if (
-      appliedFilters.frameType &&
-      !isSelected(getCardFrameId(product), appliedFilters.frameType)
+      !matchesFilter(
+        card?.frame_type ?? card?.frameType ?? product?.frame_type,
+        appliedFilters.frameType,
+      )
     ) {
       return false
     }
@@ -937,108 +750,40 @@ const visibleProducts = computed(() => {
   })
 })
 
-const totalPages = computed(() => {
-  const total = Number(pagination.total || 0)
-  const perPage = Math.max(1, Number(filters.perPage) || 1)
+const totalPages = computed(() =>
+  Math.max(
+    1,
+    Math.ceil(
+      Number(pagination.value?.total ?? 0) /
+        Math.max(1, Number(filters.perPage ?? 21)),
+    ),
+  ),
+)
 
-  return Math.max(1, Math.ceil(total / perPage))
-})
+const showPagination = computed(() => totalPages.value > 1)
 
-const showPagination = computed(() => {
-  return (
-    !loading.value &&
-    collectionProducts.value.length > 0 &&
-    Number(pagination.total || 0) > Number(filters.perPage || 0)
-  )
-})
+const showPaginationControls = computed(
+  () =>
+    !loading.value && !error.value && Number(pagination.value?.total ?? 0) > 0,
+)
 
-const showPaginationControls = computed(() => {
-  return (
-    !loading.value && initialized.value && collectionProducts.value.length > 0
-  )
-})
-
-const createCollectionQuery = mode => {
-  const query = {
-    ...route.query,
-  }
-
-  delete query.page
-  delete query.status
-
-  if (mode === 'rented') {
-    query.collection = 'rented'
-  } else {
-    delete query.collection
-  }
-
-  return query
+const closeFilters = () => {
+  navigationStore.closeFilters()
 }
 
-const setCollectionMode = async mode => {
-  const rented = mode === 'rented'
+const toggleFilters = () => {
+  if (!isFiltersMobile.value) return
 
-  if (rented === isRentedCollection.value) {
-    return
-  }
-
-  closeFilters()
-  closeProduct()
-
-  await router.push({
-    name: 'MyCardsPage',
-    query: createCollectionQuery(mode),
-  })
+  navigationStore.toggleFilters()
 }
 
-const selectHero = (value, close) => {
-  collectionFilters.hero = value
-  close()
-}
-
-const selectRarity = (value, close) => {
-  collectionFilters.rarity = value
-  close()
-}
-
-const selectType = (value, close) => {
-  collectionFilters.type = value
-  close()
-}
-
-const selectFrameType = (value, close) => {
-  collectionFilters.frameType = value
-  close()
-}
-
-const selectRentalStatus = async (value, close) => {
-  close()
-
-  if (filters.rentalStatus === value) {
-    return
-  }
-
-  await updateFilters({
-    rentalStatus: value,
-    page: 1,
-  })
-}
-
-const applyFilters = () => {
-  appliedFilters.hero = collectionFilters.hero
-  appliedFilters.rarity = collectionFilters.rarity
-  appliedFilters.type = collectionFilters.type
-  appliedFilters.frameType = collectionFilters.frameType
-
-  closeFilters()
+const selectFilter = (key, value, close) => {
+  collectionFilters[key] = value
+  close?.()
 }
 
 const selectSort = async (value, close) => {
-  close()
-
-  if (filters.sort === value) {
-    return
-  }
+  close?.()
 
   await updateFilters({
     sort: value,
@@ -1046,61 +791,27 @@ const selectSort = async (value, close) => {
   })
 }
 
-const selectPerPage = async (value, close) => {
-  close()
-
-  const perPage = Number(value)
-
-  if (Number(filters.perPage) === perPage) {
-    return
-  }
+const selectRentalStatus = async (value, close) => {
+  close?.()
 
   await updateFilters({
-    perPage,
+    rentalStatus: value,
     page: 1,
   })
 }
 
-const clearLocalFilters = () => {
-  collectionFilters.search = ''
-  collectionFilters.hero = ''
-  collectionFilters.rarity = ''
-  collectionFilters.type = ''
-  collectionFilters.frameType = ''
+const selectPerPage = async (value, close) => {
+  close?.()
 
-  appliedFilters.hero = ''
-  appliedFilters.rarity = ''
-  appliedFilters.type = ''
-  appliedFilters.frameType = ''
-}
-
-const resetFilters = async () => {
-  clearLocalFilters()
-
-  await resetStoreFilters()
-
-  closeFilters()
-}
-
-const reloadCards = async () => {
-  await fetchCollectionProducts({
-    debounced: false,
+  await updateFilters({
+    perPage: Number(value),
+    page: 1,
   })
 }
 
 const onPageChange = async page => {
-  const normalizedPage = Number(page)
-
-  if (
-    !Number.isInteger(normalizedPage) ||
-    normalizedPage < 1 ||
-    normalizedPage === Number(filters.page)
-  ) {
-    return
-  }
-
   await updateFilters({
-    page: normalizedPage,
+    page: Number(page),
   })
 
   window.scrollTo({
@@ -1109,13 +820,59 @@ const onPageChange = async page => {
   })
 }
 
+const applyFilters = () => {
+  Object.assign(appliedFilters, {
+    hero: collectionFilters.hero,
+    rarity: collectionFilters.rarity,
+    type: collectionFilters.type,
+    frameType: collectionFilters.frameType,
+  })
+
+  closeFilters()
+}
+
+const clearLocalFilters = () => {
+  Object.assign(collectionFilters, {
+    search: '',
+    hero: '',
+    rarity: '',
+    type: '',
+    frameType: '',
+  })
+
+  Object.assign(appliedFilters, {
+    hero: '',
+    rarity: '',
+    type: '',
+    frameType: '',
+  })
+}
+
+const resetFilters = async () => {
+  clearLocalFilters()
+  await resetStoreFilters()
+  closeFilters()
+}
+
+const setCollectionMode = async mode => {
+  if (collectionMode.value === mode) return
+
+  collectionMode.value = mode
+  clearLocalFilters()
+  closeFilters()
+
+  await updateFilters({ page: 1 })
+  await fetchCollectionProducts({ debounced: false })
+}
+
+const reloadCards = async () => {
+  await fetchCollectionProducts({ debounced: false })
+}
+
 const openProduct = product => {
   const cardId = getCardId(product)
 
-  if (!cardId) {
-    console.error('Cannot open card details modal: card ID is missing', product)
-    return
-  }
+  if (!cardId) return
 
   selectedCollectionItem.value = product
   selectedProductId.value = cardId
@@ -1128,39 +885,13 @@ const closeProduct = () => {
   selectedCollectionItem.value = null
 }
 
-const handleCardSold = async saleData => {
-  try {
-    closeProduct()
-
-    await fetchCollectionProducts({
-      debounced: false,
-    })
-
-    console.log('Card sale successfully created:', saleData)
-  } catch (refreshError) {
-    console.error(
-      'Unable to refresh collection after selling card:',
-      refreshError,
-    )
-  }
-}
-
-const toggleFilters = () => {
-  if (!isFiltersMobile.value) {
-    return
-  }
-
-  navigationStore.toggleFilters()
-}
-
-const closeFilters = () => {
-  navigationStore.closeFilters()
+const handleCardSold = async () => {
+  closeProduct()
+  await fetchCollectionProducts({ debounced: false })
 }
 
 watch(isFiltersMobile, isMobile => {
-  if (!isMobile) {
-    closeFilters()
-  }
+  if (!isMobile) closeFilters()
 })
 
 watch(collectionMode, () => {
@@ -1170,17 +901,28 @@ watch(collectionMode, () => {
 })
 
 onBeforeUnmount(() => {
-  closeProduct()
   closeFilters()
 })
 </script>
 
 <style lang="scss" scoped>
+.filters-overlay-enter-active,
+.filters-overlay-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.filters-overlay-enter-from,
+.filters-overlay-leave-to {
+  opacity: 0;
+}
+
 .collection-page {
   @include adaptiveValue('padding-top', 120, 80);
   @include adaptiveValue('padding-bottom', 46, 30);
 
   position: relative;
+
+  min-height: 100vh;
 
   &__bg {
     position: fixed;
@@ -1201,16 +943,13 @@ onBeforeUnmount(() => {
 
   &__inner {
     @include adaptiveValue('gap', 16, 10, 1870, 1370, 1);
+
     position: relative;
-    z-index: 1;
 
     display: flex;
+    align-items: flex-start;
 
     width: 100%;
-
-    @media (max-width: $md3) {
-      display: block;
-    }
   }
 
   &__aside {
@@ -1218,11 +957,6 @@ onBeforeUnmount(() => {
 
     width: 220px;
     min-width: 220px;
-    max-width: 220px;
-
-    @media (max-width: $md3) {
-      display: none;
-    }
   }
 
   &__content {
@@ -1231,67 +965,131 @@ onBeforeUnmount(() => {
     min-width: 0;
   }
 
-  &__filters-button {
+  &__filters-toggle {
+    position: fixed;
+    top: 45%;
+    right: 10px;
+    z-index: 120;
+
     display: none;
+    align-items: center;
+    justify-content: center;
 
-    @media (max-width: $md3) {
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 1px solid var(--border-secondary-color);
+    border-radius: 6px;
+    background-color: #29234d;
+
+    color: var(--secondary-color);
+
+    cursor: pointer;
+
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+
+    &_open {
+      border-color: var(--border-priamry-color);
+      background-color: var(--third-color);
+    }
+
+    &-icon {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
 
-      width: 100%;
-      min-height: 42px;
+      width: 20px;
+      height: 20px;
 
-      margin-bottom: 18px;
+      color: inherit;
     }
   }
 
   &__filters-overlay {
     position: fixed;
     inset: 0;
-    z-index: 110;
+    z-index: 100;
 
     display: none;
 
-    background-color: rgb(0 0 0 / 65%);
-
-    @media (max-width: $md3) {
-      display: block;
-    }
-  }
-
-  &__filters-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    overflow-y: auto;
-
-    width: min(340px, 90vw);
+    width: 100%;
     height: 100%;
-
-    padding: 24px 16px;
-
-    background-color: var(--bg-primary-colorr);
-  }
-
-  &__filters-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 32px;
-    height: 32px;
 
     padding: 0;
 
     border: 0;
-    background: transparent;
-
-    color: var(--secondary-color);
+    background-color: rgb(0 0 0 / 60%);
 
     cursor: pointer;
+
+    backdrop-filter: blur(4px);
+  }
+
+  @media (max-width: $md3) {
+    &__inner {
+      display: block;
+    }
+
+    &__filters-toggle {
+      display: flex;
+    }
+
+    &__filters-overlay {
+      display: block;
+    }
+
+    &__aside {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 110;
+
+      visibility: hidden;
+      overflow-y: auto;
+
+      width: min(340px, 90vw);
+      min-width: 0;
+      height: 100dvh;
+
+      padding: 30px 20px;
+
+      border-right: 1px solid var(--border-fourth-color);
+      background-color: #191538;
+      box-shadow: 12px 0 40px rgb(0 0 0 / 30%);
+      opacity: 0;
+
+      pointer-events: none;
+
+      transform: translateX(-105%);
+      transition:
+        transform 0.3s ease,
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+
+      overscroll-behavior: contain;
+
+      &.aside_open {
+        visibility: visible;
+
+        opacity: 1;
+
+        pointer-events: auto;
+
+        transform: translateX(0);
+      }
+    }
+
+    &__content {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__aside {
+      padding: 25px 16px;
+    }
   }
 }
 
@@ -1370,7 +1168,6 @@ onBeforeUnmount(() => {
       color: var(--seventh-color);
       font-size: 16px;
       font-weight: 500;
-      line-height: 100%;
       white-space: nowrap;
     }
 
@@ -1410,18 +1207,11 @@ onBeforeUnmount(() => {
 
     &-icon {
       width: 20px;
-      min-width: 20px;
       height: 20px;
 
       opacity: 0.5;
 
       color: var(--secondary-color);
-    }
-
-    &_filled {
-      .top__search-icon {
-        opacity: 1;
-      }
     }
   }
 
@@ -1478,10 +1268,6 @@ onBeforeUnmount(() => {
   @media (max-width: $md4) {
     gap: 15px;
 
-    &__controls {
-      gap: 12px;
-    }
-
     &__dropdown {
       flex: 1 1 100%;
 
@@ -1511,7 +1297,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
 
-  width: 100%;
   min-width: 0;
 
   &__header {
@@ -1525,6 +1310,8 @@ onBeforeUnmount(() => {
   }
 
   &__title {
+    margin: 0;
+
     color: var(--secondary-color);
     font-weight: 500;
     line-height: 120%;
@@ -1532,21 +1319,28 @@ onBeforeUnmount(() => {
 
   &__close {
     display: none;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--secondary-color);
+
+    cursor: pointer;
 
     @media (max-width: $md3) {
       display: flex;
-      align-items: center;
-      justify-content: center;
+    }
 
-      width: 32px;
-      height: 32px;
-
-      border: 0;
-      background: transparent;
-
-      color: var(--secondary-color);
-
-      cursor: pointer;
+    &-icon {
+      width: 20px;
+      height: 20px;
     }
   }
 
@@ -1557,20 +1351,16 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 
-  &__filters {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-
-    width: 100%;
+  &__section {
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 22, 16);
+    }
   }
 
   &__submit {
     width: 100%;
 
-    &:not(:first-child) {
-      margin-top: 24px;
-    }
+    margin-top: 2px;
   }
 
   &__clear {
@@ -1584,7 +1374,6 @@ onBeforeUnmount(() => {
 
     color: var(--fifth-color);
     font-size: 14px;
-    line-height: 140%;
 
     cursor: pointer;
 
@@ -1604,7 +1393,9 @@ onBeforeUnmount(() => {
   width: 100%;
   min-width: 0;
 
-  &__label {
+  &__title {
+    margin: 0;
+
     color: var(--seventh-color);
     font-size: 14px;
     font-weight: 400;
@@ -1613,130 +1404,20 @@ onBeforeUnmount(() => {
 
   &__dropdown {
     width: 100%;
-  }
-
-  &__range {
-    width: 100%;
-  }
-
-  &__prices {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    width: 100%;
-  }
-
-  &__price {
-    flex: 1 1 50%;
-
     min-width: 0;
-  }
-
-  &__separator {
-    flex: 0 0 auto;
-
-    color: var(--seventh-color);
-  }
-}
-
-.price-slider {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  width: 100%;
-
-  &__track {
-    position: relative;
-
-    width: 100%;
-    height: 4px;
-
-    border-radius: 4px;
-    background-color: var(--border-fourth-color);
-  }
-
-  &__range {
-    position: absolute;
-    top: 0;
-
-    height: 100%;
-
-    border-radius: 4px;
-    background-color: var(--secondary-color);
-  }
-
-  &__input {
-    position: absolute;
-    top: 50%;
-    left: 0;
-
-    width: 100%;
-    height: 0;
-
-    margin: 0;
-
-    background: transparent;
-
-    appearance: none;
-    pointer-events: none;
-
-    transform: translateY(-50%);
-
-    &::-webkit-slider-thumb {
-      width: 14px;
-      height: 14px;
-
-      border: 2px solid var(--secondary-color);
-      border-radius: 50%;
-      background-color: var(--primary-color);
-
-      appearance: none;
-      cursor: pointer;
-      pointer-events: auto;
-    }
-
-    &::-moz-range-thumb {
-      width: 12px;
-      height: 12px;
-
-      border: 2px solid var(--secondary-color);
-      border-radius: 50%;
-      background-color: var(--primary-color);
-
-      cursor: pointer;
-      pointer-events: auto;
-    }
-  }
-
-  &__values {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  &__value {
-    flex: 1 1 50%;
-
-    min-width: 0;
-  }
-
-  &__separator {
-    color: var(--seventh-color);
   }
 }
 
 .content {
   display: flex;
-  flex: 1 1 100%;
+  flex: 1 1 auto;
   flex-direction: column;
 
   min-width: 0;
 
   &__body {
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     flex-direction: column;
 
     &:not(:last-child) {
@@ -1795,6 +1476,9 @@ onBeforeUnmount(() => {
     align-self: center;
 
     margin: auto;
+    padding: 50px 0;
+
+    color: var(--secondary-color);
   }
 
   &__empty {
@@ -1811,39 +1495,28 @@ onBeforeUnmount(() => {
     text-align: center;
   }
 
-  &__description {
-    margin-bottom: 20px;
-
-    color: var(--seventh-color);
-  }
-
-  &__reset {
-    max-width: 300px;
+  &__pagination {
+    width: 100%;
   }
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-
-  width: 100%;
-  min-height: 300px;
-
-  text-align: center;
-
   &__title {
+    margin: 0 0 16px;
+
     color: var(--secondary-color);
   }
 
-  &__text {
+  &__description {
+    margin: 0 0 20px;
+
     color: var(--seventh-color);
+    line-height: 150%;
   }
 
-  &__button {
-    min-width: 180px;
+  &__reset {
+    min-width: 160px;
+    max-width: 300px;
   }
 }
 
@@ -1855,76 +1528,26 @@ onBeforeUnmount(() => {
 
   width: 100%;
 
-  &__per-page {
+  &__dropdown {
     display: flex;
     align-items: center;
     gap: 16px;
 
     min-width: 0;
-  }
 
-  &__label {
-    color: var(--seventh-color);
-    font-size: 14px;
-    line-height: 140%;
-    white-space: nowrap;
-  }
-
-  &__dropdown {
-    min-width: 70px;
-  }
-
-  &__pages {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    min-width: 32px;
-    height: 32px;
-
-    padding: 0 8px;
-
-    border: 1px solid transparent;
-    border-radius: 5px;
-    background: transparent;
-
-    color: var(--secondary-color);
-    font-size: 14px;
-
-    cursor: pointer;
-
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease;
-
-    &_active {
-      border-color: var(--border-fourth-color);
-      background-color: var(--bg-secondary-color);
+    &-label {
+      color: var(--seventh-color);
+      font-size: 14px;
+      white-space: nowrap;
     }
 
-    &:disabled {
-      opacity: 0.4;
-
-      cursor: not-allowed;
-    }
-
-    @media (any-hover: hover) {
-      &:not(:disabled):hover {
-        border-color: var(--border-fourth-color);
-      }
+    &-box {
+      min-width: 70px;
     }
   }
 
-  &__dots {
-    padding: 0 4px;
-
-    color: var(--seventh-color);
+  &__pagination {
+    margin-left: auto;
   }
 
   @media (max-width: $md4) {
@@ -1932,9 +1555,8 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 16px;
 
-    &__pages {
-      flex-wrap: wrap;
-      justify-content: center;
+    &__pagination {
+      margin-left: 0;
     }
   }
 }
@@ -1972,24 +1594,6 @@ onBeforeUnmount(() => {
 
       color: var(--primary-color);
     }
-  }
-}
-
-.filters-overlay-enter-active,
-.filters-overlay-leave-active {
-  transition: opacity 0.3s ease;
-
-  .collection-page__filters-panel {
-    transition: transform 0.3s ease;
-  }
-}
-
-.filters-overlay-enter-from,
-.filters-overlay-leave-to {
-  opacity: 0;
-
-  .collection-page__filters-panel {
-    transform: translateX(-100%);
   }
 }
 </style>

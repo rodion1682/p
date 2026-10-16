@@ -1,6 +1,6 @@
 <template>
   <div class="heros">
-    <div v-if="isBgActive" class="heros__bg">
+    <div v-if="isBgActive" class="heros__bg _ibg">
       <img src="@/assets/img/heros-bg.jpg" alt="" />
     </div>
 
@@ -180,7 +180,11 @@ const prevSlide = () => {
 
   &__bg {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
 
     pointer-events: none;
   }

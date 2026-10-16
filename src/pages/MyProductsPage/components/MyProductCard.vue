@@ -25,22 +25,20 @@
           :aria-label="`${$t('View')} ${cardName}`"
           @click="openCardDetails"
         >
-          <!-- Card frame -->
-          <div class="my-product-card__frame">
+          <div class="my-product-card__background">
             <img
               :src="cardFrame"
               alt=""
-              class="my-product-card__frame-image"
+              class="my-product-card__background-image"
               @error="handleImageError"
             />
           </div>
 
-          <!-- Card artwork -->
-          <div class="my-product-card__artwork">
+          <div class="my-product-card__image-wrapper">
             <img
               :src="cardImage"
               :alt="cardName"
-              class="my-product-card__artwork-image"
+              class="my-product-card__image"
               @error="handleImageError"
             />
           </div>
@@ -49,50 +47,46 @@
             {{ cardName }}
           </div>
 
-          <!-- Card description -->
           <div v-if="cardDescription" class="my-product-card__description">
             <span v-html="cardDescription" />
           </div>
 
-          <!-- Mana -->
-          <span
+          <div
             v-if="hasValue(cardData.mana_cost)"
             class="my-product-card__stat my-product-card__stat_mana"
           >
             {{ cardData.mana_cost }}
-          </span>
+          </div>
 
-          <!-- Attack -->
-          <span
+          <div
             v-if="hasValue(cardData.attack)"
             class="my-product-card__stat my-product-card__stat_attack"
           >
             {{ cardData.attack }}
-          </span>
+          </div>
 
-          <!-- Health -->
-          <span
+          <div
             v-if="hasValue(cardData.health)"
             class="my-product-card__stat my-product-card__stat_health"
           >
             {{ cardData.health }}
-          </span>
+          </div>
 
-          <!-- View overlay -->
           <span class="my-product-card__view" aria-hidden="true">
             <SvgIcon class="my-product-card__view-icon" :icon="EyeIcon" />
           </span>
         </button>
 
-        <!-- Quantity instead of price/cart -->
-        <div class="my-product-card__quantity">
-          <span class="my-product-card__quantity-label">
-            {{ $t('Quantity') }}
-          </span>
+        <div class="my-product-card__footer">
+          <div class="my-product-card__quantity">
+            <span class="my-product-card__quantity-label">
+              {{ $t('Q-ty') }}:
+            </span>
 
-          <strong class="my-product-card__quantity-value">
-            {{ displayQuantity }}
-          </strong>
+            <strong class="my-product-card__quantity-value">
+              {{ displayQuantity }}
+            </strong>
+          </div>
         </div>
       </div>
     </div>
@@ -111,20 +105,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-
   className: {
     type: [String, Array, Object],
     default: '',
   },
-
   type: {
     type: String,
     default: 'default',
-    validator: value => {
-      return ['default', 'carousel'].includes(value)
-    },
+    validator: value => ['default', 'carousel'].includes(value),
   },
-
   rented: {
     type: Boolean,
     default: false,
@@ -138,7 +127,9 @@ const isCardHovered = ref(false)
 const cardData = computed(() => {
   return (
     props.product?.card ??
+    props.product?.product?.card ??
     props.product?.product ??
+    props.product?.item?.card ??
     props.product?.item ??
     props.product ??
     {}
@@ -151,7 +142,7 @@ const cardId = computed(() => {
     props.product?.card_id ??
     props.product?.product_id ??
     props.product?.id ??
-    'card'
+    null
   )
 })
 
@@ -230,33 +221,11 @@ function getInstancesQuantity() {
     return props.product.cards.length
   }
 
-  /*
-   * Every rented-card response item represents
-   * one rented card unless the API provides quantity.
-   */
-  if (
-    props.rented ||
-    props.product?.card_id ||
-    props.product?.rental_period ||
-    props.product?.rented_at
-  ) {
-    return 1
-  }
-
-  /*
-   * Every individual owned-card instance also
-   * represents one card.
-   */
-  if (props.product?.instance_uuid || props.product?.card_instance_id) {
-    return 1
-  }
-
   return 1
 }
 
 function extractMarkdownUrl(value) {
   const match = value.match(/^\[[^\]]+\]\(([^)]+)\)$/)
-
   return match?.[1] || value
 }
 
@@ -265,15 +234,7 @@ function resolveImage(imageValue) {
     return defaultImage
   }
 
-  let image = String(imageValue).trim()
-
-  /*
-   * Supports a normal URL and an accidentally
-   * returned Markdown-formatted URL:
-   *
-   * [https://example.com/image.png](https://example.com/image.png)
-   */
-  image = extractMarkdownUrl(image)
+  const image = extractMarkdownUrl(String(imageValue).trim())
 
   if (
     image.startsWith('http://') ||
@@ -310,43 +271,25 @@ function handleImageError(event) {
 }
 
 function getDetailsProduct() {
-  /*
-   * Normalize rented-card fields before passing the card
-   * to the details modal. The original response is kept
-   * so rental information is not lost.
-   */
   return {
     ...props.product,
     ...cardData.value,
-
     id: cardId.value,
-    card_id: props.product?.card_id || cardId.value,
-
+    card_id: props.product?.card_id ?? cardId.value,
     name: cardName.value,
     description: cardDescription.value,
-
     image: cardImage.value,
     image_2: cardFrame.value,
-
     mana_cost: cardData.value?.mana_cost ?? props.product?.mana_cost ?? null,
-
     attack: cardData.value?.attack ?? props.product?.attack ?? null,
-
     health: cardData.value?.health ?? props.product?.health ?? null,
-
     quantity: displayQuantity.value,
-
-    /*
-     * Preserve the complete original API object.
-     */
     original: props.product,
   }
 }
 
 function openCardDetails() {
-  if (!cardId.value) {
-    return
-  }
+  if (!cardId.value) return
 
   emit('open', getDetailsProduct())
 }
@@ -372,6 +315,10 @@ function openCardDetails() {
 
     width: 100%;
 
+    border: 1px solid var(--border-secondary-color);
+    border-radius: 12px;
+    background-color: var(--bg-primary-color);
+
     transition:
       border-color 0.3s ease,
       box-shadow 0.3s ease,
@@ -379,12 +326,15 @@ function openCardDetails() {
   }
 
   &__content {
+    @include adaptiveValue('padding-top', 17, 15);
+    @include adaptiveValue('padding-bottom', 17, 15);
+
     position: relative;
 
     width: 100%;
 
-    padding: clamp(8px, 5cqi, 16px) clamp(7px, 4cqi, 14px)
-      clamp(10px, 5cqi, 18px);
+    padding-right: 10px;
+    padding-left: 10px;
   }
 
   &__title {
@@ -394,18 +344,18 @@ function openCardDetails() {
 
     margin: 0;
 
-    color: var(--secondary-color);
+    color: var(--seventh-colo);
     font-family: var(--font-inter);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    line-height: 120%;
+    line-height: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     transition: color 0.3s ease;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 0, 15);
+      @include adaptiveValue('margin-bottom', 31, 18);
     }
   }
 
@@ -426,7 +376,6 @@ function openCardDetails() {
 
     color: inherit;
 
-    appearance: none;
     cursor: pointer;
 
     transition: transform 0.3s ease;
@@ -442,18 +391,15 @@ function openCardDetails() {
     }
   }
 
-  &__frame {
+  &__background {
     position: absolute;
     inset: 0;
-    z-index: 2;
 
     width: 100%;
     height: 100%;
-
-    pointer-events: none;
   }
 
-  &__frame-image {
+  &__background-image {
     display: block;
 
     width: 100%;
@@ -466,29 +412,27 @@ function openCardDetails() {
       transform 0.3s ease;
   }
 
-  &__artwork {
+  &__image-wrapper {
     position: absolute;
-    top: 15.7%;
+    top: 15.3%;
     left: 50%;
-    z-index: 2;
 
-    overflow: hidden;
+    width: 77%;
+    height: 45.5%;
 
-    width: 76%;
-    height: 45%;
-
-    transform: translate(-50%, 0px);
+    transform: translateX(-50%);
     transition: transform 0.3s ease;
   }
 
-  &__artwork-image {
-    display: block;
+  &__image {
+    position: absolute;
+    top: 0;
+    left: 0;
 
     width: 100%;
     height: 100%;
 
     object-fit: cover;
-    object-position: center;
   }
 
   &__card-name {
@@ -522,7 +466,6 @@ function openCardDetails() {
     position: absolute;
     bottom: 11%;
     left: 50%;
-    z-index: 3;
 
     display: flex;
     overflow: hidden;
@@ -547,22 +490,17 @@ function openCardDetails() {
     :deep(p) {
       margin: 0;
     }
-
-    :deep(br) {
-      display: none;
-    }
   }
 
   &__stat {
     position: absolute;
-    z-index: 4;
+    z-index: 2;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
     width: 14%;
-    height: fit-content;
     aspect-ratio: 1;
 
     border-radius: 50%;
@@ -571,7 +509,7 @@ function openCardDetails() {
     font-family: var(--font-spectral);
     font-size: clamp(14px, 10cqi, 28px);
     font-weight: 700;
-    line-height: 111%;
+    line-height: 135%;
 
     pointer-events: none;
 
@@ -581,7 +519,7 @@ function openCardDetails() {
     -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
 
     &_mana {
-      top: 7.4%;
+      top: 6.4%;
       left: 7.5%;
 
       background: radial-gradient(
@@ -601,8 +539,6 @@ function openCardDetails() {
         inset -4px 0 6px rgb(0 12 28 / 40%),
         0 1px 3px rgb(0 0 0 / 60%),
         0 0 5px rgb(0 20 40 / 50%);
-
-      line-height: 110%;
 
       -webkit-text-stroke-color: #01588a;
     }
@@ -660,6 +596,8 @@ function openCardDetails() {
         0 1px 3px rgb(0 0 0 / 60%),
         0 0 5px rgb(0 25 25 / 50%);
 
+      line-height: 110%;
+
       -webkit-text-stroke-color: #07584f;
     }
   }
@@ -668,7 +606,7 @@ function openCardDetails() {
     position: absolute;
     top: 50%;
     left: 50%;
-    z-index: 6;
+    z-index: 4;
 
     display: flex;
     visibility: hidden;
@@ -706,8 +644,6 @@ function openCardDetails() {
 
     color: var(--primary-color);
 
-    filter: drop-shadow(0 2px 8px rgb(0 0 0 / 60%));
-
     :deep(svg) {
       display: block;
 
@@ -716,36 +652,43 @@ function openCardDetails() {
     }
   }
 
-  &__quantity {
+  &__footer {
+    @include adaptiveValue('margin-top', 28, 18);
+
+    position: relative;
+
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(6px, 3cqi, 10px);
 
     width: 100%;
-    min-height: clamp(56px, 28cqi, 72px);
+    min-height: 28px;
+  }
 
-    margin-top: clamp(8px, 5cqi, 16px);
+  &__quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    width: 100%;
   }
 
   &__quantity-label {
-    color: var(--secondary-color);
+    color: var(--seventh-color);
     font-family: var(--font-inter);
-    font-size: clamp(10px, 5.5cqi, 13px);
-    font-weight: 500;
-    line-height: 1.2;
-    text-transform: uppercase;
-
-    transition: color 0.3s ease;
+    font-size: clamp(10px, 6cqi, 13px);
+    font-weight: 400;
+    line-height: 120%;
+    white-space: nowrap;
   }
 
   &__quantity-value {
-    color: var(--primary-color);
+    color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: clamp(14px, 8cqi, 20px);
-    font-weight: 600;
-    line-height: 1;
+    font-size: clamp(11px, 6cqi, 14px);
+    font-weight: 500;
+    line-height: 120%;
   }
 
   &_hovered {
@@ -763,11 +706,12 @@ function openCardDetails() {
     .my-product-card__card {
       transform: scale(1.02);
     }
-    .my-product-card__artwork {
+
+    .my-product-card__image-wrapper {
       transform: scale(0.998) translateX(-50%);
     }
 
-    .my-product-card__frame-image {
+    .my-product-card__background-image {
       filter: brightness(0.8);
     }
 
@@ -777,10 +721,6 @@ function openCardDetails() {
       opacity: 1;
 
       transform: translate(-50%, -50%) scale(1);
-    }
-
-    .my-product-card__quantity-label {
-      color: var(--hint-secondary-color);
     }
   }
 

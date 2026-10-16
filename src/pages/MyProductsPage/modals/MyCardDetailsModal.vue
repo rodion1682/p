@@ -13,13 +13,13 @@
     </div>
 
     <div v-else-if="error" class="my-card-details my-card-details_state">
-      <div class="my-card-details__state-title _h3">
+      <h2 class="my-card-details__state-title _h3">
         {{ $t('Unable to load card') }}
-      </div>
+      </h2>
 
-      <div class="my-card-details__state-text">
+      <p class="my-card-details__state-text">
         {{ error }}
-      </div>
+      </p>
 
       <BaseButton
         type="button"
@@ -39,17 +39,17 @@
 
         <div class="my-card-details__card">
           <img
-            v-if="card.image_2"
-            :src="card.image_2"
-            :alt="card.name"
-            class="my-card-details__card-frame"
-          />
-
-          <img
             v-if="card.image"
             :src="card.image"
             alt=""
             class="my-card-details__card-image"
+          />
+
+          <img
+            v-if="card.image_2"
+            :src="card.image_2"
+            :alt="card.name"
+            class="my-card-details__card-frame"
           />
 
           <div v-if="cardName" class="my-card-details__card-name">
@@ -102,62 +102,66 @@
 
       <div class="my-card-details__content">
         <div class="my-card-details__main">
-          <h2 :id="titleId" class="my-card-details__title _h4">
-            {{ card.name }}
+          <h2 :id="titleId" class="my-card-details__title">
+            {{ cardName }}
           </h2>
 
           <div class="my-card-details__stats">
-            <div
-              class="my-card-details__stats-row my-card-details__stats-row_head"
-            >
-              <div class="my-card-details__stats-cell">
-                {{ $t('Hero') }}
+            <div class="my-card-details__stats-column">
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Hero') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ heroName }}
+                </span>
               </div>
 
-              <div class="my-card-details__stats-cell">
-                {{ $t('Type') }}
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Type') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ formatValue(card.type) }}
+                </span>
               </div>
 
-              <div class="my-card-details__stats-cell">
-                {{ $t('Rarity') }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ $t('Mana') }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ $t('Attack') }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ $t('Health') }}
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Rarity') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ formatValue(card.rarity) }}
+                </span>
               </div>
             </div>
 
-            <div class="my-card-details__stats-row">
-              <div class="my-card-details__stats-cell">
-                {{ card.hero?.name || '—' }}
+            <div class="my-card-details__stats-column">
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Mana') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ displayValue(card.mana_cost) }}
+                </span>
               </div>
 
-              <div class="my-card-details__stats-cell">
-                {{ formatValue(card.type) }}
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Attack') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ displayValue(card.attack) }}
+                </span>
               </div>
 
-              <div class="my-card-details__stats-cell">
-                {{ formatValue(card.rarity) }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ displayValue(card.mana_cost) }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ displayValue(card.attack) }}
-              </div>
-
-              <div class="my-card-details__stats-cell">
-                {{ displayValue(card.health) }}
+              <div class="my-card-details__stats-item">
+                <span class="my-card-details__stats-label">
+                  {{ $t('Health') }}
+                </span>
+                <span class="my-card-details__stats-value">
+                  {{ displayValue(card.health) }}
+                </span>
               </div>
             </div>
           </div>
@@ -175,31 +179,31 @@
         </div>
 
         <div v-if="sellFeatureEnabled && !rented" class="my-card-details__sale">
-          <div class="my-card-details__sale-top">
+          <div class="my-card-details__sale-controls">
             <div
               v-if="commissionPercent > 0"
               class="my-card-details__commission"
             >
-              <div class="my-card-details__control-label">
+              <span class="my-card-details__control-label">
                 {{ $t('Commission') }}
-              </div>
+              </span>
 
-              <div class="my-card-details__commission-value">
+              <strong class="my-card-details__commission-value">
                 {{ commissionPercent }}%
-              </div>
+              </strong>
             </div>
 
             <div class="my-card-details__quantity-box">
-              <div class="my-card-details__control-label">
+              <span class="my-card-details__control-label">
                 {{ $t('Q-ty:') }}
-              </div>
+              </span>
 
               <div class="my-card-details__quantity">
                 <button
                   type="button"
                   class="my-card-details__quantity-button"
                   :disabled="
-                    quantity <= 1 ||
+                    Number(quantity) <= 1 ||
                     submitting ||
                     availabilityLoading ||
                     !availableForSale
@@ -227,7 +231,7 @@
                   type="button"
                   class="my-card-details__quantity-button"
                   :disabled="
-                    quantity >= availableForSale ||
+                    Number(quantity) >= availableForSale ||
                     submitting ||
                     availabilityLoading ||
                     !availableForSale
@@ -243,9 +247,9 @@
 
           <div class="my-card-details__sale-bottom">
             <div class="my-card-details__price-box">
-              <div class="my-card-details__control-label">
+              <span class="my-card-details__control-label">
                 {{ $t('You receive per card') }}
-              </div>
+              </span>
 
               <PriceFormatter
                 :price="saleUnitPrice"
@@ -255,9 +259,9 @@
             </div>
 
             <div class="my-card-details__total-box">
-              <div class="my-card-details__control-label">
+              <span class="my-card-details__control-label">
                 {{ $t('Total') }}
-              </div>
+              </span>
 
               <PriceFormatter
                 :price="saleTotal"
@@ -325,17 +329,14 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-
   productId: {
     type: [String, Number],
     default: null,
   },
-
   collectionItem: {
     type: Object,
     default: null,
   },
-
   rented: {
     type: Boolean,
     default: false,
@@ -361,26 +362,24 @@ const quantity = ref(1)
 
 const activeRequestId = ref(0)
 
-const card = computed(() => {
-  return productStore.currentProduct
-})
+const card = computed(() => productStore.currentProduct)
 
 const cardName = computed(() => {
   return card.value?.name ?? card.value?.title ?? card.value?.card_name ?? ''
 })
 
-const titleId = computed(() => {
-  return props.productId ? `my-card-title-${props.productId}` : 'my-card-title'
-})
+const heroName = computed(() => {
+  const hero = card.value?.hero
 
-const frameTypeName = computed(() => {
-  const name = card.value?.frame_type?.name
-
-  if (!name) {
-    return '—'
+  if (typeof hero === 'string') {
+    return hero
   }
 
-  return String(name).toUpperCase()
+  return hero?.name || '—'
+})
+
+const titleId = computed(() => {
+  return props.productId ? `my-card-title-${props.productId}` : 'my-card-title'
 })
 
 const cardRarity = computed(() => {
@@ -404,10 +403,6 @@ const cardBackImage = computed(() => {
 
   if (cardRarity.value === 'rare') {
     return rareCardBack
-  }
-
-  if (cardRarity.value === 'common') {
-    return commonCardBack
   }
 
   return commonCardBack
@@ -453,7 +448,6 @@ const saleUnitPrice = computed(() => {
   }
 
   const cardPrice = Number(card.value?.price ?? 0)
-
   const commission = commissionPercent.value / 100
 
   return Number((cardPrice * (1 - commission)).toFixed(2))
@@ -470,20 +464,21 @@ const canSell = computed(() => {
     !availabilityLoading.value &&
     !submitting.value &&
     availableForSale.value > 0 &&
+    Number.isInteger(Number(quantity.value)) &&
     Number(quantity.value) >= 1 &&
     Number(quantity.value) <= availableForSale.value
   )
 })
 
-const hasValue = value => {
+function hasValue(value) {
   return value !== null && value !== undefined && value !== ''
 }
 
-const displayValue = value => {
+function displayValue(value) {
   return hasValue(value) ? value : '—'
 }
 
-const formatValue = value => {
+function formatValue(value) {
   if (!hasValue(value)) {
     return '—'
   }
@@ -493,34 +488,31 @@ const formatValue = value => {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
 
-const normalizeQuantity = () => {
+function normalizeQuantity() {
   const parsedQuantity = Number.parseInt(String(quantity.value), 10) || 1
 
   if (!sellFeatureEnabled.value || availableForSale.value <= 0) {
     quantity.value = 1
-
     return
   }
 
   quantity.value = Math.min(Math.max(1, parsedQuantity), availableForSale.value)
 }
 
-const decreaseQuantity = () => {
+function decreaseQuantity() {
   normalizeQuantity()
-
   quantity.value = Math.max(1, Number(quantity.value) - 1)
 }
 
-const increaseQuantity = () => {
+function increaseQuantity() {
   normalizeQuantity()
 
   quantity.value = Math.min(availableForSale.value, Number(quantity.value) + 1)
 }
 
-const fetchAvailability = async () => {
+async function fetchAvailability() {
   if (props.rented || !sellFeatureEnabled.value || !card.value?.id) {
     availableForSale.value = 0
-
     return
   }
 
@@ -559,7 +551,7 @@ const fetchAvailability = async () => {
   }
 }
 
-const loadSettings = async () => {
+async function loadSettings() {
   if (settingsStore.settings) {
     return
   }
@@ -567,10 +559,9 @@ const loadSettings = async () => {
   await settingsStore.fetchSettings()
 }
 
-const loadCard = async () => {
+async function loadCard() {
   if (!props.productId) {
     error.value = 'Card ID is missing'
-
     return
   }
 
@@ -578,7 +569,6 @@ const loadCard = async () => {
 
   loading.value = true
   error.value = ''
-
   quantity.value = 1
   availableForSale.value = 0
 
@@ -613,12 +603,12 @@ const loadCard = async () => {
   }
 }
 
-const sellCard = async () => {
+async function sellCard() {
+  normalizeQuantity()
+
   if (!canSell.value || !card.value?.id || submitting.value) {
     return
   }
-
-  normalizeQuantity()
 
   submitting.value = true
 
@@ -663,21 +653,18 @@ const sellCard = async () => {
   }
 }
 
-const closeModal = () => {
+function closeModal() {
   activeRequestId.value += 1
-
   emit('update:show', false)
-
   emit('close')
 }
 
-const handleShowUpdate = value => {
+function handleShowUpdate(value) {
   emit('update:show', value)
 }
 
 watch(
   [() => props.show, () => props.productId],
-
   async ([isOpen, productId], previous = []) => {
     const [wasOpen, previousProductId] = previous
 
@@ -686,7 +673,6 @@ watch(
     }
 
     const justOpened = isOpen && !wasOpen
-
     const productChanged = String(productId) !== String(previousProductId)
 
     if (!justOpened && !productChanged) {
@@ -695,43 +681,36 @@ watch(
 
     await loadCard()
   },
-
-  {
-    immediate: true,
-  },
+  { immediate: true },
 )
 
-watch(
-  sellFeatureEnabled,
+watch(sellFeatureEnabled, async enabled => {
+  if (!props.show || props.rented || !card.value?.id) {
+    return
+  }
 
-  async enabled => {
-    if (!props.show || props.rented || !card.value?.id) {
-      return
-    }
+  if (!enabled) {
+    availableForSale.value = 0
+    quantity.value = 1
+    return
+  }
 
-    if (!enabled) {
-      availableForSale.value = 0
-      quantity.value = 1
-
-      return
-    }
-
-    await fetchAvailability()
-  },
-)
+  await fetchAvailability()
+})
 </script>
 
 <style lang="scss" scoped>
 .my-card-details {
   position: relative;
 
-  display: flex;
+  display: grid;
   align-items: center;
-  gap: 20px;
+  gap: clamp(24px, 3vw, 48px);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 
   width: 100%;
-  max-width: 1000px;
-  min-height: 520px;
+  max-width: 1100px;
+  min-height: 500px;
 
   margin: 0 auto;
 
@@ -742,7 +721,7 @@ watch(
     justify-content: center;
     gap: 20px;
 
-    min-height: 480px;
+    min-height: 400px;
 
     text-align: center;
   }
@@ -768,30 +747,32 @@ watch(
     position: relative;
 
     display: flex;
-    flex: 0 1 43%;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
 
-    min-width: 330px;
-    min-height: 500px;
+    width: 100%;
+    min-width: 0;
+    min-height: 490px;
   }
 
   &__back {
     position: absolute;
     top: 50%;
-    left: 0;
+    left: -20%;
     z-index: 1;
 
-    width: 75%;
+    width: 90%;
     aspect-ratio: 1;
 
-    transform: translateY(-50%) translateX(-4%);
+    pointer-events: none;
+
+    transform: translateY(-50%);
 
     img {
       display: block;
 
       width: 100%;
-      height: auto;
+      height: 100%;
 
       object-fit: contain;
     }
@@ -801,58 +782,57 @@ watch(
     position: relative;
     z-index: 2;
 
-    width: min(100%, 355px);
-    aspect-ratio: 0.69;
+    width: min(82%, 345px);
+    aspect-ratio: 2 / 3;
 
     margin-left: auto;
 
     container-type: inline-size;
-  }
-
-  &__card-frame {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-
-    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 12px 18px rgb(0 0 0 / 25%));
   }
 
   &__card-image {
     position: absolute;
-    top: 14%;
+    top: 15.3%;
     left: 50%;
-    z-index: 2;
+    z-index: 1;
 
     width: 77%;
-    height: 47%;
+    height: 45.5%;
 
     object-fit: cover;
 
     transform: translateX(-50%);
   }
 
+  &__card-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+
+    object-fit: contain;
+  }
+
   &__card-name {
     position: absolute;
-    top: 8.1%;
+    top: 9.25%;
     left: 55%;
     z-index: 3;
 
     overflow: hidden;
 
     width: 65%;
-    height: fit-content;
 
     padding: 0 5%;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: 16px;
+    font-size: clamp(8px, 5cqi, 16px);
     font-weight: 400;
     line-height: 1;
     text-align: left;
@@ -866,29 +846,30 @@ watch(
 
   &__card-description {
     position: absolute;
-    bottom: 15%;
+    bottom: 11%;
     left: 50%;
     z-index: 3;
 
-    display: -webkit-box;
+    display: flex;
     overflow: hidden;
+    align-items: center;
+    justify-content: center;
 
-    width: 48%;
-    max-height: 17%;
+    width: 56%;
+    height: 22%;
+
+    padding: 2%;
 
     color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 120%;
+    font-size: clamp(8px, 3.8cqi, 13px);
+    font-weight: 400;
+    line-height: 1.2;
     text-align: center;
 
     pointer-events: none;
 
     transform: translateX(-50%);
-
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
 
     :deep(p) {
       margin: 0;
@@ -907,13 +888,14 @@ watch(
     align-items: center;
     justify-content: center;
 
+    width: 14%;
     aspect-ratio: 1;
 
     border-radius: 50%;
 
     color: var(--primary-color);
     font-family: var(--font-spectral);
-    font-size: clamp(14px, 12cqi, 30px);
+    font-size: clamp(14px, 10cqi, 30px);
     font-weight: 700;
     line-height: 1;
 
@@ -922,14 +904,11 @@ watch(
     paint-order: stroke fill;
 
     -webkit-text-fill-color: var(--primary-color);
-
     -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
 
     &_mana {
-      top: 5.1%;
+      top: 6.4%;
       left: 7.5%;
-
-      width: 14%;
 
       background: radial-gradient(
         circle at 50% 42%,
@@ -953,8 +932,8 @@ watch(
     }
 
     &_attack {
-      right: 6%;
-      bottom: 4%;
+      right: 5.85%;
+      bottom: 5.5%;
 
       width: 12%;
 
@@ -980,8 +959,8 @@ watch(
     }
 
     &_health {
-      bottom: 4%;
-      left: 6%;
+      bottom: 5.5%;
+      left: 5.85%;
 
       width: 12%;
 
@@ -1009,7 +988,7 @@ watch(
 
   &__stock {
     position: absolute;
-    bottom: -30px;
+    bottom: -15px;
     left: 50%;
     z-index: 5;
 
@@ -1023,7 +1002,7 @@ watch(
     transform: translateX(-50%);
 
     strong {
-      margin-left: 6px;
+      margin-left: 5px;
 
       color: var(--primary-color);
       font-weight: 600;
@@ -1035,11 +1014,11 @@ watch(
     z-index: 5;
 
     display: flex;
-    flex: 1 1 57%;
     flex-direction: column;
 
+    width: 100%;
     min-width: 0;
-    min-height: 480px;
+    min-height: 475px;
   }
 
   &__main {
@@ -1047,84 +1026,71 @@ watch(
   }
 
   &__title {
-    color: var(--primary-color);
-    text-align: left;
-    text-transform: none;
+    margin: 0 0 clamp(24px, 3vw, 36px);
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 44, 25);
-    }
+    color: var(--primary-color);
+    font-family: var(--font-spectral);
+    font-size: clamp(25px, 2.8vw, 38px);
+    font-weight: 500;
+    line-height: 1.15;
+    text-align: left;
   }
 
   &__stats {
+    display: grid;
+    gap: clamp(14px, 2vw, 28px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
     width: 100%;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 25);
-    }
+    margin-bottom: clamp(24px, 3vw, 36px);
   }
 
-  &__stats-row {
+  &__stats-column {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 17px;
 
-    &_head {
-      border-bottom: 1px solid var(--border-secondary-color);
-
-      .my-card-details__stats-cell {
-        padding-top: 0;
-        padding-bottom: 14px;
-
-        color: var(--hint-third-color);
-        font-size: 13px;
-      }
-    }
+    min-width: 0;
   }
 
-  &__stats-cell {
-    flex: 1 1 0;
+  &__stats-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
 
     min-width: 0;
 
-    padding-top: 16px;
-    padding-right: 10px;
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid rgb(255 255 255 / 9%);
+  }
+
+  &__stats-label {
+    color: var(--hint-third-color);
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  &__stats-value {
+    overflow: hidden;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    text-align: left;
+    line-height: 1.4;
+    text-align: right;
+    text-overflow: ellipsis;
 
-    &:nth-child(1) {
-      flex-grow: 1.15;
-    }
-
-    &:nth-child(3) {
-      flex-grow: 1.35;
-    }
-
-    &:nth-child(4),
-    &:nth-child(5),
-    &:nth-child(6) {
-      flex-grow: 0.7;
-    }
-
-    &:last-child {
-      padding-right: 0;
-
-      text-align: right;
-    }
+    overflow-wrap: anywhere;
   }
 
   &__description {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    line-height: 150%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 36, 24);
-    }
+    margin-bottom: 24px;
   }
 
   &__description-label,
@@ -1133,24 +1099,24 @@ watch(
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.4;
   }
 
   &__description-label {
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+    margin-bottom: 12px;
   }
 
   &__description-content {
-    max-width: 580px;
-
-    color: var(--primary-color);
+    color: var(--secondary-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    line-height: 1.65;
 
     :deep(p) {
       margin: 0;
 
       &:not(:last-child) {
-        margin-bottom: 15px;
+        margin-bottom: 12px;
       }
     }
   }
@@ -1158,23 +1124,20 @@ watch(
   &__sale {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 22px;
 
     width: 100%;
 
-    padding-top: 20px;
+    padding-top: 22px;
 
-    border-top: 1px solid var(--border-secondary-color);
+    border-top: 1px solid rgb(255 255 255 / 12%);
   }
 
-  &__sale-top,
-  &__sale-bottom {
+  &__sale-controls {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 30px;
-
-    width: 100%;
+    gap: 24px;
   }
 
   &__commission,
@@ -1183,38 +1146,21 @@ watch(
   &__total-box {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 
     min-width: 0;
-  }
-
-  &__commission {
-    flex: 0 0 auto;
-  }
-
-  &__quantity-box {
-    flex: 0 0 auto;
-  }
-
-  &__price-box {
-    flex: 1 1 150px;
-  }
-
-  &__total-box {
-    flex: 1 1 130px;
   }
 
   &__commission-value {
     display: flex;
     align-items: center;
 
-    min-height: 36px;
+    min-height: 38px;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 16px;
     font-weight: 500;
-    line-height: 1;
   }
 
   &__quantity {
@@ -1222,32 +1168,31 @@ watch(
     align-items: stretch;
 
     width: fit-content;
-    min-height: 36px;
+    height: 40px;
 
     border: 1px solid var(--border-secondary-color);
-    background-color: transparent;
+    border-radius: 5px;
+    background-color: rgb(0 0 0 / 10%);
   }
 
   &__quantity-button {
     display: flex;
-    flex: 0 0 36px;
+    flex: 0 0 38px;
     align-items: center;
     justify-content: center;
 
-    width: 36px;
-    min-width: 36px;
+    width: 38px;
 
     padding: 0;
 
     border: 0;
     outline: none;
-    background-color: transparent;
+    background: transparent;
 
-    color: var(--hint-secondary-color);
+    color: var(--secondary-color);
     font-family: var(--font-inter);
     font-size: 22px;
     font-weight: 300;
-    line-height: 1;
 
     cursor: pointer;
 
@@ -1264,7 +1209,7 @@ watch(
 
     @media (any-hover: hover) {
       &:not(:disabled):hover {
-        background-color: var(--bg-fourth-color);
+        background-color: rgb(255 255 255 / 8%);
 
         color: var(--primary-color);
       }
@@ -1272,13 +1217,14 @@ watch(
   }
 
   &__quantity-input {
-    width: 44px;
+    width: 46px;
+    min-width: 0;
 
     padding: 0 4px;
 
     border: 0;
     outline: none;
-    background-color: transparent;
+    background: transparent;
 
     color: var(--primary-color);
     font-family: var(--font-inter);
@@ -1296,21 +1242,33 @@ watch(
     }
   }
 
+  &__sale-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 20px;
+
+    width: 100%;
+  }
+
+  &__price-box,
+  &__total-box {
+    flex: 1 1 100px;
+  }
+
   &__price-value,
   &__total-value {
     display: flex;
     align-items: center;
 
-    min-height: 36px;
+    min-height: 40px;
   }
 
   &__sell-button {
-    @include adaptiveValue('min-height', 48, 40);
+    flex: 0 0 160px;
 
-    flex: 0 1 180px;
-
-    width: 180px;
-    min-width: 160px;
+    width: 160px;
+    min-height: 44px;
 
     font-family: var(--font-spectral);
     font-size: 14px;
@@ -1319,6 +1277,8 @@ watch(
   }
 
   &__button-loader {
+    display: block;
+
     width: 20px;
     height: 20px;
 
@@ -1328,114 +1288,156 @@ watch(
     animation: my-card-details-spin 0.8s linear infinite;
 
     border-bottom-color: transparent;
-
     border-right-color: transparent;
   }
 
   @media (max-width: $md3) {
-    gap: 30px;
+    gap: 20px;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 
     &__preview {
-      flex: 0 1 38%;
-
-      min-width: 250px;
+      min-height: 420px;
     }
 
-    &__content {
-      flex: 1 1 62%;
+    &__card {
+      width: min(90%, 290px);
     }
 
     &__back {
-      width: 75%;
+      left: -12%;
+
+      width: 85%;
     }
 
-    &__sale-top,
-    &__sale-bottom {
-      gap: 15px;
+    &__content {
+      min-height: 420px;
+    }
+
+    &__title {
+      font-size: 28px;
+    }
+
+    &__stats {
+      gap: 12px;
+    }
+
+    &__stats-item {
+      gap: 6px;
+    }
+
+    &__stats-label {
+      font-size: 12px;
+    }
+
+    &__stats-value {
+      font-size: 13px;
     }
   }
 
   @media (max-width: $md4) {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 36px;
+    grid-template-columns: minmax(0, 1fr);
 
     &__preview {
-      flex: none;
+      justify-content: center;
 
-      width: 100%;
-      min-width: 0;
       min-height: 0;
-
-      &:not(:last-child) {
-        margin-bottom: 35px;
-      }
-    }
-
-    &__back {
-      left: 10%;
-
-      width: min(62vw, 280px);
     }
 
     &__card {
-      width: min(72vw, 340px);
+      width: min(68vw, 310px);
 
-      margin-right: auto;
-      margin-left: auto;
+      margin: 0;
 
       transform: translateX(8%);
     }
 
+    &__back {
+      top: 50%;
+      left: 8%;
+
+      width: min(65vw, 300px);
+    }
+
     &__stock {
-      bottom: -30px;
+      bottom: -25px;
     }
 
     &__content {
-      flex: none;
-
-      width: 100%;
       min-height: 0;
     }
 
     &__title {
+      font-size: 28px;
       text-align: center;
     }
   }
 
   @media (max-width: $md6) {
+    gap: 32px;
+
+    &__card {
+      width: min(75vw, 290px);
+    }
+
+    &__back {
+      left: -4%;
+
+      width: min(70vw, 270px);
+    }
+
+    &__title {
+      font-size: 25px;
+    }
+
     &__stats {
-      overflow-x: auto;
-
-      scrollbar-width: thin;
+      gap: 12px;
     }
 
-    &__stats-row {
-      width: 500px;
-      min-width: 500px;
+    &__stats-column {
+      gap: 12px;
     }
 
-    &__sale-top,
-    &__sale-bottom {
+    &__stats-item {
       flex-direction: column;
-      flex-wrap: nowrap;
-      align-items: stretch;
+      align-items: flex-start;
+      gap: 4px;
     }
 
-    &__commission,
-    &__quantity-box,
-    &__price-box,
-    &__total-box {
-      flex: none;
-      align-items: center;
+    &__stats-value {
+      text-align: left;
+    }
 
-      width: 100%;
+    &__sale-controls {
+      gap: 20px;
+    }
+
+    &__sale-bottom {
+      gap: 18px;
     }
 
     &__sell-button {
-      flex: none;
+      flex: 1 1 100%;
 
       width: 100%;
-      min-width: 0;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__card {
+      width: min(78vw, 270px);
+    }
+
+    &__back {
+      width: 65vw;
+    }
+
+    &__stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__sale-controls {
+      justify-content: space-between;
     }
   }
 }

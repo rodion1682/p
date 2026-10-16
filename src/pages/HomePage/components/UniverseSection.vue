@@ -31,6 +31,9 @@
 <style lang="scss" scoped>
 .universe {
   @include adaptiveValue('padding-bottom', 87, 30);
+  position: relative;
+  z-index: 1;
+
   text-align: center;
   &__inner {
   }
