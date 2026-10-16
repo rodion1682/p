@@ -1,9 +1,14 @@
 <script setup>
 import { computed, ref, useAttrs, useSlots } from 'vue'
 
-import { EyeIcon, EyeOpenIcon } from '../icons'
+import {
+  EmailIcon,
+  EyeIcon,
+  EyeOpenIcon,
+  PasswrodIcon,
+  UserNameIcon,
+} from '../icons'
 import SvgIcon from '../icons/SvgIcon.vue'
-
 defineOptions({
   inheritAttrs: false,
 })
@@ -78,7 +83,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-
+  icon: {
+    type: String,
+    default: '',
+  },
   amount: {
     type: Boolean,
     default: false,
@@ -96,6 +104,14 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'focus', 'blur'])
+
+const icons = {
+  email: EmailIcon,
+  username: UserNameIcon,
+  password: PasswrodIcon,
+}
+
+const prefixIcon = computed(() => icons[props.icon] || null)
 
 const attrs = useAttrs()
 const slots = useSlots()
@@ -116,7 +132,7 @@ const isDisabled = computed(() => {
 })
 
 const hasPrefix = computed(() => {
-  return Boolean(slots.prefix)
+  return Boolean(slots.prefix || prefixIcon.value)
 })
 
 const hasSuffix = computed(() => {
@@ -195,8 +211,14 @@ const togglePasswordVisibility = () => {
       </label>
 
       <div class="base-input__field">
-        <div v-if="$slots.prefix" class="base-input__prefix">
-          <slot name="prefix" />
+        <div v-if="hasPrefix" class="base-input__prefix">
+          <slot name="prefix">
+            <SvgIcon
+              v-if="prefixIcon"
+              :icon="prefixIcon"
+              class="base-input__prefix-icon"
+            />
+          </slot>
         </div>
 
         <input
@@ -268,10 +290,11 @@ const togglePasswordVisibility = () => {
   &__label {
     display: block;
 
-    color: var(--hint-primary-color);
-    font-size: 12px;
+    color: var(--seventh-color);
+    font-size: 14px;
     font-weight: 500;
-    line-height: 15px;
+    line-height: 100%;
+    letter-spacing: 0px;
     text-align: left;
 
     &:not(:last-child) {
@@ -283,28 +306,33 @@ const togglePasswordVisibility = () => {
     position: relative;
 
     width: 100%;
+    &:focus-within {
+      .base-input__prefix-icon {
+        opacity: 1;
+      }
+    }
   }
 
   &__control {
-    @include adaptiveValue('min-height', 36, 40);
-
     width: 100%;
+    min-height: 40px;
 
     margin: 0;
     padding-top: 5px;
-    padding-right: 15px;
+    padding-right: 12px;
     padding-bottom: 5px;
-    padding-left: 15px;
+    padding-left: 12px;
 
-    border: 1px solid var(--border-secondary-color);
+    border: 1.5px solid var(--border-priamry-color);
+    border-radius: 6px;
     outline: none;
-    background-color: var(--bg-fourth-color);
+    background-color: var(--bg-secondary-color);
 
     color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
-    line-height: 14px;
+    line-height: 16px;
 
     transition: all 0.3s ease;
 
@@ -312,11 +340,12 @@ const togglePasswordVisibility = () => {
       opacity: 1;
 
       color: var(--secondary-color);
+
+      transition: opacity 0.3s ease 0s;
     }
 
     &:focus {
-      border-color: var(--hint-secondary-color);
-
+      border-color: var(--border-secondary-color);
       &::placeholder {
         opacity: 0;
       }
@@ -334,11 +363,11 @@ const togglePasswordVisibility = () => {
     }
 
     &_with-prefix {
-      padding-left: 42px;
+      padding-left: 40px;
     }
 
     &_with-suffix {
-      padding-right: 42px;
+      padding-right: 40px;
     }
 
     &_dark {
@@ -366,59 +395,58 @@ const togglePasswordVisibility = () => {
   }
 
   &__prefix {
-    left: 15px;
+    left: 12px;
 
     pointer-events: none;
+    &-icon {
+      min-width: 24px;
+      height: 24px;
+
+      opacity: 0.4;
+
+      color: var(--secondary-color);
+
+      transition: color 0.3s ease 0s;
+    }
   }
 
   &__suffix {
-    right: 15px;
+    right: 12px;
   }
 
   &__password-toggle {
-    right: 15px;
+    right: 12px;
 
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
 
     margin: 0;
     padding: 0;
 
     border: 0;
     background: transparent;
-    opacity: 0.35;
 
-    color: var(--input-text-color, #ffffff);
+    color: var(--secondary-color);
 
     cursor: pointer;
 
-    transition:
-      color 0.2s ease,
-      opacity 0.2s ease,
-      background-color 0.2s ease;
+    transition: opacity 0.3s ease 0s;
 
     &:disabled {
       cursor: not-allowed;
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--hint-secondary-color);
-      outline-offset: 1px;
-    }
-
     @media (any-hover: hover) {
+      opacity: 0.5;
       &:not(:disabled):hover {
-        background: rgb(238 201 142 / 6%);
         opacity: 1;
-
-        color: var(--hint-secondary-color);
       }
     }
   }
 
   &__password-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   &__loader {
@@ -436,11 +464,13 @@ const togglePasswordVisibility = () => {
   &__error {
     width: 100%;
 
-    margin-top: 6px;
+    margin-top: 8px;
 
-    color: var(--error-color, #ff647c);
-    font-size: 12px;
-    line-height: 16px;
+    color: var(--error-color);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0px;
     text-align: left;
   }
 }

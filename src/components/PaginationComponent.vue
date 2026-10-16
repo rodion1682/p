@@ -1,6 +1,5 @@
 <template>
   <nav class="pagination" :class="props.className" aria-label="Pagination">
-    <!-- Previous page -->
     <button
       type="button"
       class="pagination__control pagination__control_previous"
@@ -10,11 +9,10 @@
     >
       <SvgIcon
         class="pagination__control-icon pagination__control-icon_previous"
-        :icon="ChevronIcon"
+        :icon="PaginationArrowIcon"
       />
     </button>
 
-    <!-- Page numbers -->
     <div class="pagination__pages">
       <template v-for="item in displayedPages" :key="item.key">
         <span
@@ -42,8 +40,6 @@
         </button>
       </template>
     </div>
-
-    <!-- Next page -->
     <button
       type="button"
       class="pagination__control pagination__control_next"
@@ -53,7 +49,7 @@
     >
       <SvgIcon
         class="pagination__control-icon pagination__control-icon_next"
-        :icon="ChevronIcon"
+        :icon="PaginationArrowIcon"
       />
     </button>
   </nav>
@@ -62,7 +58,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import { ChevronIcon } from '@/components/icons'
+import { PaginationArrowIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 const props = defineProps({
@@ -128,10 +124,6 @@ const displayedPages = computed(() => {
 
   const pages = []
 
-  /*
-   * Beginning:
-   * 1 2 3 4 5 … 20
-   */
   if (current <= 4) {
     const endingPage = Math.min(maximum - 2, total - 1)
 
@@ -145,10 +137,6 @@ const displayedPages = computed(() => {
     return pages
   }
 
-  /*
-   * End:
-   * 1 … 16 17 18 19 20
-   */
   if (current >= total - 3) {
     pages.push(createPage(1))
     pages.push(createEllipsis('start'))
@@ -162,10 +150,6 @@ const displayedPages = computed(() => {
     return pages
   }
 
-  /*
-   * Middle:
-   * 1 … 9 10 11 … 20
-   */
   pages.push(createPage(1))
   pages.push(createEllipsis('start'))
   pages.push(createPage(current - 1))
@@ -226,24 +210,25 @@ onBeforeUnmount(() => {
   }
 
   &__control {
-    @include adaptiveValue('min-width', 32, 40);
-    @include adaptiveValue('height', 32, 40);
     display: flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
 
+    min-width: 40px;
+    height: 40px;
+
     padding: 0;
 
     outline: none;
     background-color: transparent;
-    opacity: 1;
+    opacity: 0.7;
 
-    color: var(--hint-secondary-color);
+    color: var(--secondary-color);
 
     cursor: pointer;
 
-    transition: color 0.3s ease 0s;
+    transition: all 0.3s ease 0s;
 
     &:disabled {
       opacity: 0.5;
@@ -253,19 +238,22 @@ onBeforeUnmount(() => {
     }
 
     &:focus-visible {
-      color: var(--hint-primary-color);
+      opacity: 1;
     }
 
     @media (any-hover: hover) {
       &:not(:disabled):hover {
-        color: var(--hint-primary-color);
+        opacity: 1;
       }
+    }
+    @media (max-width: $md8) {
+      @include hide-item;
     }
   }
 
   &__control-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 
     color: inherit;
 
@@ -281,16 +269,20 @@ onBeforeUnmount(() => {
   }
 
   &__page {
-    @include adaptiveValue('min-width', 32, 40);
-    @include adaptiveValue('height', 32, 40);
     display: flex;
     align-items: center;
     justify-content: center;
 
+    min-width: 40px;
+    height: 40px;
+
     padding: 0px;
 
+    border: 1.5px solid transparent;
+    border-radius: 6px;
     outline: none;
     background-color: transparent;
+    opacity: 0.7;
 
     color: var(--secondary-color);
     font-family: var(--font-inter);
@@ -300,36 +292,42 @@ onBeforeUnmount(() => {
 
     cursor: pointer;
 
-    transition: color 0.3s ease 0s;
+    transition: all 0.3s ease 0s;
 
     &_active {
+      border-color: var(--border-priamry-color);
+      opacity: 1;
+
       color: var(--primary-color);
-      font-weight: 700;
 
       cursor: default;
       pointer-events: none;
     }
 
     &:focus-visible {
-      border-color: var(--hint-secondary-color);
+      border-color: var(--border-priamry-color);
       opacity: 1;
+
+      color: var(--primary-color);
     }
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--hint-secondary-color);
+        opacity: 1;
+
+        color: var(--primary-color);
       }
     }
   }
 
   &__ellipsis {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     gap: 3px;
 
-    width: clamp(20px, 3vw, 28px);
-    height: clamp(30px, 4vw, 40px);
+    width: 20px;
+    height: 15px;
   }
 
   &__dot {
@@ -338,6 +336,7 @@ onBeforeUnmount(() => {
 
     border-radius: 50%;
     background-color: var(--secondary-color);
+    opacity: 0.7;
   }
 }
 </style>

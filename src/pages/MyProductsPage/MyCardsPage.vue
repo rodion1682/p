@@ -1,7 +1,7 @@
 <template>
   <main class="collection-page">
     <div class="collection-page__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.jpg" alt="" />
+      <img src="@/assets/img/product-list-bg.png" alt="" />
     </div>
 
     <button

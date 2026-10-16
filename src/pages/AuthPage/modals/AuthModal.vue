@@ -33,12 +33,12 @@
       >
         <div class="auth-modal__bottom-inner">
           <template v-if="activeForm === FORM_TYPES.signup">
-            <div class="auth-modal__title _h4">
+            <div class="auth-modal__title _h6">
               {{ $t('Already have an account?') }}
             </div>
 
             <BaseButton
-              variant="hint-bordered"
+              variant="bordered"
               class="auth-modal__button"
               @click="toggleForm(FORM_TYPES.signin)"
             >
@@ -47,12 +47,12 @@
           </template>
 
           <template v-else>
-            <div class="auth-modal__title _h4">
+            <div class="auth-modal__title _h6">
               {{ $t("Don't have account?") }}
             </div>
 
             <BaseButton
-              variant="hint-bordered"
+              variant="bordered"
               class="auth-modal__button"
               @click="toggleForm(FORM_TYPES.signup)"
             >
@@ -138,30 +138,28 @@ watch(
 <style lang="scss" scoped>
 .auth-modal {
   &__body {
-    max-width: 380px;
+    max-width: 328px;
 
     margin: 0 auto;
   }
 
   &__content {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 25);
+      @include adaptiveValue('margin-bottom', 32, 18);
     }
   }
-
+  &__bottom {
+    @include adaptiveValue('padding-top', 32, 18);
+    border-top: 1px solid var(--border-priamry-color);
+  }
   &__title {
     text-align: center;
-
-    text-rendering: none;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 15);
+      @include adaptiveValue('margin-bottom', 32, 18);
     }
   }
 
   &__button {
-    max-width: 190px;
-
-    margin: 0 auto;
   }
 }
 </style>

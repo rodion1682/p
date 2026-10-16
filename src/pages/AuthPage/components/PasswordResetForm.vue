@@ -12,7 +12,7 @@
         {{ $t('LOG IN') }}
       </button>
     </div> -->
-    <div class="sign-in__title _h3">
+    <div class="sign-in__title _h5">
       <div>{{ $t('Reset Your') }}</div>
       <div>{{ $t('Password') }}</div>
     </div>
@@ -30,25 +30,29 @@
       <BaseInput
         v-model="email"
         type="email"
+        icon="email"
         :error="errorMessage"
         :placeholder="$t('Email')"
         required
         class="sign-in__input"
       />
-      <BaseButton :disabled="isLoading" type="submit" class="sign-in__submit">
+      <BaseButton
+        :disabled="isLoading"
+        type="submit"
+        class="sign-in__submit sign-in__submit_reset"
+      >
         <span v-if="isLoading">{{ $t('Sending...') }}</span>
         <span v-else>{{ $t('Apply') }}</span>
       </BaseButton>
+      <BaseButton
+        :disabled="isLoading"
+        @click="backToSignIn"
+        class="sign-in__back"
+        variant="bordered"
+      >
+        {{ $t('Back') }}
+      </BaseButton>
     </form>
-    <BaseButton
-      :disabled="isLoading"
-      @click="backToSignIn"
-      icon="back"
-      class="sign-in__back"
-      variant="hint-bordered"
-    >
-      {{ $t('Back') }}
-    </BaseButton>
   </div>
 </template>
 

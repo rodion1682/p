@@ -164,19 +164,14 @@ function getPageTitle(page, fallback) {
       </span>
 
       <span :class="labelClasses">
-        <!-- Normal custom checkbox text -->
         <slot v-if="!terms" />
-
-        <!-- Automatically generated terms text -->
         <template v-else>
           <span>
             {{
-              $t(
-                'I confirm that I am 18 years old or older and I agree to the ',
-              )
+              $t('I confirm that I am 18 years old or older and I agree to the')
             }}
           </span>
-
+          <span>{{ $t(' ') }}</span>
           <RouterLink
             v-if="termsPage"
             :to="getPageUrl(termsPage)"
@@ -186,10 +181,11 @@ function getPageTitle(page, fallback) {
           >
             {{ getPageTitle(termsPage) }}
           </RouterLink>
-
+          <span>{{ $t(' ') }}</span>
           <span>
-            {{ $t(' and ') }}
+            {{ $t('and') }}
           </span>
+          <span>{{ $t(' ') }}</span>
 
           <RouterLink
             v-if="privacyPage"
@@ -220,7 +216,7 @@ function getPageTitle(page, fallback) {
   width: 100%;
 
   &_disabled {
-    opacity: 0.6;
+    opacity: 0.5;
 
     pointer-events: none;
   }
@@ -245,9 +241,9 @@ function getPageTitle(page, fallback) {
 }
 
 .base-checkbox__row {
+  @include adaptiveValue('gap', 16, 12);
   display: flex;
   align-items: flex-start;
-  gap: 13px;
 
   width: 100%;
 
@@ -299,27 +295,28 @@ function getPageTitle(page, fallback) {
   width: 24px;
   height: 24px;
 
-  border: 1px solid var(--border-secondary-color);
+  border: 1px solid var(--border-priamry-color);
+  border-radius: 6px;
   background: var(--bg-secondary-color);
-  // box-shadow: inset 0 4px 4px rgba(0, 0, 0, 0.25);
+
   transition: all 0.3s ease 0s;
   &::before {
     position: absolute;
     inset: 0;
 
-    background: var(--hint-secondary-color);
+    background: var(--third-color);
     opacity: 0;
 
     content: '';
 
-    transition: opacity 0.25s ease;
+    transition: opacity 0.3s ease;
   }
 
   &_checked {
-    background: var(--hint-secondary-color);
+    background: var(--third-color);
 
     &::before {
-      opacity: 0.12;
+      opacity: 1;
     }
   }
 
@@ -343,8 +340,9 @@ function getPageTitle(page, fallback) {
 .base-checkbox__label {
   display: inline;
 
-  color: var(--secondary-color);
+  color: var(--primary-color);
   font-size: 14px !important;
+  font-weight: 400 !important;
   line-height: 120% !important;
   text-align: left;
 

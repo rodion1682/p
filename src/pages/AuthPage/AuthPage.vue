@@ -28,20 +28,20 @@
       >
         <div v-if="activeForm === 'signup'" class="auth__box">
           <div class="auth__content">
-            <div class="auth__title _h3">
+            <div class="auth__title _h6">
               {{ $t('Already have an account?') }}
             </div>
             <BaseButton
               @click="toggleForm('signin')"
               variant="bordered"
               class="auth__button"
-              >{{ $t('Sign In') }}</BaseButton
+              >{{ $t('Login') }}</BaseButton
             >
           </div>
         </div>
         <div v-else-if="activeForm === 'signin'" class="auth__box">
           <div class="auth__content">
-            <div class="auth__title _h3">
+            <div class="auth__title _h6">
               {{ $t("Don't have account?") }}
             </div>
             <BaseButton
@@ -49,7 +49,7 @@
               variant="bordered"
               class="auth__button"
             >
-              {{ $t('Sign Up') }}
+              {{ $t('Create Account') }}
             </BaseButton>
           </div>
         </div>
@@ -250,9 +250,7 @@ const close = () => {
   }
 
   &__button {
-    font-family: var(--font-inter) !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
+
   }
 }
 </style>

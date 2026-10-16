@@ -332,8 +332,7 @@ defineExpose({
   position: relative;
 
   width: 100%;
-
-  outline: transparent;
+  min-width: 0;
 
   color: var(--primary-color);
 
@@ -343,7 +342,9 @@ defineExpose({
     }
 
     .base-dropdown__caret {
-      color: var(--hint-secondary-color);
+      opacity: 1;
+
+      color: var(--secondary-color);
     }
 
     .base-dropdown__caret-icon {
@@ -353,7 +354,13 @@ defineExpose({
 
   &_bordered {
     .base-dropdown__wrapper {
-      border-color: var(--border-third-color);
+      border-color: var(--border-priamry-color);
+    }
+
+    &.base-dropdown_open {
+      .base-dropdown__wrapper {
+        border-color: var(--border-secondary-color);
+      }
     }
   }
 
@@ -364,46 +371,50 @@ defineExpose({
   }
 
   &__wrapper {
-    @include adaptiveValue('padding-left', 15, 10);
-    @include adaptiveValue('padding-right', 15, 10);
-
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
 
     width: 100%;
-    min-height: 36px;
+    min-height: 40px;
 
-    padding-top: 5px;
-    padding-bottom: 5px;
+    margin: 0;
+    padding: 5px 12px;
 
-    border: 1px solid var(--border-third-color);
-    border-radius: 0;
+    border: 1.5px solid var(--border-priamry-color);
+    border-radius: 6px;
     outline: none;
-    background-color: var(--bg-fourth-color);
+    background-color: var(--bg-secondary-color);
 
     color: var(--primary-color);
+    font-family: var(--font-inter);
 
     cursor: pointer;
 
     transition:
-      color 0.3s ease,
       border-color 0.3s ease,
-      background-color 0.3s ease;
+      background-color 0.3s ease,
+      color 0.3s ease;
 
-    @media (any-hover: hover) {
-      &:hover {
-        border-color: var(--hint-primary-color);
-
-        .base-dropdown__caret {
-          color: var(--hint-secondary-color);
-        }
-      }
+    &:focus-visible {
+      border-color: var(--border-secondary-color);
     }
 
-    @media (max-width: $md4) {
-      min-height: 44px;
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        border-color: var(--border-secondary-color);
+
+        .base-dropdown__caret {
+          opacity: 1;
+
+          color: var(--secondary-color);
+        }
+      }
     }
   }
 
@@ -416,41 +427,43 @@ defineExpose({
 
     color: inherit;
     font-family: var(--font-inter);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
-    line-height: 17px;
+    line-height: 16px;
     text-align: left;
     text-overflow: ellipsis;
-    text-transform: capitalize;
     white-space: nowrap;
 
     &_placeholder {
       opacity: 0.6;
 
-      color: var(--third-color);
+      color: var(--secondary-color);
     }
   }
 
   &__caret {
     display: flex;
-    flex: 0 0 9px;
+    flex: 0 0 12px;
     align-items: center;
     justify-content: center;
 
-    width: 9px;
-    min-width: 9px;
+    width: 12px;
+    min-width: 12px;
     height: 8px;
 
     padding: 0;
 
     border: 0;
-    background-color: transparent;
+    background: transparent;
+    opacity: 0.5;
 
-    color: var(--hint-secondary-color);
+    color: var(--secondary-color);
 
     pointer-events: none;
 
-    transition: color 0.3s ease;
+    transition:
+      color 0.3s ease,
+      opacity 0.3s ease;
   }
 
   &__caret-icon {
@@ -462,9 +475,7 @@ defineExpose({
     color: inherit;
 
     transform: rotate(0deg);
-    transition:
-      color 0.3s ease,
-      transform 0.3s ease;
+    transition: transform 0.3s ease;
 
     :deep(svg) {
       display: block;
@@ -475,7 +486,7 @@ defineExpose({
   }
 
   &__list {
-    z-index: var(--header-z-index);
+    z-index: var(--header-z-index, 20);
 
     overflow-x: hidden;
     overflow-y: auto;
@@ -484,22 +495,19 @@ defineExpose({
     min-width: 100%;
     max-height: min(220px, calc(100dvh - 100px));
 
-    padding: 8px 4px;
+    padding: 8px 0;
 
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 0;
-    background-color: var(--bg-primary-color);
-    box-shadow: none;
+    border: 1px solid var(--border-sixth-color);
+    border-radius: 8px;
+    background-color: var(--bg-fourth-color);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
 
     touch-action: pan-y;
 
-    transform-origin: top;
-
     -webkit-overflow-scrolling: touch;
-
     overscroll-behavior: contain;
+
     scrollbar-color: var(--hint-primary-color) var(--bg-third-color);
-    scrollbar-gutter: stable;
     scrollbar-width: thin;
 
     &::-webkit-scrollbar {
@@ -507,32 +515,24 @@ defineExpose({
     }
 
     &::-webkit-scrollbar-track {
-      margin-top: 5px;
-      margin-bottom: 5px;
+      margin: 5px 0;
 
       border-radius: 4px;
       background-color: var(--bg-third-color);
     }
 
     &::-webkit-scrollbar-thumb {
-      border: 1px solid var(--bg-third-color);
       border-radius: 4px;
-      background: var(--hint-gradient);
-    }
-
-    @media (any-hover: hover) {
-      &::-webkit-scrollbar-thumb:hover {
-        background: var(--hint-primary-color);
-      }
+      background-color: var(--hint-primary-color);
     }
 
     &:not(.absolute) {
-      margin-top: -4px;
+      margin-top: 8px;
     }
 
     &.absolute {
       position: absolute;
-      top: calc(100% - 4px);
+      top: calc(100% + 8px);
       right: auto;
       left: 0;
     }
@@ -547,7 +547,7 @@ defineExpose({
     flex-direction: column;
 
     width: 100%;
-    min-width: max-content;
+    min-width: 0;
 
     margin: 0;
     padding: 0;
@@ -560,76 +560,71 @@ defineExpose({
     flex: 0 0 auto;
     align-items: center;
     justify-content: flex-start;
+    gap: 8px;
 
     width: 100%;
-    min-height: 35px;
+    min-height: 38px;
 
-    padding: 7px 10px;
+    padding: 8px 12px;
 
     border: 0;
     border-radius: 0;
     outline: none;
     background-color: transparent;
 
-    color: var(--secondary-color);
+    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    line-height: 17px;
+    line-height: 100%;
     text-align: left;
-    text-transform: capitalize;
-    white-space: nowrap;
 
     cursor: pointer;
 
     transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
+      background-color 0.3s ease,
+      color 0.3s ease;
+
+    &:focus-visible {
+      background-color: var(--sixth-color);
+    }
 
     @media (any-hover: hover) {
-      &:not(.dropdown-option_selected):hover {
-        background-color: var(--border-fourth-color);
-
-        color: var(--hint-secondary-color);
+      &:not(.dropdown-option_selected):not(:disabled):hover {
+        background-color: var(--sixth-color);
       }
     }
   }
 
   :deep(.dropdown-option_selected) {
-    background-color: var(--hint-gradient-color);
+    background-color: var(--third-color);
 
     color: var(--primary-color);
 
     pointer-events: none;
   }
 
+  :deep(.dropdown-option_disabled) {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
   &.aside {
     .base-dropdown__wrapper {
-      min-height: 36px;
-
-      background-color: var(--bg-fourth-color);
+      min-height: 40px;
     }
 
     .base-dropdown__label {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
-      line-height: 17px;
-      text-transform: capitalize;
+      line-height: 16px;
     }
 
     .base-dropdown__list {
       width: 100%;
       min-width: 100%;
-    }
-
-    @media (max-width: $md4) {
-      .base-dropdown__wrapper {
-        min-height: 44px;
-      }
-
-      :deep(.dropdown-option) {
-        min-height: 40px;
-      }
     }
   }
 
@@ -638,15 +633,13 @@ defineExpose({
     min-width: 180px;
 
     .base-dropdown__wrapper {
-      min-height: 36px;
-
-      background-color: transparent;
+      min-height: 40px;
     }
 
     .base-dropdown__label {
       font-size: 14px;
       font-weight: 500;
-      text-transform: none;
+      line-height: 16px;
     }
 
     .base-dropdown__list {
@@ -655,21 +648,26 @@ defineExpose({
 
       width: max-content;
       min-width: 180px;
+      max-width: min(320px, 90vw);
     }
 
     @media (max-width: $md4) {
       width: 100%;
 
-      .base-dropdown__wrapper {
-        min-height: 44px;
-
-        background-color: var(--bg-fourth-color);
-      }
-
       .base-dropdown__list {
         width: 100%;
         min-width: 100%;
       }
+    }
+  }
+
+  @media (max-width: $md4) {
+    &__wrapper {
+      min-height: 40px;
+    }
+
+    :deep(.dropdown-option) {
+      min-height: 40px;
     }
   }
 }
@@ -678,7 +676,8 @@ defineExpose({
 .dropdown-fade-leave-active {
   transition:
     opacity 0.3s ease,
-    transform 0.3s ease;
+    transform 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .dropdown-fade-enter-from,
@@ -689,7 +688,7 @@ defineExpose({
 
   pointer-events: none;
 
-  transform: translateY(-4px);
+  transform: translateY(-6px);
 }
 
 .dropdown-fade-enter-to,

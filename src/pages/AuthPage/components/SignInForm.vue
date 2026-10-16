@@ -1,11 +1,12 @@
 <template>
-  <div class="sign-in">
-    <div class="sign-in__title sign-in__title_large _h3">{{ $t('Login') }}</div>
+  <div class="sign-in sign-in_in">
+    <div class="sign-in__title sign-in__title_large _h5">{{ $t('Login') }}</div>
     <form @submit.prevent="handleSignIn" class="sign-in__form">
       <div class="sign-in__inputs">
         <BaseInput
           v-model="form.username"
           type="text"
+          icon="username"
           name="username"
           autocomplete="username"
           :placeholder="$t('Username')"
@@ -15,6 +16,7 @@
           v-model="form.password"
           type="password"
           name="password"
+          icon="password"
           autocomplete="current-password"
           :placeholder="$t('Password')"
           class="sign-in__input"
@@ -111,48 +113,54 @@ defineEmits(['forgot-password', 'switch-form'])
 
 <style lang="scss">
 .sign-in {
+  &_in {
+    @include adaptiveValue('padding-bottom', 58, 0);
+  }
   &__title {
-    color: var(--primary-color);
+    color: var(--secondary-color);
+    font-weight: 500;
+    line-height: 120%;
     text-align: center;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 15);
+      @include adaptiveValue('margin-bottom', 32, 18);
     }
     &_large {
       &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 100, 15);
+        @include adaptiveValue('margin-bottom', 90, 18);
       }
     }
   }
   &__text {
-    color: var(--secondary-color);
-    font-size: 14px;
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 500;
     line-height: 120%;
     text-align: center;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 15);
+      @include adaptiveValue('margin-bottom', 24, 18);
     }
   }
 
   &__form {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 104, 15);
+      @include adaptiveValue('margin-bottom', 131, 18);
     }
   }
 
   &__inputs {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 20);
+      margin-bottom: 16px;
     }
   }
 
   &__input {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 16, 15);
+      margin-bottom: 8px;
     }
   }
   &__forgot {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 100, 20);
+      @include adaptiveValue('margin-bottom', 32, 20);
     }
   }
   &__terms {
@@ -176,11 +184,14 @@ defineEmits(['forgot-password', 'switch-form'])
   }
 
   &__submit {
+    &_reset {
+      @include adaptiveValue('margin-top', 131, 18);
+      &:not(:last-child) {
+        margin-bottom: 16px;
+      }
+    }
   }
   &__back {
-    max-width: 130px;
-
-    margin: 0 auto;
   }
 }
 </style>

@@ -79,13 +79,12 @@
 
         <div class="product-card__footer">
           <div class="product-card__price">
-            <PriceFormatter size="size-24" :price="getPrice" />
+            <PriceFormatter size="size-28" :price="getPrice" />
           </div>
 
           <BaseButton
             v-if="!props.my"
             type="button"
-            variant="hint-bordered"
             class="product-card__cart-button"
             :class="{
               'product-card__cart-button_remove': isInCart,
@@ -428,23 +427,22 @@ const handleCartAction = async () => {
 
     width: 100%;
 
-    // border: 1px solid var(--border-fourth-color);
-    // border-radius: clamp(4px, 3cqi, 8px);
-    // background-color: var(--bg-fourth-color);
+    border: 1px solid var(--border-secondary-color);
+    border-radius: 12px;
+    background-color: var(--bg-primary-color);
 
-    transition:
-      border-color 0.3s ease,
-      box-shadow 0.3s ease,
-      transform 0.3s ease;
+    transition: all 0.3s ease 0s;
   }
 
   &__content {
+    @include adaptiveValue('padding-top', 17, 15);
+    @include adaptiveValue('padding-bottom', 17, 15);
     position: relative;
 
     width: 100%;
 
-    padding: clamp(8px, 5cqi, 16px) clamp(7px, 4cqi, 14px)
-      clamp(10px, 5cqi, 18px);
+    padding-right: 10px;
+    padding-left: 10px;
   }
 
   &__title {
@@ -452,17 +450,17 @@ const handleCartAction = async () => {
 
     width: 100%;
 
-    color: var(--secondary-color);
+    color: var(--seventh-colo);
     font-family: var(--font-inter);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    line-height: 120%;
+    line-height: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     transition: color 0.3s ease;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 0, 15);
+      @include adaptiveValue('margin-bottom', 31, 18);
     }
   }
 
@@ -747,14 +745,8 @@ const handleCartAction = async () => {
   }
 
   &__footer {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: clamp(8px, 5cqi, 14px);
-
-    width: 100%;
-
-    margin-top: clamp(8px, 5cqi, 16px);
+    @include adaptiveValue('margin-top', 28, 18);
+    position: relative;
   }
 
   &__price {
@@ -763,60 +755,36 @@ const handleCartAction = async () => {
     justify-content: center;
 
     width: 100%;
-    min-height: clamp(20px, 11cqi, 28px);
 
     white-space: nowrap;
-
-    :deep(*) {
-      font-size: clamp(12px, 7cqi, 18px);
-      line-height: 1;
-    }
     :deep(.price) {
-      flex-direction: row-reverse !important;
-    }
-
-    :deep(svg),
-    :deep(img) {
-      width: clamp(14px, 8cqi, 20px);
-      height: clamp(14px, 8cqi, 20px);
+      flex-direction: row-reverse;
     }
   }
 
   &__cart-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(6px, 3cqi, 10px);
-
-    width: 100%;
-    min-width: 0;
-    min-height: clamp(36px, 20cqi, 48px);
-
-    padding: clamp(8px, 4cqi, 12px) clamp(10px, 6cqi, 18px);
-
-    opacity: 0;
-
-    font-size: clamp(11px, 6cqi, 15px);
-    line-height: 1.2;
-    text-align: center;
-    text-transform: uppercase;
-
-    pointer-events: auto;
-
-    transform: translateY(0%);
-    transition: all 0.3s ease 0s;
-
     &_remove {
-      border-color: var(--error-color);
-
-      color: var(--error-color);
+      background-color: var(--error-color) !important;
+      @media (any-hover: hover) {
+        &:hover {
+          background-color: var(--third-color) !important;
+        }
+      }
     }
+    @media (any-hover: hover) {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      z-index: 1;
 
-    &:disabled {
-      cursor: wait;
+      width: 100%;
+
+      opacity: 0;
+
+      transform: translate(-50%, 0px);
     }
     @media (any-hover: none) {
-      opacity: 1 !important;
+      margin-top: 8px;
     }
   }
 
@@ -870,8 +838,6 @@ const handleCartAction = async () => {
       opacity: 1;
 
       pointer-events: auto;
-
-      transform: translateY(10%);
     }
 
     .product-card__view {
@@ -896,16 +862,6 @@ const handleCartAction = async () => {
   &_new {
     .product-card__body {
       box-shadow: 0 0 20px rgb(46 207 196 / 15%);
-    }
-  }
-
-  @media (any-hover: hover) {
-    &__cart-button:hover {
-      &.product-card__cart-button_remove {
-        background-color: var(--error-color);
-
-        color: var(--primary-color);
-      }
     }
   }
 }

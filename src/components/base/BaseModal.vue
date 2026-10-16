@@ -20,24 +20,7 @@
           tabindex="-1"
           @mousedown.stop
         >
-          <div
-            class="base-modal__decor base-modal__decor_top-left _ibg-contain"
-          >
-            <img src="@/assets/img/modal-decor.png" />
-          </div>
-          <div
-            class="base-modal__decor base-modal__decor_top-right _ibg-contain"
-          >
-            <img src="@/assets/img/modal-decor.png" />
-          </div>
-          <div
-            class="base-modal__decor base-modal__decor_bottom-left _ibg-contain"
-          >
-            <img src="@/assets/img/modal-decor.png" />
-          </div>
-          <div
-            class="base-modal__decor base-modal__decor_bottom-right _ibg-contain"
-          >
+          <div class="base-modal__decor _ibg-contain">
             <img src="@/assets/img/modal-decor.png" />
           </div>
           <div class="base-modal__frame">
@@ -378,10 +361,10 @@ defineExpose({
   width: 100%;
   height: 100%;
 
-  background-color: rgb(10, 11, 16, 0.7);
+  background-color: rgb(0, 0, 0, 0.5);
 
-  -webkit-backdrop-filter: blur(46px);
-  backdrop-filter: blur(46px);
+  -webkit-backdrop-filter: blur(64px);
+  backdrop-filter: blur(64px);
 
   overscroll-behavior: contain;
 
@@ -393,12 +376,11 @@ defineExpose({
     max-height: calc(100dvh - 40px);
 
     margin: auto;
-    padding: 5px;
 
-    border: 1px solid var(--border-sixth-color);
+    border: 1px solid var(--border-fourth-color);
+    border-radius: 12px;
     outline: none;
-    background-color: var(--bg-primary-color);
-    box-shadow: 0 4px 4px 0 rgb(0 0 0 / 25%);
+    background-color: var(--bg-fourth-color);
 
     &_small {
       max-width: 484px;
@@ -429,39 +411,19 @@ defineExpose({
     }
   }
   &__decor {
-    @include adaptiveValue('min-width', 58, 38);
-    @include adaptiveValue('height', 48, 38);
+    @include adaptiveValue('width', 216, 100);
     position: absolute;
+    top: 0;
+    left: 50%;
     z-index: 5;
-    &_top-left {
-      @include adaptiveValue('left', -6, -8);
-      top: -6px;
 
-      transform: rotate(-90deg);
-    }
+    aspect-ratio: 1 / 0.22;
 
-    &_top-right {
-      @include adaptiveValue('right', -6, -8);
-      top: -6px;
-    }
-
-    &_bottom-left {
-      @include adaptiveValue('left', -6, -8);
-      bottom: -6px;
-
-      transform: rotate(-180deg);
-    }
-
-    &_bottom-right {
-      @include adaptiveValue('right', -6, -8);
-      bottom: -6px;
-
-      transform: rotate(90deg);
-    }
+    transform: translate(-50%, -100%);
   }
   &__frame {
-    @include adaptiveValue('padding-top', 46, 30);
-    @include adaptiveValue('padding-bottom', 46, 30);
+    @include adaptiveValue('padding-top', 24, 30);
+    @include adaptiveValue('padding-bottom', 24, 30);
     position: relative;
 
     overflow-x: hidden;
@@ -473,6 +435,7 @@ defineExpose({
     padding-right: 10px;
     padding-left: 10px;
 
+    border-radius: 12px;
     background-color: var(--bg-primary-colorr);
 
     scrollbar-color: var(--border-secondary-color) transparent;
@@ -494,39 +457,33 @@ defineExpose({
   }
 
   &__close {
+    @include adaptiveValue('top', 17, 12);
+    @include adaptiveValue('right', 17, 12);
     position: absolute;
-    top: clamp(8px, 1.5vw, 20px);
-    right: clamp(8px, 1.5vw, 20px);
     z-index: 10;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: clamp(36px, 3vw, 44px);
-    height: clamp(36px, 3vw, 44px);
+    width: 34px;
+    height: 34px;
 
     padding: 0;
 
     outline: none;
     background-color: transparent;
 
-    color: var(--hint-secondary-color);
+    color: var(--secondary-color);
 
     cursor: pointer;
 
-    transition:
-      color 0.3s ease,
-      border-color 0.3s ease,
-      background-color 0.3s ease;
-
-    &:focus-visible {
-      color: var(--hint-primary-color);
-    }
+    transition: opacity 0.3s ease 0s;
 
     @media (any-hover: hover) {
+      opacity: 0.5;
       &:hover {
-        color: var(--hint-primary-color);
+        opacity: 1;
       }
     }
   }
@@ -534,17 +491,10 @@ defineExpose({
   &__close-icon {
     display: flex;
 
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 
     color: inherit;
-
-    :deep(svg) {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-    }
   }
 
   &__header {
@@ -592,18 +542,7 @@ defineExpose({
       border-right: 0;
       border-bottom: 0;
       border-left: 0;
-      border-radius: 10px 10px 0 0;
-    }
-
-    &__frame {
-      max-height: calc(92dvh - 5px);
-
-      padding: clamp(45px, 10vw, 55px) 14px 24px;
-
-      border-right: 0;
-      border-bottom: 0;
-      border-left: 0;
-      border-radius: 10px 10px 0 0;
+      border-radius: 12px 12px 0 0;
     }
 
     &__close {

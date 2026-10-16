@@ -1,156 +1,140 @@
 <template>
   <div class="build">
-
+    <div class="build__decor build__decor_top _ibg-contain">
+      <img src="@/assets/img/top-decor.png" />
+    </div>
+    <div class="build__decor build__decor_bottom _ibg-contain">
+      <img src="@/assets/img/bottom-decor.png" />
+    </div>
+    <div class="build__bg _ibg">
+      <img src="@/assets/img/build-bg.jpg" />
+    </div>
     <div class="build__inner _cnt-home">
-      <div class="build__top">
-        <div class="build__subtitle _line-title">
-          <span>{{ $t('THE ART OF WAR') }}</span>
-        </div>
-        <div class="build__title _h3">
-          <div>{{ $t('BUILD YOUR DECK. ') }}</div>
-          <div>{{ $t('COMMAND THE NIGHT.') }}</div>
+      <div class="build__image _ibg-contain">
+        <img src="@/assets/img/build.png" />
+      </div>
+      <div class="build__content">
+        <div class="build__subtitle">{{ $t('CARD COLLECTION') }}</div>
+        <div class="build__title _h4">
+          <div>{{ $t('Build Your ') }}</div>
+          <div>{{ $t('Constellation') }}</div>
         </div>
         <div class="build__text">
           {{
             $t(
-              'Varellune is a strategic collectible card game where every decision can change the course of battle.',
+              'Build a deck around your hero, combine powerful cards and create strategies that evolve with every turn.',
             )
           }}
         </div>
-      </div>
-      <div class="build__items">
-        <div class="build__item">
-          <div class="build__number">01</div>
-          <div class="build__label _h4">{{ $t('STRATEGY') }}</div>
-          <div class="build__value">
-            {{
-              $t(
-                'Every card changes the possibilities of the battlefield. Command the flow of fate.',
-              )
-            }}
-          </div>
-        </div>
-        <div class="build__item">
-          <div class="build__number">02</div>
-          <div class="build__label _h4">{{ $t('COMBOS') }}</div>
-          <div class="build__value">
-            {{
-              $t(
-                'Combine heroes, creatures, spells and artifacts to create devastating strategies.',
-              )
-            }}
-          </div>
-        </div>
-        <div class="build__item">
-          <div class="build__number">03</div>
-          <div class="build__label _h4">{{ $t('CHOICE') }}</div>
-          <div class="build__value">
-            {{
-              $t(
-                'Every hero offers a different way to control the battle. Your path defines your power.',
-              )
-            }}
-          </div>
-        </div>
+        <BaseButton class="build__button" @click="goToCardStore">
+          {{ $t('EXPLORE CARDS') }}
+        </BaseButton>
       </div>
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import BaseButton from '@/components/base/BaseButton.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToCardStore = () => {
+  router.push({ name: 'ProductListPage' })
+}
+</script>
 
 <style lang="scss" scoped>
 .build {
-  @include adaptiveValue('padding-top', 64, 25);
-  @include adaptiveValue('padding-bottom', 100, 25);
+  @include adaptiveValue('padding-top', 204, 30);
+  @include adaptiveValue('padding-bottom', 145, 30);
+  position: relative;
+  &__decor {
+    position: absolute;
+    left: 50%;
+    z-index: 1;
 
-  &__inner {
+    height: fit-content;
 
+    padding-bottom: 12.5%;
+    &_top {
+      @include adaptiveValue('width', 392, 132);
+      top: 0;
+
+      transform: translate(-50%, -50%);
+    }
+    &_bottom {
+      @include adaptiveValue('width', 448, 158);
+      bottom: 0;
+
+      transform: translate(-50%, 50%);
+    }
+  }
+  &__bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+    @media (max-width: $md5) {
+      opacity: 0.64;
+    }
   }
 
-  &__top {
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 64, 15);
+  &__inner {
+    @include adaptiveValue('gap', 82, 20);
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+  }
+
+  &__image {
+    @include adaptiveValue('margin-left', 82, 0, 1870, 1370, 1);
+    flex: 0 1 54.5%;
+
+    aspect-ratio: 1 / 0.56;
+    @media (max-width: $md5) {
+      @include hide-item;
+    }
+  }
+
+  &__content {
+    align-self: center;
+
+    text-shadow: 1px 1px 5px var(--bg-primary-color);
+    @media (min-width: $md5) {
+      max-width: 448px;
     }
   }
 
   &__subtitle {
+    color: var(--third-color);
+    font-size: 14px;
+    text-transform: uppercase;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
+      margin-bottom: 9px;
     }
   }
 
   &__title {
+    font-weight: 500;
+    line-height: 120%;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 15);
+      @include adaptiveValue('margin-bottom', 32, 18);
     }
   }
 
   &__text {
-    max-width: 450px;
-
-    margin: 0 auto;
-
-    color: var(--hint-third-color);
-  }
-
-  &__items {
-    display: flex;
-    @media (max-width: $md3) {
-      flex-wrap: wrap;
-    }
-    @media (max-width: $md5) {
-      margin-right: -10px;
-      margin-left: -10px;
-    }
-  }
-
-  &__item {
-    @include adaptiveValue('padding-top', 32, 10);
-    @include adaptiveValue('padding-bottom', 32, 10);
-    @include adaptiveValue('padding-left', 46, 10);
-    @include adaptiveValue('padding-right', 46, 10);
-    flex: 0 1 33.333%;
-
-    border: 1px solid var(--border-sixth-color);
-    background-color: var(--bg-primary-color);
-    @media (min-width: $md3) {
-      &:not(:last-child) {
-        border-right: 0px;
-      }
-    }
-    @media (max-width: $md3) {
-      flex: 0 1 50%;
-      &:first-child {
-        border-right: 0px;
-      }
-      &:last-child {
-        flex: 1 1 100%;
-      }
-    }
-    @media (max-width: $md5) {
-      flex: 1 1 100%;
-      &:first-child {
-        border-right: 1px solid var(--border-sixth-color);
-      }
-    }
-  }
-
-  &__number {
-    color: var(--hint-third-color);
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 15);
+      @include adaptiveValue('margin-bottom', 32, 18);
     }
   }
 
-  &__label {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 16, 15);
-    }
-  }
-  &__value {
-    color: var(--secondary-color);
+  &__button {
+    max-width: 164px;
   }
 }
 </style>

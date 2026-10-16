@@ -49,6 +49,24 @@ export const FooterEmailIcon = `
 </svg>
 `
 
+export const UserNameIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M3.2373 19.5C4.56272 17.2892 7.46759 15.7762 11.9996 15.7762C16.5316 15.7762 19.4364 17.2892 20.7619 19.5M15.5996 8.1C15.5996 10.0882 13.9878 11.7 11.9996 11.7C10.0114 11.7 8.39958 10.0882 8.39958 8.1C8.39958 6.11177 10.0114 4.5 11.9996 4.5C13.9878 4.5 15.5996 6.11177 15.5996 8.1Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round"/>
+</svg>
+`
+
+export const EmailIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4.125 6.18382L12 12.6949L20.4375 6.18382M9.65589 12L4.125 18.0221M19.875 17.5288L14.3434 12M5.25 19C4.00736 19 3 17.94 3 16.6324V7.36765C3 6.06003 4.00736 5 5.25 5H18.75C19.9926 5 21 6.06003 21 7.36765V16.6324C21 17.94 19.9926 19 18.75 19H5.25Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`
+
+export const PasswrodIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9.00063 8.99962H9.1218M18.0015 21.5999L11.3087 15.0022C10.0135 15.5041 8.46613 15.3071 7.02861 14.8865C3.60506 13.885 1.65332 10.3372 2.66927 6.96235C3.68522 3.58746 7.28414 1.66345 10.7077 2.66496C14.1312 3.66647 16.083 7.21425 15.067 10.5891L14.9076 11.4545L21.6004 18.0521V21.5999H18.0015Z" stroke="currentColor" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`
+
 export const CloseIcon = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M18 6L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -137,8 +155,8 @@ export const BackIcon = `
 `
 
 export const ArrowIcon = `
-<svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M5.66661 10.3334V1M10.3333 7.00025C10.3333 7.00025 6.89638 11.6669 5.66663 11.6669C4.43687 11.6669 1 7.00022 1 7.00022" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="24" height="21" viewBox="0 0 24 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9.88893 19.6667L1.00004 10.3333L9.88893 1M1.00004 10.3333L22.3334 10.3333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `
 
@@ -215,11 +233,16 @@ export const WalletIcon = `
 `
 
 export const SearchIcon = `
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M15 15L19 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17C13.4183 17 17 13.4183 17 9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M14.3269 14.44L17.8 17.8M8.8 4.6C10.7882 4.6 12.4 6.21177 12.4 8.2M16.68 8.84C16.68 13.1699 13.1699 16.68 8.84 16.68C4.51009 16.68 1 13.1699 1 8.84C1 4.51009 4.51009 1 8.84 1C13.1699 1 16.68 4.51009 16.68 8.84Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 </svg>
+`
 
+export const PaginationArrowIcon = `
+</svg>
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.2958 14.4173C10.6494 14.8416 11.2799 14.8989 11.7042 14.5453C12.1285 14.1918 12.1858 13.5612 11.8323 13.1369L11.064 13.7771L10.2958 14.4173ZM7.74945 9.7996L6.98123 9.15941C6.67219 9.53026 6.67219 10.0689 6.98123 10.4398L7.74945 9.7996ZM11.8323 6.46228C12.1858 6.038 12.1285 5.40744 11.7042 5.05387C11.2799 4.70031 10.6494 4.75763 10.2958 5.18191L11.064 5.82209L11.8323 6.46228ZM11.064 13.7771L11.8323 13.1369L8.51767 9.15941L7.74945 9.7996L6.98123 10.4398L10.2958 14.4173L11.064 13.7771ZM7.74945 9.7996L8.51767 10.4398L11.8323 6.46228L11.064 5.82209L10.2958 5.18191L6.98123 9.15941L7.74945 9.7996ZM10 1V2C14.4183 2 18 5.58172 18 10H19H20C20 4.47715 15.5228 -2.38419e-07 10 0V1ZM19 10H18C18 14.4183 14.4183 18 10 18V19V20C15.5228 20 20 15.5228 20 10H19ZM10 19V18C5.58172 18 2 14.4183 2 10H1H0C2.38419e-07 15.5228 4.47715 20 10 20V19ZM1 10H2C2 5.58172 5.58172 2 10 2V1V0C4.47715 2.38419e-07 -2.38419e-07 4.47715 0 10H1Z" fill="currentColor"/>
+</svg>
 `
 
 export const ProfileDropdownIcon = `<svg

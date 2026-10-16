@@ -74,8 +74,8 @@ const scrollToUniverse = () => {
 
 <style lang="scss" scoped>
 .hero {
-  @include adaptiveValue('padding-top', 185, 75);
-  @include adaptiveValue('padding-bottom', 75, 50);
+  @include adaptiveValue('padding-top', 185, 80);
+  @include adaptiveValue('padding-bottom', 75, 60);
   position: relative;
   &__bg {
     position: absolute;
@@ -131,8 +131,10 @@ const scrollToUniverse = () => {
     margin: 0 auto;
 
     text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 52, 18);
+    @media (min-width: $md5) {
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 52, 18);
+      }
     }
   }
 

@@ -651,7 +651,7 @@ onBeforeUnmount(() => {
   }
 
   &__link {
-    @include adaptiveValue('min-width', 64, 46, 1870, 1370, 1);
+    @include adaptiveValue('min-width', 64, 40, 1870, 1370, 1);
 
     position: relative;
 
@@ -936,9 +936,9 @@ onBeforeUnmount(() => {
   min-width: 0;
 
   &__avatar-frame {
-    @include adaptiveValue('width', 50, 40);
-    @include adaptiveValue('min-width', 50, 40);
-    @include adaptiveValue('height', 50, 40);
+    @include adaptiveValue('width', 50, 40, 1870, 1370, 1);
+    @include adaptiveValue('min-width', 50, 40, 1870, 1370, 1);
+    @include adaptiveValue('height', 50, 40, 1870, 1370, 1);
 
     position: relative;
 
@@ -953,7 +953,7 @@ onBeforeUnmount(() => {
   }
 
   &__avatar {
-    @include adaptiveValue('width', 46, 36);
+    @include adaptiveValue('width', 46, 36, 1870, 1370, 1);
     position: absolute;
     top: 50%;
     left: 50%;

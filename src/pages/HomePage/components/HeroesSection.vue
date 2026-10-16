@@ -1,28 +1,50 @@
 <template>
   <div class="heros">
-    <div v-if="isBgActive" class="heros__bg _ibg">
+    <div v-if="isBgActive" class="heros__bg">
       <img src="@/assets/img/heros-bg.jpg" alt="" />
     </div>
 
     <div class="heros__inner _cnt-home">
       <div class="heros__top">
-        <div class="heros__title _h2">{{ $t('Choose Your Star') }}</div>
+        <h2 class="heros__title _h2">
+          {{ $t('Choose Your Star') }}
+        </h2>
+
         <div class="heros__subtitle _h7">
           {{ $t('Five heroes. Five galaxies. Five ways to shape the battle.') }}
         </div>
       </div>
 
-      <div v-if="heroes?.length" class="heros__slider">
+      <div v-if="heroes.length" class="heros__slider">
         <Swiper
+          :key="swiperKey"
           class="heros__swiper"
-          :modules="[Navigation, Pagination]"
-          :slides-per-view="1"
-          :space-between="30"
+          :modules="[Pagination]"
+          :initial-slide="0"
+          :slides-per-view="1.5"
+          :centered-slides="true"
+          :space-between="0"
           :speed="700"
-          :loop="heroes.length > 1"
-          :navigation="{
-            prevEl: '.heros__arrow_prev',
-            nextEl: '.heros__arrow_next',
+          :loop="heroes.length >= 5"
+          :loop-additional-slides="0"
+          :watch-overflow="true"
+          :breakpoints="{
+            300: {
+              slidesPerView: 1,
+              centeredSlides: true,
+              spaceBetween: 0,
+            },
+            480: {
+              slidesPerView: 2,
+              centeredSlides: true,
+              spaceBetween: 0,
+            },
+
+            768: {
+              slidesPerView: 3,
+              centeredSlides: true,
+              spaceBetween: 0,
+            },
           }"
           :pagination="{
             el: '.heros__pagination',
@@ -36,44 +58,26 @@
             class="heros__slide"
           >
             <div class="heros__item">
-              <div class="heros__left">
-                <div class="heros__name _h2">
+              <div class="heros__image _ibg-contain">
+                <img
+                  :src="item.image_plain"
+                  :alt="item.name"
+                  draggable="false"
+                />
+              </div>
+
+              <div class="heros__info">
+                <div class="heros__name _h5">
                   {{ item.name }}
                 </div>
 
                 <div v-if="item.short_description" class="heros__class">
                   {{ item.short_description }}
                 </div>
-              </div>
 
-              <div class="heros__image _ibg-contain">
-                <img :src="item.image_plain" :alt="item.name" />
-              </div>
-
-              <div class="heros__right">
-                <div v-if="item.hero_power" class="heros__property">
-                  <div>
-                    {{ $t('Unique Power:') }}
-                  </div>
-
-                  <span>
-                    {{ item.hero_power }}
-                  </span>
-                </div>
-
-                <div v-if="item.playstyle" class="heros__property">
-                  <div>
-                    {{ $t('Style:') }}
-                  </div>
-
-                  <span>
-                    {{ item.playstyle }}
-                  </span>
-                </div>
-
-                <BaseButton class="heros__play" @click="open()">
-                  {{ $t('Play now') }}
-                </BaseButton>
+                <p v-if="item.hero_power" class="heros__description _h7">
+                  {{ item.hero_power }}
+                </p>
               </div>
             </div>
           </SwiperSlide>
@@ -95,24 +99,22 @@
           @click="nextSlide"
         />
 
-        <div class="heros__pagination" />
+        <div class="heros__pagination"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
-import { Navigation, Pagination } from 'swiper/modules'
+import { Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 
 import 'swiper/css'
-import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 import BaseButton from '@/components/base/BaseButton.vue'
-
 import { useHeroesStore } from '@/stores/heroes'
 
 defineProps({
@@ -122,48 +124,65 @@ defineProps({
   },
 })
 
-const playRedirectLink = import.meta.env.VITE_PLAY_REDIRECT_LINK
-
 const heroesStore = useHeroesStore()
+
+const heroes = computed(() => heroesStore.heroes || [])
 
 const swiperInstance = ref(null)
 
-const heroes = computed(() => heroesStore.heroes)
+const swiperKey = computed(() => heroes.value.map(hero => hero.id).join('-'))
 
-const onSwiper = swiper => {
+const onSwiper = async swiper => {
   swiperInstance.value = swiper
+
+  await nextTick()
+
+  if (swiper.destroyed) return
+
+  swiper.slideToLoop(0, 0, false)
 }
 
+watch(swiperKey, async () => {
+  await nextTick()
+
+  const swiper = swiperInstance.value
+
+  if (!swiper || swiper.destroyed) return
+
+  swiper.update()
+  swiper.slideToLoop(0, 0, false)
+})
+
 const nextSlide = () => {
-  swiperInstance.value?.slideNext()
+  const swiper = swiperInstance.value
+
+  if (!swiper || swiper.destroyed || swiper.animating) return
+
+  swiper.slideNext()
 }
 
 const prevSlide = () => {
-  swiperInstance.value?.slidePrev()
-}
+  const swiper = swiperInstance.value
 
-const open = () => {
-  if (!playRedirectLink) {
-    console.warn('VITE_PLAY_REDIRECT_LINK is not defined')
-    return
-  }
+  if (!swiper || swiper.destroyed || swiper.animating) return
 
-  window.open(playRedirectLink, '_blank', 'noopener,noreferrer')
+  swiper.slidePrev()
 }
 </script>
 
 <style lang="scss" scoped>
 .heros {
-  @include adaptiveValue('padding-top', 174, 25);
-  @include adaptiveValue('padding-bottom', 57, 25);
+  @include adaptiveValue('padding-top', 120, 30);
+  @include adaptiveValue('padding-bottom', 70, 30);
   position: relative;
+
+  overflow: hidden;
+
   &__bg {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
 
-    width: 100%;
-    height: 100%;
+    pointer-events: none;
   }
 
   &__inner {
@@ -173,213 +192,218 @@ const open = () => {
 
   &__top {
     text-align: center;
-    @media (max-width: $md4) {
-      &:not(:last-child) {
-        margin-bottom: 20px;
-      }
-    }
-  }
-
-  &__subtitle {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
+      @include adaptiveValue('margin-bottom', 56, 18);
     }
   }
 
   &__title {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 54, 15);
+      @include adaptiveValue('margin-bottom', 46, 18);
     }
   }
 
-  &__description {
-    color: var(--hint-third-color);
+  &__subtitle {
+    max-width: 448px;
+
+    margin: 0 auto;
   }
 
   &__slider {
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+    max-width: 1376px;
+
+    margin: 0 auto;
+    @media (max-width: 1375.98px) {
+      width: auto;
+
+      margin-right: -10px;
+      margin-left: -10px;
+    }
   }
 
   &__swiper {
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+    overflow: hidden;
+
+    width: 100%;
+
+    direction: ltr;
+  }
+
+  &__swiper :deep(.swiper-wrapper) {
+    direction: ltr;
   }
 
   &__slide {
-  }
-
-  &__item {
-    @include adaptiveValue('min-height', 654, 385, 1370, 768, 1);
-    position: relative;
-
-    display: flex;
-    flex: 1 1 100%;
-    @media (min-width: $md4) {
-      @include adaptiveValue('padding-left', 116, 0);
-      @include adaptiveValue('padding-right', 116, 0);
-    }
-    @media (max-width: $md3) {
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
-    }
-    @media (max-width: $md4) {
-      display: block;
-    }
-  }
-
-  &__left {
     position: relative;
     z-index: 1;
 
-    align-self: center;
+    height: auto;
 
-    max-width: 280px;
-    @media (max-width: $md3) {
-      margin-right: auto;
-      &:not(:last-child) {
-        margin-bottom: 15px;
-      }
+    opacity: 0.64;
+
+    transition: opacity 0.7s ease;
+
+    &.swiper-slide-active {
+      z-index: 3;
+
+      opacity: 1;
     }
-    @media (max-width: $md4) {
-      max-width: none;
+
+    &.swiper-slide-prev,
+    &.swiper-slide-next {
+      z-index: 2;
+
+      opacity: 0.64;
     }
   }
 
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+
+    text-align: center;
+  }
+
+  &__image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform: scale(0.692);
+    transform-origin: center center;
+    transition: transform 0.7s ease;
+
+    img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      user-select: none;
+
+      object-fit: contain;
+    }
+  }
+
+  &__slide.swiper-slide-active &__image {
+    transform: scale(1);
+  }
+
+  &__image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+
+    padding-bottom: 100%;
+  }
+
+  &__info {
+    @include adaptiveValue('margin-top', -11, 10);
+    visibility: hidden;
+
+    width: 100%;
+
+    padding: 0px 10px;
+
+    opacity: 0;
+
+    transition:
+      opacity 0.4s ease,
+      visibility 0.4s ease;
+  }
+
+  &__slide.swiper-slide-active &__info {
+    visibility: visible;
+
+    opacity: 1;
+  }
+
   &__name {
-    @media (max-width: $md4) {
-      text-align: center;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 24, 18);
     }
   }
 
   &__class {
-    @media (max-width: $md4) {
-      text-align: center;
-    }
-  }
-
-  &__image {
-    @media (min-width: $md3) {
-      left: 50%;
-
-      transform: translate(-50%, 0px);
-    }
-    @media (max-width: $md3) {
-      right: 0;
-    }
-    @media (min-width: $md4) {
-      position: absolute;
-      top: 0;
-      left: 50%;
-
-      width: 50%;
-      height: 100%;
-    }
-    @media (max-width: $md4) {
-      position: relative;
-
-      width: 100%;
-      max-width: 400px;
-      aspect-ratio: 1 / 1;
-
-      margin-right: auto;
-      margin-left: auto;
-      &:not(:last-child) {
-        margin-bottom: 15px;
-      }
-    }
-  }
-
-  &__right {
-    align-self: center;
-
-    max-width: 331px;
-
-    @media (min-width: $md3) {
-      margin-left: auto;
-    }
-    @media (max-width: $md3) {
-      margin-right: auto;
-    }
-    @media (max-width: $md4) {
-      max-width: none;
-    }
-  }
-
-  &__property {
-    position: relative;
-    z-index: 1;
+    font-size: 14px;
+    text-transform: uppercase;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 15);
-    }
-    @media (max-width: $md4) {
-      text-align: center;
-    }
-    div {
-      display: inline-block;
-
-      margin-right: 4px;
-
-      font-weight: 700;
-    }
-    span {
-      color: var(--secondary-color);
+      margin-bottom: 8px;
     }
   }
 
-  &__play {
-    @include adaptiveValue('margin-top', 64, 15);
-    @include adaptiveValue('min-height', 48, 40);
-    @media (max-width: $md4) {
-      margin-right: auto;
-      margin-left: auto;
-    }
-    max-width: 250px;
+  &__description {
   }
 
   &__arrow {
     position: absolute;
-    top: 50%;
-    @media (max-width: $md4) {
+    top: 35%;
+    z-index: 10;
+
+    width: fit-content;
+    @media (max-width: $md6) {
       @include hide-item;
     }
     &_prev {
       left: 10px;
 
-      transform: translate(0px, -50%) rotate(90deg);
+      transform: translateY(-50%);
     }
 
     &_next {
       right: 10px;
 
-      transform: translate(0px, -50%) rotate(-90deg);
+      transform: translateY(-50%);
+      :deep(.svg-icon) {
+        transform: rotate(-180deg);
+      }
     }
   }
 
   &__pagination {
-    @include adaptiveValue('gap', 32, 10);
+    @include adaptiveValue('margin-top', 32, 18);
     position: relative;
-    z-index: 1;
+    z-index: 5;
 
     display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 20px;
 
     :deep(.swiper-pagination-bullet) {
-      @include adaptiveValue('width', 10, 20);
-      @include adaptiveValue('height', 10, 20);
-      border: 4px solid var(--border-seventh-color);
+      width: fit-content;
+      min-width: 12px;
+      height: 12px;
+
+      margin: 0 !important;
+
+      border: 3px solid var(--fifth-color);
       border-radius: 50%;
-      background-color: transparent;
+      background: transparent;
+      opacity: 1;
 
       transition: all 0.3s ease 0s;
       @media (any-hover: hover) {
         &:hover {
-          border-color: #8d96a5;
+          border-color: var(--secondary-color);
         }
       }
     }
+
     :deep(.swiper-pagination-bullet-active) {
-      background-color: var(--border-seventh-color);
+      border-color: transparent;
+      background-color: var(--secondary-color);
     }
   }
 }

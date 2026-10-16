@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ArrowIcon, BackIcon, ChevronDownIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | play
+  variant: { type: String, default: 'primary' }, // primary | play | arrow | bordered | hint-bordered
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -39,7 +39,7 @@ const buttonClasses = computed(() => [
     <SvgIcon
       v-else-if="props.icon === 'arrow'"
       :icon="ArrowIcon"
-      class="btn__icon btn__icon_chevron"
+      class="btn__icon btn__icon_arrow"
     />
     <SvgIcon
       v-else-if="props.icon === 'back'"
@@ -119,6 +119,8 @@ const buttonClasses = computed(() => [
     max-width: 311px;
     min-height: 111px;
 
+    border-radius: 0px;
+
     color: var(--secondary-color);
     font-family: var(--font-texturina);
     font-size: 32px;
@@ -145,11 +147,56 @@ const buttonClasses = computed(() => [
     }
     @media (any-hover: hover) {
       &:hover {
+        font-size: 34px;
+
         transform: scale(0.97);
       }
     }
   }
+  &.arrow {
+    @include adaptiveValue('min-width', 56, 40);
+    @include adaptiveValue('min-height', 56, 40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    height: fit-content;
+
+    background-color: var(--bg-fourth-color);
+
+    color: var(--secondary-color);
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--third-color);
+
+        color: var(--primary-color);
+      }
+    }
+  }
+  &.bordered {
+    border-color: var(--third-color);
+    background-color: transparent;
+
+    color: var(--primary-color);
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--third-color);
+      }
+    }
+  }
+  &.hint-bordered {
+    border-color: inherit;
+    background-color: var(--bg-third-color);
+
+    color: var(--secondary-color);
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--bg-eight-color);
+
+        color: var(--third-color);
+      }
+    }
+  }
   &__addon {
     position: relative;
     z-index: 1;
@@ -168,10 +215,13 @@ const buttonClasses = computed(() => [
     width: 16px;
     min-width: 16px;
     height: 16px;
+    &_arrow {
+      min-width: 24px;
+      height: 21px;
+    }
     &_chevron {
     }
     &_back {
-      color: var(--hint-secondary-color);
     }
   }
 }

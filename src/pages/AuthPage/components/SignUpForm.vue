@@ -13,14 +13,15 @@
         {{ $t('LOG IN') }}
       </button>
     </div> -->
-    <div class="sign-in__title _h3">{{ $t('Register') }}</div>
+    <div class="sign-in__title _h5">{{ $t('Register') }}</div>
     <form @submit.prevent="handleSignUp" class="sign-in__form">
       <div class="sign-in__inputs">
         <BaseInput
           v-model="form.username"
           name="username"
+          icon="username"
           autocomplete="given-name"
-          :placeholder="$t('Name')"
+          :placeholder="$t('Username')"
           :error="fieldErrors.username"
           required
           maxlength="12"
@@ -38,6 +39,7 @@
           type="email"
           name="email"
           autocomplete="email"
+          icon="email"
           :placeholder="$t('Email')"
           :error="fieldErrors.email"
           required
@@ -47,6 +49,7 @@
           v-model="form.password"
           type="password"
           name="password"
+          icon="password"
           autocomplete="new-password"
           :placeholder="$t('Password')"
           :error="fieldErrors.password"
@@ -58,6 +61,7 @@
           v-model="form.confirmPassword"
           type="password"
           name="confirmPassword"
+          icon="password"
           autocomplete="new-password"
           :placeholder="$t('Confirm password')"
           :error="fieldErrors.confirmPassword"
