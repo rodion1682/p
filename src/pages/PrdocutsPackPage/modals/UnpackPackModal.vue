@@ -1,232 +1,189 @@
 <template>
-  <BaseModal
-    :show="show"
-    :persistent="isUnpacking"
-    class="unpack-pack-modal"
-    content-class="unpack-pack-modal__content"
-    :labelledby="titleId"
-    @close="handleClose"
-    @update:show="handleShowUpdate"
-  >
-    <div v-if="step === 'confirm'" class="unpack-pack">
-      <h2 :id="titleId" class="unpack-pack__title _h3">
-        {{ packName }}
-      </h2>
-
-      <div class="unpack-pack__confirmation">
-        <div class="unpack-pack__preview">
-          <div class="unpack-pack__preview-inner">
-            <img
-              v-if="packImage"
-              :src="packImage"
-              :alt="packName"
-              class="unpack-pack__pack-image"
-            />
-          </div>
-        </div>
-
-        <div class="unpack-pack__confirmation-content">
-          <h3 class="unpack-pack__confirmation-title _h3">
-            {{ $t('Open this card pack?') }}
-          </h3>
-
-          <p class="unpack-pack__confirmation-text">
-            {{
-              $t(
-                'The pack will be opened and all received cards will be added to your collection automatically.',
-              )
-            }}
-          </p>
-
-          <div v-if="availableQuantity > 0" class="unpack-pack__quantity">
-            <span class="unpack-pack__quantity-label">
-              {{ $t('Packs available') }}
-            </span>
-
-            <span class="unpack-pack__quantity-value">
-              {{ availableQuantity }}
-            </span>
-          </div>
-
-          <p v-if="error" class="unpack-pack__error" role="alert">
-            {{ error }}
-          </p>
-
-          <div class="unpack-pack__actions">
-            <BaseButton
-              type="button"
-              variant="hint-bordered"
-              class="unpack-pack__button"
-              :disabled="isUnpacking"
-              @click="handleClose"
-            >
-              {{ $t('Cancel') }}
-            </BaseButton>
-
-            <BaseButton
-              type="button"
-              class="unpack-pack__button"
-              :disabled="isUnpacking || !packId"
-              @click="unpackPack"
-            >
-              {{ $t('Unpack') }}
-            </BaseButton>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      v-else-if="step === 'opening'"
-      class="unpack-pack unpack-pack_opening"
-      aria-live="polite"
-    >
-      <h2 :id="titleId" class="unpack-pack__title _h3">
-        {{ packName }}
-      </h2>
-
-      <div class="unpack-pack__opening">
-        <div
-          class="unpack-pack__opening-line unpack-pack__opening-line_left"
-          aria-hidden="true"
-        />
-
-        <div
-          class="unpack-pack__opening-line unpack-pack__opening-line_right"
-          aria-hidden="true"
-        />
-
-        <div class="unpack-pack__opening-frame">
-          <img
-            v-if="packImage"
-            :src="packImage"
-            :alt="packName"
-            class="unpack-pack__opening-image"
-          />
-        </div>
-      </div>
-
-      <p class="unpack-pack__opening-text">
-        {{ $t('Opening your pack...') }}
-      </p>
-
-      <span class="unpack-pack__loader" aria-hidden="true" />
-    </div>
-
-    <div
-      v-else-if="step === 'revealed'"
-      class="unpack-pack unpack-pack_revealed"
-    >
-      <h2 :id="titleId" class="unpack-pack__title _h3">
-        {{ packName }}
-      </h2>
-
-      <div v-if="revealedCards.length" class="unpack-pack__cards">
-        <article
-          v-for="(instance, index) in revealedCards"
-          :key="getCardKey(instance, index)"
-          class="unpack-pack__card-item"
-          :class="getRarityClass(instance)"
-          :style="{ '--reveal-index': index }"
+  <Teleport to="body">
+    <Transition name="unpack-screen">
+      <div
+        v-if="show"
+        class="unpack-overlay"
+        role="presentation"
+        @click.self="handleClose"
+      >
+        <section
+          class="unpack-pack"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="titleId"
         >
-          <div class="unpack-pack__card">
-            <img
-              v-if="getCard(instance).image_2"
-              :src="resolveImageUrl(getCard(instance).image_2)"
-              :alt="getCard(instance).name"
-              class="unpack-pack__card-frame"
-            />
+          <div class="unpack-pack__container">
+            <h2 :id="titleId" class="unpack-pack__title">
+              {{ $t('Build Your Constellation') }}
+            </h2>
 
-            <img
-              v-if="getCard(instance).image"
-              :src="resolveImageUrl(getCard(instance).image)"
-              alt=""
-              class="unpack-pack__card-image"
-            />
+            <template v-if="step === 'confirm'">
+              <div class="unpack-pack__cards">
+                <div
+                  v-for="index in DISPLAY_CARD_COUNT"
+                  :key="index"
+                  class="unpack-pack__card-slot"
+                >
+                  <img
+                    :src="packImage"
+                    :alt="`${packName} ${index}`"
+                    class="unpack-pack__back-image"
+                    draggable="false"
+                  />
+                </div>
+              </div>
 
-            <div
-              v-if="getCard(instance).name"
-              class="unpack-pack__card-overlay-name"
-            >
-              {{ getCard(instance).name }}
-            </div>
+              <p v-if="error" class="unpack-pack__error" role="alert">
+                {{ error }}
+              </p>
 
-            <div
-              v-if="getCard(instance).description"
-              class="unpack-pack__card-description"
-              v-html="getCard(instance).description"
-            />
+              <div class="unpack-pack__actions">
+                <BaseButton
+                  type="button"
+                  variant="hint-bordered"
+                  class="unpack-pack__button"
+                  @click="handleClose"
+                >
+                  {{ $t('Cancel') }}
+                </BaseButton>
 
-            <span
-              v-if="hasValue(getCard(instance).mana_cost)"
-              class="unpack-pack__card-stat unpack-pack__card-stat_mana"
-            >
-              {{ getCard(instance).mana_cost }}
-            </span>
+                <BaseButton
+                  type="button"
+                  class="unpack-pack__button"
+                  :disabled="!packId || availableQuantity <= 0"
+                  @click="unpackPack"
+                >
+                  {{ $t('Unpack') }}
+                </BaseButton>
+              </div>
+            </template>
 
-            <span
-              v-if="hasValue(getCard(instance).attack)"
-              class="unpack-pack__card-stat unpack-pack__card-stat_attack"
-            >
-              {{ getCard(instance).attack }}
-            </span>
+            <template v-else-if="step === 'opening'">
+              <div
+                class="unpack-pack__cards unpack-pack__cards_opening"
+                aria-live="polite"
+              >
+                <div
+                  v-for="index in DISPLAY_CARD_COUNT"
+                  :key="index"
+                  class="unpack-pack__card-slot unpack-pack__card-slot_opening"
+                  :style="{ '--card-index': index }"
+                >
+                  <img
+                    :src="packImage"
+                    :alt="packName"
+                    class="unpack-pack__back-image"
+                    draggable="false"
+                  />
+                </div>
+              </div>
 
-            <span
-              v-if="hasValue(getCard(instance).health)"
-              class="unpack-pack__card-stat unpack-pack__card-stat_health"
-            >
-              {{ getCard(instance).health }}
-            </span>
+              <div class="unpack-pack__opening-status">
+                <span class="unpack-pack__loader" />
+                <span>{{ $t('Opening your pack...') }}</span>
+              </div>
+            </template>
+
+            <template v-else-if="step === 'revealed'">
+              <div
+                v-if="revealedCards.length"
+                class="unpack-pack__cards unpack-pack__cards_revealed"
+              >
+                <article
+                  v-for="(instance, index) in revealedCards"
+                  :key="getCardKey(instance, index)"
+                  class="unpack-pack__card-slot unpack-pack__card-slot_revealed"
+                  :class="getRarityClass(instance)"
+                  :style="{ '--card-index': index }"
+                >
+                  <div class="unpack-pack__card">
+                    <img
+                      v-if="getCard(instance).image"
+                      :src="resolveImageUrl(getCard(instance).image)"
+                      alt=""
+                      class="unpack-pack__card-art"
+                      draggable="false"
+                    />
+
+                    <img
+                      v-if="getCard(instance).image_2"
+                      :src="resolveImageUrl(getCard(instance).image_2)"
+                      :alt="getCard(instance).name || $t('Card')"
+                      class="unpack-pack__card-frame"
+                      draggable="false"
+                    />
+
+                    <span
+                      v-if="hasValue(getCard(instance).mana_cost)"
+                      class="unpack-pack__card-stat unpack-pack__card-stat_mana"
+                    >
+                      {{ getCard(instance).mana_cost }}
+                    </span>
+
+                    <span
+                      v-if="getCard(instance).name"
+                      class="unpack-pack__card-name"
+                    >
+                      {{ getCard(instance).name }}
+                    </span>
+
+                    <div
+                      v-if="getCard(instance).description"
+                      class="unpack-pack__card-description"
+                      v-html="getCard(instance).description"
+                    />
+
+                    <span
+                      v-if="hasValue(getCard(instance).attack)"
+                      class="unpack-pack__card-stat unpack-pack__card-stat_attack"
+                    >
+                      {{ getCard(instance).attack }}
+                    </span>
+
+                    <span
+                      v-if="hasValue(getCard(instance).health)"
+                      class="unpack-pack__card-stat unpack-pack__card-stat_health"
+                    >
+                      {{ getCard(instance).health }}
+                    </span>
+                  </div>
+                </article>
+              </div>
+
+              <div v-else class="unpack-pack__empty">
+                <h3>{{ $t('The pack was opened') }}</h3>
+                <p>
+                  {{
+                    $t(
+                      'Your cards were added to your collection, but no card information was returned.',
+                    )
+                  }}
+                </p>
+              </div>
+
+              <div class="unpack-pack__actions">
+                <BaseButton
+                  type="button"
+                  class="unpack-pack__button unpack-pack__button_collection"
+                  @click="handleContinue"
+                >
+                  {{ $t('Add to my collection') }}
+                </BaseButton>
+              </div>
+            </template>
           </div>
-
-          <div class="unpack-pack__card-information">
-            <h3 class="unpack-pack__card-name">
-              {{ getCard(instance).name || $t('Card') }}
-            </h3>
-
-            <span
-              v-if="getCard(instance).rarity"
-              class="unpack-pack__card-rarity"
-            >
-              {{ formatValue(getCard(instance).rarity) }}
-            </span>
-          </div>
-        </article>
+        </section>
       </div>
-
-      <div v-else class="unpack-pack__empty">
-        <h3 class="unpack-pack__empty-title _h3">
-          {{ $t('The pack was opened') }}
-        </h3>
-
-        <p class="unpack-pack__empty-text">
-          {{
-            $t(
-              'Your cards were added to your collection, but no card information was returned.',
-            )
-          }}
-        </p>
-      </div>
-
-      <div class="unpack-pack__revealed-actions">
-        <BaseButton
-          type="button"
-          class="unpack-pack__continue"
-          @click="handleContinue"
-        >
-          {{ $t('Continue') }}
-        </BaseButton>
-      </div>
-    </div>
-  </BaseModal>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import defaultImage from '@/assets/images/default-image.png'
 import BaseButton from '@/components/base/BaseButton.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
 import axios from '@/plugins/axios'
 
 const props = defineProps({
@@ -234,12 +191,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-
   packId: {
     type: [String, Number],
     default: null,
   },
-
   pack: {
     type: Object,
     default: null,
@@ -249,6 +204,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'update:show', 'opened'])
 
 const STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
+const DISPLAY_CARD_COUNT = 5
 const MINIMUM_OPENING_DURATION = 1800
 
 const step = ref('confirm')
@@ -256,21 +212,18 @@ const isUnpacking = ref(false)
 const error = ref('')
 const revealedCards = ref([])
 
-const titleId = computed(() => {
-  return props.packId
-    ? `unpack-pack-title-${props.packId}`
-    : 'unpack-pack-title'
-})
+const titleId = computed(() =>
+  props.packId ? `unpack-pack-title-${props.packId}` : 'unpack-pack-title',
+)
 
-const packName = computed(() => {
-  return (
+const packName = computed(
+  () =>
     props.pack?.pack?.name ??
     props.pack?.product?.name ??
     props.pack?.name ??
     props.pack?.title ??
-    'Card Pack'
-  )
-})
+    'Card Pack',
+)
 
 const availableQuantity = computed(() => {
   const value =
@@ -300,11 +253,8 @@ const packImage = computed(() => {
   return resolveImageUrl(image)
 })
 
-const wait = duration => {
-  return new Promise(resolve => {
-    window.setTimeout(resolve, duration)
-  })
-}
+const wait = duration =>
+  new Promise(resolve => window.setTimeout(resolve, duration))
 
 const getResponseCards = response => {
   const data = response?.data
@@ -320,18 +270,11 @@ const getResponseCards = response => {
   return possibleCards.find(Array.isArray) || []
 }
 
-const getCard = instance => {
-  return instance?.card ?? instance?.product ?? instance ?? {}
-}
+const getCard = instance =>
+  instance?.card ?? instance?.product ?? instance ?? {}
 
-const getCardKey = (instance, index) => {
-  return (
-    instance?.instance_uuid ??
-    instance?.id ??
-    getCard(instance)?.id ??
-    `revealed-card-${index}`
-  )
-}
+const getCardKey = (instance, index) =>
+  instance?.instance_uuid ?? instance?.id ?? `revealed-card-${index}`
 
 const getRarityClass = instance => {
   const rarity = String(getCard(instance)?.rarity || '')
@@ -340,27 +283,13 @@ const getRarityClass = instance => {
     .replaceAll(' ', '-')
     .replaceAll('_', '-')
 
-  return rarity ? `unpack-pack__card-item_${rarity}` : ''
+  return rarity ? `unpack-pack__card-slot_${rarity}` : ''
 }
 
-const hasValue = value => {
-  return value !== null && value !== undefined && value !== ''
-}
-
-const formatValue = value => {
-  if (!hasValue(value)) {
-    return ''
-  }
-
-  const normalized = String(value).replaceAll('_', ' ')
-
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase()
-}
+const hasValue = value => value !== null && value !== undefined && value !== ''
 
 function resolveImageUrl(image) {
-  if (!image) {
-    return defaultImage
-  }
+  if (!image) return defaultImage
 
   if (
     image.startsWith('http://') ||
@@ -371,9 +300,7 @@ function resolveImageUrl(image) {
     return image
   }
 
-  if (!STATIC_DOMAIN) {
-    return image
-  }
+  if (!STATIC_DOMAIN) return image
 
   const domain = STATIC_DOMAIN.replace(/\/$/, '')
   const path = image.startsWith('/') ? image : `/${image}`
@@ -389,7 +316,7 @@ const resetModal = () => {
 }
 
 const unpackPack = async () => {
-  if (!props.packId || isUnpacking.value) {
+  if (!props.packId || isUnpacking.value || availableQuantity.value <= 0) {
     return
   }
 
@@ -404,7 +331,6 @@ const unpackPack = async () => {
     ])
 
     revealedCards.value = getResponseCards(response)
-
     step.value = 'revealed'
 
     emit('opened', {
@@ -426,29 +352,23 @@ const unpackPack = async () => {
   }
 }
 
-const handleContinue = () => {
-  handleClose()
-}
-
 const handleClose = () => {
-  if (isUnpacking.value) {
-    return
-  }
+  if (isUnpacking.value) return
 
   emit('update:show', false)
   emit('close')
 }
 
 const handleShowUpdate = value => {
-  if (!value && isUnpacking.value) {
-    return
-  }
+  if (!value && isUnpacking.value) return
 
   emit('update:show', value)
 
-  if (!value) {
-    emit('close')
-  }
+  if (!value) emit('close')
+}
+
+const handleContinue = () => {
+  handleClose()
 }
 
 watch(
@@ -456,8 +376,12 @@ watch(
   isOpen => {
     if (isOpen) {
       resetModal()
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
     }
   },
+  { immediate: true },
 )
 
 watch(
@@ -468,425 +392,199 @@ watch(
     }
   },
 )
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+})
 </script>
 
 <style lang="scss" scoped>
+.unpack-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100vw;
+  height: 100dvh;
+
+  background:
+    linear-gradient(rgb(18 16 54 / 48%), rgb(18 16 54 / 65%)),
+    url('@/assets/img/build-bg.jpg') center / cover no-repeat;
+  background-color: #171333;
+}
+
 .unpack-pack {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100%;
-  min-width: 0;
 
-  &__title {
-    color: var(--primary-color);
-    font-weight: 400;
-    text-align: center;
+  margin: auto;
+  padding: 30px 10px;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 38, 24);
-    }
-  }
-
-  &__confirmation {
-    display: flex;
-    align-items: center;
-    gap: clamp(35px, 5vw, 80px);
-
-    width: 100%;
-  }
-
-  &__preview {
-    display: flex;
-    flex: 0 1 48%;
-    align-items: center;
-    justify-content: center;
-
-    min-width: 0;
-  }
-
-  &__preview-inner {
-    position: relative;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    max-width: 420px;
-    min-height: 430px;
-
-    &::before {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-
-      width: 80%;
-      height: 65%;
-
-      background: radial-gradient(
-        circle,
-        rgb(74 119 178 / 12%) 0%,
-        rgb(139 122 170 / 6%) 40%,
-        transparent 72%
-      );
-
-      content: '';
-
-      transform: translate(-50%, -50%);
-
-      filter: blur(30px);
-    }
-  }
-
-  &__pack-image {
-    position: relative;
-    z-index: 1;
-
-    display: block;
-
-    width: min(100%, 360px);
-    max-height: 440px;
-
-    object-fit: contain;
-
-    filter: drop-shadow(0 20px 25px rgb(0 0 0 / 45%));
-  }
-
-  &__confirmation-content {
-    flex: 1 1 auto;
-
-    min-width: 0;
-    max-width: 480px;
-  }
-
-  &__confirmation-title {
-    color: var(--primary-color);
-    font-weight: 400;
-    text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 14);
-    }
-  }
-
-  &__confirmation-text {
-    max-width: 460px;
-
-    margin: 0;
-
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    line-height: 150%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 28, 20);
-    }
-  }
-
-  &__quantity {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    width: fit-content;
-
-    padding-top: 14px;
-
-    border-top: 1px solid var(--border-sixth-color);
-
-    font-family: var(--font-inter);
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 28, 20);
-    }
-  }
-
-  &__quantity-label {
-    color: var(--secondary-color);
-    font-size: 13px;
-  }
-
-  &__quantity-value {
-    color: var(--primary-color);
-    font-family: var(--font-spectral);
-    font-size: 20px;
-    font-weight: 600;
-  }
-
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-
-    width: 100%;
-  }
-
-  &__button {
-    flex: 0 1 170px;
-
-    min-width: 145px;
-  }
-
-  &__error {
-    margin: 0 0 20px;
-    padding: 10px 12px;
-
-    border: 1px solid rgb(192 67 113 / 35%);
-    background-color: rgb(192 67 113 / 8%);
-
-    color: var(--error-color);
-    font-family: var(--font-inter);
-    font-size: 12px;
-    line-height: 145%;
-  }
-
-  &_opening {
+  &__container {
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    min-height: 500px;
-  }
-
-  &__opening {
-    position: relative;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: min(100%, 520px);
-    min-height: 360px;
-
-    margin: 0 auto;
-  }
-
-  &__opening-frame {
-    position: relative;
-
-    display: flex;
-    align-items: center;
     justify-content: center;
 
     width: 100%;
-    max-width: 390px;
+    max-width: 1450px;
 
-    &::before {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-
-      width: 80%;
-      aspect-ratio: 1;
-
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgb(74 119 178 / 16%) 0%,
-        rgb(139 122 170 / 8%) 42%,
-        transparent 70%
-      );
-
-      content: '';
-
-      transform: translate(-50%, -50%);
-
-      filter: blur(28px);
-    }
+    margin: auto;
   }
 
-  &__opening-line {
-    position: absolute;
-    top: 50%;
+  &__title {
+    @include adaptiveValue('font-size', 44, 26);
+    @include adaptiveValue('margin-bottom', 70, 32);
 
-    width: 32%;
-    height: 1px;
+    margin-top: 0;
 
-    background: linear-gradient(90deg, transparent, var(--hint-primary-color));
-    opacity: 0.6;
-
-    &_left {
-      left: 0;
-    }
-
-    &_right {
-      right: 0;
-
-      transform: scaleX(-1);
-    }
-  }
-
-  &__opening-image {
-    position: relative;
-    z-index: 1;
-
-    width: min(80%, 320px);
-    max-height: 380px;
-
-    object-fit: contain;
-
-    animation: unpack-pack-opening 1.2s ease-in-out infinite alternate;
-
-    filter: drop-shadow(0 0 12px rgb(74 119 178 / 22%))
-      drop-shadow(0 18px 24px rgb(0 0 0 / 45%));
-  }
-
-  &__opening-text {
-    margin: 0;
-
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    line-height: 150%;
+    color: #f4d8c5;
+    font-family: var(--font-spectral);
+    font-weight: 500;
+    line-height: 1.2;
     text-align: center;
   }
 
-  &__loader {
-    width: 26px;
-    height: 26px;
-
-    margin-top: 18px;
-
-    border: 2px solid var(--border-third-color);
-    border-radius: 50%;
-
-    animation: unpack-spin 0.8s linear infinite;
-
-    border-top-color: var(--hint-secondary-color);
-  }
-
-  &_revealed {
-    min-height: 520px;
-  }
-
   &__cards {
+    @include adaptiveValue('gap', 20, 8);
+
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    gap: clamp(12px, 1.5vw, 24px);
 
     width: 100%;
+    max-width: 1300px;
 
-    perspective: 1400px;
+    margin: 0 auto;
+
+    perspective: 1200px;
+    &_revealed {
+      align-items: stretch;
+      gap: clamp(10px, 1.5vw, 24px);
+    }
   }
 
-  &__card-item {
-    --rarity-color: var(--border-third-color);
-
+  &__card-slot {
     position: relative;
 
     flex: 0 1 235px;
 
     min-width: 0;
+    aspect-ratio: 0.69;
 
-    opacity: 0;
+    transform-style: preserve-3d;
 
-    animation: unpack-card-reveal 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    animation-delay: calc(var(--reveal-index) * 0.12s);
-
-    &_common {
-      --rarity-color: var(--secondary-color);
+    &_opening {
+      animation: unpack-floating 1s ease-in-out infinite alternate;
+      animation-delay: calc(var(--card-index) * 0.12s);
     }
 
-    &_uncommon {
-      --rarity-color: var(--success-color);
-    }
+    &_revealed {
+      opacity: 0;
 
-    &_rare {
-      --rarity-color: var(--hint-primary-color);
+      animation: unpack-reveal 0.65s ease forwards;
+      animation-delay: calc(var(--card-index) * 0.13s);
     }
+  }
 
-    &_epic {
-      --rarity-color: var(--hint-sixth-color);
-    }
+  &__back-image {
+    display: block;
 
-    &_legendary {
-      --rarity-color: var(--pending-color);
-    }
+    width: 100%;
+    height: 100%;
+
+    user-select: none;
+
+    object-fit: contain;
+
+    filter: drop-shadow(0 14px 18px rgb(0 0 0 / 35%));
   }
 
   &__card {
     position: relative;
 
     width: 100%;
+    height: 100%;
     aspect-ratio: 0.69;
 
-    transition:
-      transform 0.3s ease,
-      filter 0.3s ease;
+    transition: transform 0.3s ease;
 
     container-type: inline-size;
 
-    filter: drop-shadow(0 15px 20px rgb(0 0 0 / 35%));
+    filter: drop-shadow(0 14px 18px rgb(0 0 0 / 35%));
 
     @media (any-hover: hover) {
       &:hover {
-        transform: translateY(-5px);
-
-        filter: drop-shadow(0 18px 24px rgb(0 0 0 / 45%))
-          drop-shadow(0 0 12px var(--rarity-color));
+        transform: translateY(-8px);
       }
     }
   }
 
-  &__card-frame {
+  &__card-art {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-
-    transform: translate(-50%, -50%);
-  }
-
-  &__card-image {
-    position: absolute;
-    top: 13%;
+    top: 12%;
     left: 50%;
     z-index: 3;
 
-    width: 55%;
-    height: 45%;
+    width: 78%;
+    height: 49%;
+
+    pointer-events: none;
 
     object-fit: cover;
 
     transform: translateX(-50%);
   }
 
-  &__card-overlay-name {
+  &__card-frame {
     position: absolute;
-    top: 9.25%;
-    left: 55%;
+    inset: 0;
+    z-index: 2;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+
+    object-fit: fill;
+  }
+
+  &__card-name {
+    position: absolute;
+    top: 9.5%;
+    left: 50%;
     z-index: 3;
 
     overflow: hidden;
 
-    width: 65%;
-    height: fit-content;
+    width: 64%;
 
-    padding: 0 5%;
-
-    color: var(--primary-color);
+    color: #fff;
     font-family: var(--font-inter);
-    font-size: clamp(6px, 5cqi, 14px);
-    font-weight: 400;
-    line-height: 1;
-    text-align: left;
+    font-size: clamp(5px, 5.5cqi, 13px);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
-
-    pointer-events: none;
 
     transform: translateX(-50%);
   }
 
   &__card-description {
     position: absolute;
-    bottom: 11%;
+    bottom: 10%;
     left: 50%;
     z-index: 3;
 
@@ -895,18 +593,17 @@ watch(
     align-items: center;
     justify-content: center;
 
-    width: 56%;
-    height: 22%;
+    width: 65%;
+    height: 23%;
 
     padding: 2%;
 
-    color: var(--secondary-color);
+    color: #f4d8c5;
     font-family: var(--font-inter);
-    font-size: clamp(5px, 3.8cqi, 9px);
+    font-size: clamp(4px, 4cqi, 10px);
+    font-weight: 500;
     line-height: 1.2;
     text-align: center;
-
-    pointer-events: none;
 
     transform: translateX(-50%);
 
@@ -926,17 +623,14 @@ watch(
     width: 17%;
     aspect-ratio: 1;
 
-    color: var(--primary-color);
+    color: #fff;
     font-family: var(--font-sedan-sc);
-    font-size: clamp(14px, 10cqi, 28px);
+    font-size: clamp(10px, 10cqi, 28px);
     font-weight: 700;
     line-height: 1;
 
     pointer-events: none;
 
-    paint-order: stroke fill;
-
-    -webkit-text-fill-color: var(--primary-color);
     -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
 
     &_mana {
@@ -961,181 +655,143 @@ watch(
     }
   }
 
-  &__card-information {
-    margin-top: 8px;
-
-    text-align: center;
-  }
-
-  &__card-name {
-    overflow: hidden;
-
-    color: var(--primary-color);
-    font-family: var(--font-spectral);
-    font-size: 14px;
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__card-rarity {
-    display: block;
-
-    margin-top: 4px;
-
-    color: var(--rarity-color);
-    font-family: var(--font-inter);
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-  }
-
-  &__revealed-actions {
-    @include adaptiveValue('margin-top', 34, 24);
+  &__actions {
+    @include adaptiveValue('gap', 16, 10);
+    @include adaptiveValue('margin-top', 72, 36);
 
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
+
+    width: 100%;
   }
 
-  &__continue {
-    width: min(100%, 220px);
+  &__button {
+    max-width: 216px;
+  }
+
+  &__opening-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 55px;
+
+    color: var(--primary-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+  }
+
+  &__loader {
+    width: 20px;
+    height: 20px;
+
+    border: 2px solid rgb(255 255 255 / 25%);
+    border-radius: 50%;
+
+    animation: unpack-spin 0.8s linear infinite;
+
+    border-top-color: #9572ed;
+  }
+
+  &__error {
+    margin: 25px 0 0;
+
+    color: var(--error-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    text-align: center;
   }
 
   &__empty {
     max-width: 500px;
 
-    margin: 70px auto 0;
+    margin: 40px auto;
 
-    text-align: center;
-  }
-
-  &__empty-title {
     color: var(--primary-color);
-    font-weight: 400;
+    text-align: center;
 
-    &:not(:last-child) {
-      margin-bottom: 14px;
+    p {
+      color: var(--secondary-color);
+      font-family: var(--font-inter);
+      line-height: 1.5;
     }
-  }
-
-  &__empty-text {
-    margin: 0;
-
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    line-height: 150%;
   }
 
   @media (max-width: $md3) {
-    &__confirmation {
-      flex-direction: column;
-      gap: 25px;
+    &__cards {
+      flex-wrap: wrap;
+
+      max-width: 750px;
     }
 
-    &__preview,
-    &__confirmation-content {
-      width: 100%;
-      max-width: 100%;
-    }
-
-    &__preview-inner {
-      min-height: 320px;
-    }
-
-    &__pack-image {
-      width: min(72vw, 300px);
-      max-height: 320px;
-    }
-
-    &__confirmation-content {
-      text-align: center;
-    }
-
-    &__confirmation-text {
-      margin-right: auto;
-      margin-left: auto;
-    }
-
-    &__quantity {
-      justify-content: center;
-
-      margin-right: auto;
-      margin-left: auto;
-    }
-
-    &__actions {
-      justify-content: center;
-    }
-
-    &__card-item {
-      flex-basis: calc(33.333% - 16px);
+    &__card-slot {
+      flex-basis: calc(33.333% - 14px);
 
       max-width: 220px;
     }
   }
 
   @media (max-width: $md5) {
-    &__card-item {
-      flex-basis: calc(50% - 10px);
+    &__card-slot {
+      flex-basis: calc(50% - 8px);
 
-      max-width: 210px;
+      max-width: 180px;
+    }
+
+    &__title {
+      margin-bottom: 30px;
+    }
+
+    &__actions {
+      margin-top: 35px;
     }
   }
 
   @media (max-width: $md7) {
-    &__actions {
-      flex-direction: column;
+    &__card-slot {
+      max-width: 150px;
     }
 
     &__button {
-      flex: 0 0 auto;
-
-      width: 100%;
-      max-width: none;
-    }
-
-    &__card-item {
-      flex-basis: min(100%, 190px);
-    }
-
-    &__opening {
-      min-height: 300px;
-    }
-
-    &__opening-image {
-      width: min(75%, 260px);
+      flex: 1 1 130px;
     }
   }
 }
 
-@keyframes unpack-pack-opening {
-  0% {
-    transform: translateY(-5px) scale(0.99);
+.unpack-screen-enter-active,
+.unpack-screen-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.unpack-screen-enter-from,
+.unpack-screen-leave-to {
+  opacity: 0;
+}
+
+@keyframes unpack-floating {
+  from {
+    transform: translateY(-6px);
   }
 
-  100% {
-    transform: translateY(6px) scale(1.025);
+  to {
+    transform: translateY(6px);
   }
 }
 
-@keyframes unpack-card-reveal {
-  0% {
+@keyframes unpack-reveal {
+  from {
     opacity: 0;
 
-    transform: translateY(40px) rotateY(70deg) scale(0.88);
+    transform: translateY(35px) rotateY(75deg);
   }
 
-  70% {
+  to {
     opacity: 1;
 
-    transform: translateY(-5px) rotateY(-3deg) scale(1.015);
-  }
-
-  100% {
-    opacity: 1;
-
-    transform: translateY(0) rotateY(0deg) scale(1);
+    transform: translateY(0) rotateY(0);
   }
 }
 
@@ -1143,19 +799,5 @@ watch(
   to {
     transform: rotate(360deg);
   }
-}
-
-:global(.unpack-pack-modal) {
-  max-width: 1260px;
-}
-
-:global(.unpack-pack-modal .base-modal__frame) {
-  padding: clamp(30px, 4vw, 55px) clamp(18px, 4vw, 50px);
-
-  background-color: var(--bg-fifth-color);
-}
-
-:global(.unpack-pack-modal__content) {
-  width: 100%;
 }
 </style>

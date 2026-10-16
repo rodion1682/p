@@ -13,23 +13,31 @@
         v-else-if="cartStore.error && cartStore.error !== 'Cart is empty'"
         class="cart-state"
       >
-        <h1 class="cart-state__title _h3">
+        <h1 class="cart-state__title _h4">
           {{ $t('Something went wrong') }}
         </h1>
         <p class="cart-state__text">{{ cartStore.error }}</p>
-        <BaseButton variant="hint-bordered" @click="refreshCart">
+        <BaseButton
+          class="cart-state__button"
+          variant="bordered"
+          @click="refreshCart"
+        >
           {{ $t('Try again') }}
         </BaseButton>
       </div>
 
       <div v-else-if="cartStore.isEmpty" class="cart-state">
-        <h1 class="cart-state__title _h3">
+        <h1 class="cart-state__title _h4">
           {{ $t('Your cart is empty') }}
         </h1>
         <p class="cart-state__text">
           {{ $t('Add cards or packs to continue.') }}
         </p>
-        <BaseButton variant="primary" @click="goToStore">
+        <BaseButton
+          class="cart-state__button"
+          variant="primary"
+          @click="goToStore"
+        >
           {{ $t('Continue shopping') }}
         </BaseButton>
       </div>
@@ -689,7 +697,7 @@ onMounted(async () => {
     width: 100%;
     max-width: 1400px;
 
-    margin: 0 auto;
+    margin: auto;
   }
 
   &__content {
@@ -1322,8 +1330,6 @@ onMounted(async () => {
 }
 
 .cart-state {
-  @include adaptiveValue('min-height', 420, 280);
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1331,6 +1337,8 @@ onMounted(async () => {
   gap: 18px;
 
   width: 100%;
+
+  margin: auto;
 
   text-align: center;
 
@@ -1350,6 +1358,11 @@ onMounted(async () => {
     font-family: var(--font-inter);
     font-size: 14px;
     line-height: 1.5;
+  }
+  &__button {
+    max-width: 300px;
+
+    margin: 0 auto;
   }
 }
 </style>

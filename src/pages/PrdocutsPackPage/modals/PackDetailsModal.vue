@@ -20,8 +20,12 @@
       class="pack-details pack-details_error"
     >
       <div class="pack-details__state">
-        <h2 class="_h4">{{ $t('Unable to load pack') }}</h2>
+        <h2 class="_h4">
+          {{ $t('Unable to load pack') }}
+        </h2>
+
         <p>{{ error }}</p>
+
         <BaseButton
           type="button"
           variant="hint-bordered"
@@ -34,30 +38,48 @@
 
     <div v-else-if="currentPack" class="pack-details">
       <div class="pack-details__preview">
-        <img
-          :src="packImage"
-          :alt="packName"
-          class="pack-details__image"
-          @error="handleImageError"
-        />
+        <div class="pack-details__stack">
+          <img
+            v-for="index in PACK_STACK_COUNT"
+            :key="index"
+            :src="packImage"
+            :alt="index === 1 ? packName : ''"
+            :aria-hidden="index !== 1"
+            class="pack-details__image"
+            :class="`pack-details__image_${index}`"
+            draggable="false"
+            @error="handleImageError"
+          />
+        </div>
       </div>
 
       <div class="pack-details__content">
         <div class="pack-details__main">
-          <h2 :id="titleId" class="pack-details__title _h4">{{ packName }}</h2>
+          <h2 :id="titleId" class="pack-details__title _h4">
+            {{ packName }}
+          </h2>
 
           <div v-if="hasPackStats" class="pack-details__stats">
             <div v-if="cardCount" class="pack-details__stat">
-              <span>{{ $t('Cards') }}:</span>
-              <strong>{{ cardCount }}</strong>
+              <span class="pack-details__stat-label"> {{ $t('Cards') }}: </span>
+
+              <span class="pack-details__stat-value">
+                {{ cardCount }}
+              </span>
             </div>
+
             <div
               v-for="item in rarityProbabilities"
               :key="item.rarity"
               class="pack-details__stat"
             >
-              <span>{{ formatRarity(item.rarity) }}:</span>
-              <strong>{{ formatProbability(item.probability) }}</strong>
+              <span class="pack-details__stat-label">
+                {{ formatRarity(item.rarity) }}:
+              </span>
+
+              <span class="pack-details__stat-value">
+                {{ formatProbability(item.probability) }}
+              </span>
             </div>
           </div>
 
@@ -70,8 +92,14 @@
               :key="item.rarity"
               class="pack-details__stat"
             >
-              <span>{{ formatRarity(item.rarity) }}:</span>
-              <strong>{{ item.quantity }} {{ $t('guaranteed') }}</strong>
+              <span class="pack-details__stat-label">
+                {{ formatRarity(item.rarity) }}:
+              </span>
+
+              <span class="pack-details__stat-value">
+                {{ item.quantity }}
+                {{ $t('guaranteed') }}
+              </span>
             </div>
           </div>
 
@@ -79,51 +107,63 @@
             <div class="pack-details__description-label">
               {{ $t('Description:') }}
             </div>
+
             <div
               v-if="currentPack.description"
               class="pack-details__description-content"
               v-html="currentPack.description"
             />
+
             <div v-else class="pack-details__description-content">—</div>
           </div>
         </div>
 
         <div class="pack-details__bottom">
           <div class="pack-details__price">
-            <div class="pack-details__control-label">{{ $t('Price:') }}</div>
+            <div class="pack-details__control-label">
+              {{ $t('Price:') }}
+            </div>
+
             <PriceFormatter
               :price="packPrice"
-              size="size-32"
+              size="size-40"
               class="pack-details__price-value"
             />
           </div>
 
-          <div v-if="!isInCart" class="pack-details__quantity">
-            <div class="pack-details__control-label">{{ $t('Q-ty:') }}</div>
+          <div class="pack-details__quantity">
+            <div class="pack-details__control-label">
+              {{ $t('Q-ty:') }}
+            </div>
+
             <div class="pack-details__quantity-controls">
               <button
                 type="button"
                 class="pack-details__quantity-button"
-                :disabled="quantity <= 1 || isSubmitting"
+                :disabled="Number(quantity) <= 1 || isSubmitting"
                 :aria-label="$t('Decrease quantity')"
                 @click="decreaseQuantity"
               >
                 −
               </button>
+
               <input
                 v-model="quantity"
                 type="text"
                 inputmode="numeric"
+                pattern="[0-9]*"
                 class="pack-details__quantity-input"
                 :disabled="isSubmitting"
                 :aria-label="$t('Quantity')"
+                @input="onQuantityInput"
                 @blur="normalizeQuantity"
                 @keydown.enter="normalizeQuantity"
               />
+
               <button
                 type="button"
                 class="pack-details__quantity-button"
-                :disabled="quantity >= MAX_QUANTITY || isSubmitting"
+                :disabled="Number(quantity) >= MAX_QUANTITY || isSubmitting"
                 :aria-label="$t('Increase quantity')"
                 @click="increaseQuantity"
               >
@@ -144,6 +184,7 @@
               class="pack-details__button-loader"
               aria-hidden="true"
             />
+
             <template v-else>
               {{ isInCart ? $t('Remove from cart') : $t('Buy pack') }}
             </template>
@@ -172,6 +213,7 @@ import axios from '@/plugins/axios'
 import { useCartStore } from '@/stores/cart'
 
 const MAX_QUANTITY = 99
+const PACK_STACK_COUNT = 6
 
 const props = defineProps({
   show: {
@@ -202,6 +244,8 @@ const error = ref('')
 const quantity = ref(1)
 const isSubmitting = ref(false)
 const imageHasFailed = ref(false)
+
+let detailsRequestId = 0
 
 const currentPack = computed(() => {
   return packDetails.value || props.initialPack
@@ -257,6 +301,14 @@ const hasPackStats = computed(() => {
   return cardCount.value > 0 || rarityProbabilities.value.length > 0
 })
 
+const isInCart = computed(() => {
+  if (!currentPack.value?.id) {
+    return false
+  }
+
+  return cartStore.isItemInCart(currentPack.value.id, 'pack')
+})
+
 const formatRarity = rarity => {
   if (!rarity) {
     return ''
@@ -282,32 +334,42 @@ const formatProbability = probability => {
   })}%`
 }
 
-const isInCart = computed(() => {
-  if (!currentPack.value?.id) {
-    return false
-  }
-
-  return cartStore.isItemInCart(currentPack.value.id, 'pack')
-})
-
 const normalizeQuantity = () => {
-  const parsedQuantity = Number.parseInt(quantity.value, 10)
+  const parsed = Number.parseInt(quantity.value, 10)
 
-  if (!Number.isFinite(parsedQuantity)) {
+  if (!Number.isFinite(parsed)) {
     quantity.value = 1
     return
   }
 
-  quantity.value = Math.min(MAX_QUANTITY, Math.max(1, parsedQuantity))
+  quantity.value = Math.min(MAX_QUANTITY, Math.max(1, parsed))
+}
+
+const onQuantityInput = event => {
+  const value = String(event.target.value).replace(/\D/g, '').slice(0, 2)
+
+  quantity.value = value
+
+  if (value && Number(value) > MAX_QUANTITY) {
+    quantity.value = MAX_QUANTITY
+  }
 }
 
 const increaseQuantity = () => {
+  if (isSubmitting.value) {
+    return
+  }
+
   normalizeQuantity()
 
   quantity.value = Math.min(MAX_QUANTITY, Number(quantity.value) + 1)
 }
 
 const decreaseQuantity = () => {
+  if (isSubmitting.value) {
+    return
+  }
+
   normalizeQuantity()
 
   quantity.value = Math.max(1, Number(quantity.value) - 1)
@@ -324,6 +386,8 @@ const getResponsePack = response => {
 }
 
 const fetchPackDetails = async () => {
+  const requestId = ++detailsRequestId
+
   if (!props.packId) {
     error.value = 'Pack ID is missing'
     return
@@ -335,6 +399,10 @@ const fetchPackDetails = async () => {
   try {
     const response = await axios.get(`/catalog/packs/${props.packId}`)
 
+    if (requestId !== detailsRequestId) {
+      return
+    }
+
     const receivedPack = getResponsePack(response)
 
     if (!receivedPack || !receivedPack.id) {
@@ -343,6 +411,10 @@ const fetchPackDetails = async () => {
 
     packDetails.value = receivedPack
   } catch (requestError) {
+    if (requestId !== detailsRequestId) {
+      return
+    }
+
     console.error('Unable to load pack details:', requestError)
 
     error.value =
@@ -350,7 +422,9 @@ const fetchPackDetails = async () => {
       requestError?.message ||
       'Unable to load pack details'
   } finally {
-    loading.value = false
+    if (requestId === detailsRequestId) {
+      loading.value = false
+    }
   }
 }
 
@@ -369,9 +443,11 @@ const redirectToLogin = () => {
 const addToCart = async () => {
   normalizeQuantity()
 
+  const requestedQuantity = Number(quantity.value)
+
   const result = await cartStore.addToCart(
     currentPack.value.id,
-    Number(quantity.value),
+    requestedQuantity,
     'pack',
   )
 
@@ -386,7 +462,6 @@ const addToCart = async () => {
   if (!result?.success) {
     if (result?.isAlreadyInCart) {
       toast.warning(result.message || 'Item is already in cart')
-
       return
     }
 
@@ -398,7 +473,7 @@ const addToCart = async () => {
   emit('cart-updated', {
     action: 'added',
     pack: currentPack.value,
-    quantity: Number(quantity.value),
+    quantity: requestedQuantity,
   })
 }
 
@@ -454,19 +529,25 @@ const handleShowUpdate = value => {
   emit('update:show', value)
 }
 
-const prepareModal = async () => {
+const prepareModal = () => {
   packDetails.value = null
   error.value = ''
   quantity.value = 1
   imageHasFailed.value = false
 
-  await fetchPackDetails()
+  fetchPackDetails()
 }
 
 watch(
-  () => props.show,
-  isOpen => {
-    if (isOpen) {
+  () => [props.show, props.packId],
+  ([isOpen, packId], [wasOpen, previousPackId] = []) => {
+    if (!isOpen) {
+      detailsRequestId += 1
+      loading.value = false
+      return
+    }
+
+    if (!wasOpen || packId !== previousPackId) {
       prepareModal()
     }
   },
@@ -474,28 +555,22 @@ watch(
     immediate: true,
   },
 )
-
-watch(
-  () => props.packId,
-  (packId, previousPackId) => {
-    if (props.show && packId && packId !== previousPackId) {
-      prepareModal()
-    }
-  },
-)
 </script>
 
 <style lang="scss" scoped>
 .pack-details {
-  @include adaptiveValue('gap', 42, 18);
+  @include adaptiveValue('gap', 42, 20);
   @include adaptiveValue('padding-top', 10, 0);
   @include adaptiveValue('padding-bottom', 10, 0);
 
   display: grid;
   align-items: center;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns:
+    minmax(0, 0.95fr)
+    minmax(0, 1.05fr);
 
   width: 100%;
+  min-width: 0;
   min-height: 510px;
 
   &_loading,
@@ -534,16 +609,72 @@ watch(
     min-height: 480px;
   }
 
+  &__stack {
+    @include adaptiveValue('max-width', 400, 270);
+
+    position: relative;
+
+    width: calc(100% - 48px);
+    aspect-ratio: 0.76;
+
+    margin-right: 48px;
+
+    isolation: isolate;
+  }
+
   &__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+
     display: block;
 
     width: 100%;
-    max-width: 430px;
-    max-height: 500px;
+    height: 100%;
+
+    pointer-events: none;
+    user-select: none;
 
     object-fit: contain;
+    object-position: center;
 
-    filter: drop-shadow(0 18px 28px rgb(0 0 0 / 25%));
+    filter: drop-shadow(0 12px 18px rgb(0 0 0 / 18%));
+
+    &_1 {
+      z-index: 6;
+
+      transform: translateX(0);
+    }
+
+    &_2 {
+      z-index: 5;
+
+      transform: translateX(9px);
+    }
+
+    &_3 {
+      z-index: 4;
+
+      transform: translateX(18px);
+    }
+
+    &_4 {
+      z-index: 3;
+
+      transform: translateX(27px);
+    }
+
+    &_5 {
+      z-index: 2;
+
+      transform: translateX(36px);
+    }
+
+    &_6 {
+      z-index: 1;
+
+      transform: translateX(45px);
+    }
   }
 
   &__content {
@@ -563,7 +694,13 @@ watch(
 
   &__title {
     @include adaptiveValue('margin-bottom', 34, 22);
+    @include adaptiveValue('font-size', 32, 24);
+
+    margin-top: 0;
+
     color: var(--primary-color);
+    font-weight: 500;
+    line-height: 1.2;
     text-align: left;
     text-transform: none;
   }
@@ -571,32 +708,38 @@ watch(
   &__stats,
   &__guaranteed {
     @include adaptiveValue('margin-bottom', 26, 18);
+
     display: flex;
     flex-direction: column;
     gap: 16px;
+
+    width: 100%;
   }
 
   &__stat {
     display: grid;
     align-items: baseline;
     gap: 12px;
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 80px minmax(0, 1fr);
 
     font-family: var(--font-inter);
     font-size: 14px;
     line-height: 1.35;
+  }
 
-    span {
-      color: var(--secondary-color);
-    }
+  &__stat-label {
+    color: var(--secondary-color);
+    font-weight: 500;
+  }
 
-    strong {
-      color: var(--primary-color);
-      font-weight: 500;
-    }
+  &__stat-value {
+    color: var(--primary-color);
+    font-weight: 500;
   }
 
   &__description {
+    min-width: 0;
+
     font-family: var(--font-inter);
     font-size: 14px;
     line-height: 1.5;
@@ -633,13 +776,22 @@ watch(
     :deep(p:last-child) {
       margin-bottom: 0;
     }
+
+    :deep(ul),
+    :deep(ol) {
+      padding-left: 20px;
+    }
   }
 
   &__bottom {
     @include adaptiveValue('gap', 30, 12);
+
     display: grid;
     align-items: end;
-    grid-template-columns: minmax(0, 1fr) auto minmax(130px, 155px);
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(130px, 155px);
 
     margin-top: 22px;
     padding-top: 26px;
@@ -656,22 +808,26 @@ watch(
 
   &__price-value {
     width: fit-content;
+    max-width: 100%;
   }
 
   &__quantity-controls {
     display: flex;
+    overflow: hidden;
     align-items: center;
+    justify-content: center;
 
     width: fit-content;
     height: 38px;
 
     border: 1px solid var(--border-secondary-color);
     border-radius: 5px;
-    background: var(--bg-secondary-color);
+    background-color: var(--bg-secondary-color);
   }
 
   &__quantity-button {
     display: flex;
+    flex: 0 0 30px;
     align-items: center;
     justify-content: center;
 
@@ -681,12 +837,20 @@ watch(
     padding: 0;
 
     border: 0;
+    outline: none;
     background: transparent;
 
     color: var(--secondary-color);
+    font-family: var(--font-inter);
     font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
 
     cursor: pointer;
+
+    transition:
+      color 0.3s ease,
+      background-color 0.3s ease;
 
     &:disabled {
       opacity: 0.4;
@@ -694,15 +858,22 @@ watch(
       cursor: not-allowed;
     }
 
+    &:focus-visible {
+      outline: 1px solid var(--border-secondary-color);
+      outline-offset: -2px;
+    }
+
     @media (any-hover: hover) {
       &:not(:disabled):hover {
+        background-color: rgb(255 255 255 / 5%);
+
         color: var(--primary-color);
       }
     }
   }
 
   &__quantity-input {
-    width: 28px;
+    width: 30px;
     height: 36px;
 
     padding: 0;
@@ -714,7 +885,24 @@ watch(
     color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
+    font-weight: 500;
+    line-height: 36px;
     text-align: center;
+
+    appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+
+      appearance: none;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+
+      cursor: not-allowed;
+    }
   }
 
   &__button {
@@ -742,12 +930,42 @@ watch(
   }
 
   @media (max-width: $md3) {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-columns:
+      minmax(0, 0.85fr)
+      minmax(0, 1.15fr);
 
     min-height: 0;
 
     &__preview {
       min-height: 360px;
+    }
+
+    &__stack {
+      width: calc(100% - 38px);
+
+      margin-right: 38px;
+    }
+
+    &__image {
+      &_2 {
+        transform: translateX(7px);
+      }
+
+      &_3 {
+        transform: translateX(14px);
+      }
+
+      &_4 {
+        transform: translateX(21px);
+      }
+
+      &_5 {
+        transform: translateX(28px);
+      }
+
+      &_6 {
+        transform: translateX(35px);
+      }
     }
 
     &__bottom {
@@ -767,9 +985,11 @@ watch(
       min-height: 0;
     }
 
-    &__image {
-      width: min(100%, 330px);
-      max-height: 390px;
+    &__stack {
+      width: min(70vw, 330px);
+      max-width: 330px;
+
+      margin-right: 38px;
     }
 
     &__title {
@@ -777,7 +997,10 @@ watch(
     }
 
     &__bottom {
-      grid-template-columns: minmax(0, 1fr) auto minmax(125px, 150px);
+      grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(125px, 150px);
     }
 
     &__button {
@@ -786,12 +1009,42 @@ watch(
   }
 
   @media (max-width: $md6) {
+    &__preview {
+      padding: 10px 0;
+    }
+
+    &__stack {
+      width: min(66vw, 260px);
+
+      margin-right: 35px;
+    }
+
+    &__title {
+      font-size: 24px;
+    }
+
     &__bottom {
+      gap: 20px 12px;
       grid-template-columns: minmax(0, 1fr) auto;
     }
 
     &__button {
       grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 359.98px) {
+    &__bottom {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__price,
+    &__quantity {
+      align-items: center;
+    }
+
+    &__button {
+      grid-column: auto;
     }
   }
 }
