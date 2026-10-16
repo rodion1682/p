@@ -849,8 +849,6 @@ onMounted(async () => {
     gap: 14px;
 
     min-width: 0;
-
-    pointer-events: none;
   }
 
   &__preview {
