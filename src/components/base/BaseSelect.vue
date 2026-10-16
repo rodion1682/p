@@ -784,6 +784,8 @@ defineExpose({
 
   min-width: 0;
 
+  color: var(--primary-color);
+
   &_full-width {
     width: 100%;
   }
@@ -794,18 +796,32 @@ defineExpose({
 
   &_open,
   &_focused {
-    .base-select__control {
-      border-color: var(--hint-primary-color);
+    .base-select__control:not(.base-select__control_error) {
+      border-color: var(--border-secondary-color);
+    }
+
+    .base-select__caret {
+      opacity: 1;
+
+      color: var(--secondary-color);
+    }
+  }
+
+  &_open {
+    .base-select__caret-icon {
+      transform: rotate(180deg);
     }
   }
 
   &__label {
     display: block;
 
-    color: var(--hint-primary-color);
-    font-size: 12px;
+    color: var(--seventh-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
     font-weight: 500;
-    line-height: 15px;
+    line-height: 100%;
+    letter-spacing: 0;
     text-align: left;
 
     &:not(:last-child) {
@@ -814,20 +830,19 @@ defineExpose({
   }
 
   &__required {
+    margin-left: 3px;
+
     color: var(--error-color);
   }
 
   &__field {
     position: relative;
 
+    width: 100%;
     min-width: 0;
   }
 
   &__control {
-    @include adaptiveValue('min-height', 36, 40);
-
-    @include adaptiveValue('padding-left', 11, 10);
-
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -835,38 +850,32 @@ defineExpose({
 
     width: 100%;
     min-width: 0;
+    min-height: 40px;
 
     margin: 0;
-    padding-top: 5px;
-    padding-right: 38px;
-    padding-bottom: 5px;
+    padding: 5px 12px;
 
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 4px;
+    border: 1.5px solid var(--border-priamry-color);
+    border-radius: 6px;
     outline: none;
     background-color: var(--bg-secondary-color);
 
     color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 17px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 16px;
     text-align: left;
 
     cursor: pointer;
 
     transition:
-      color 0.3s ease,
       border-color 0.3s ease,
-      background-color 0.3s ease;
+      background-color 0.3s ease,
+      color 0.3s ease;
 
-    &_dark {
-      border-color: #120b0b;
-      background-color: #120b0b;
-    }
-
-    &_error {
-      border-color: var(--error-color);
+    &:focus-visible {
+      border-color: var(--border-secondary-color);
     }
 
     &:disabled {
@@ -876,9 +885,23 @@ defineExpose({
       pointer-events: none;
     }
 
+    &_dark {
+      border-color: #120b0b;
+      background-color: #120b0b;
+    }
+
+    &_error,
+    &_error:focus-visible {
+      border-color: var(--error-color);
+    }
+
     @media (any-hover: hover) {
-      &:not(:disabled):hover {
-        border-color: var(--hint-primary-color);
+      &:not(:disabled):not(.base-select__control_error):hover {
+        border-color: var(--border-secondary-color);
+
+        .base-select__caret {
+          opacity: 1;
+        }
       }
     }
   }
@@ -892,6 +915,10 @@ defineExpose({
     min-width: 0;
 
     color: var(--primary-color);
+    font-family: var(--font-inter);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 16px;
 
     &_placeholder {
       color: var(--secondary-color);
@@ -901,6 +928,7 @@ defineExpose({
   &__value-text,
   &__placeholder,
   &__option-label {
+    display: block;
     overflow: hidden;
 
     min-width: 0;
@@ -909,67 +937,78 @@ defineExpose({
     white-space: nowrap;
   }
 
-  &__caret {
-    position: absolute;
-    top: 50%;
-    right: 13px;
-    z-index: 2;
+  &__placeholder {
+    opacity: 0.6;
 
+    color: var(--secondary-color);
+
+    transition: opacity 0.3s ease;
+  }
+
+  &__caret {
     display: flex;
+    flex: 0 0 12px;
     align-items: center;
     justify-content: center;
 
     width: 12px;
+    min-width: 12px;
     height: 8px;
 
-    color: var(--hint-primary-color);
+    margin-left: auto;
+
+    opacity: 0.5;
+
+    color: var(--secondary-color);
 
     pointer-events: none;
 
-    transform: translateY(-50%) rotate(0deg);
     transition:
       color 0.3s ease,
-      transform 0.3s ease;
-
-    &_open {
-      color: var(--primary-color);
-
-      transform: translateY(-50%) rotate(180deg);
-    }
+      opacity 0.3s ease;
   }
 
   &__caret-icon {
-    width: 12px;
-    height: 7px;
+    display: block;
+
+    width: 100%;
+    height: 100%;
 
     color: inherit;
+
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+
+    :deep(svg) {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+    }
   }
 
   &__loader {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    z-index: 2;
+    flex: 0 0 17px;
 
     width: 17px;
     height: 17px;
 
-    margin-top: -8px;
+    margin-left: auto;
 
-    border: 2px solid var(--border-third-color);
+    border: 2px solid rgb(255 255 255 / 20%);
     border-radius: 50%;
 
     animation: base-select-loader 0.7s linear infinite;
 
-    border-top-color: var(--hint-primary-color);
+    border-top-color: var(--accent-color, #eec98e);
   }
 
   &__list {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 8px);
     right: 0;
     left: 0;
-    z-index: var(--header-z-index);
+    z-index: var(--header-z-index, 20);
 
     overflow-x: hidden;
     overflow-y: auto;
@@ -978,17 +1017,19 @@ defineExpose({
     min-width: 100%;
     max-height: min(220px, calc(100dvh - 100px));
 
-    padding: 8px 4px;
+    padding: 8px 0;
 
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 4px;
-    background-color: var(--bg-third-color);
-    box-shadow: 0 12px 30px rgb(0 0 0 / 35%);
+    border: 1px solid var(--border-sixth-color);
+    border-radius: 8px;
+    background-color: var(--bg-fourth-color);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
 
+    touch-action: pan-y;
+
+    -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
 
     scrollbar-color: var(--hint-primary-color) var(--bg-third-color);
-
     scrollbar-width: thin;
 
     &::-webkit-scrollbar {
@@ -998,67 +1039,72 @@ defineExpose({
     &::-webkit-scrollbar-track {
       margin: 5px 0;
 
+      border-radius: 4px;
       background-color: var(--bg-third-color);
     }
 
     &::-webkit-scrollbar-thumb {
       border-radius: 4px;
-      background: var(--hint-gradient);
+      background-color: var(--hint-primary-color);
     }
   }
 
   &__option {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
 
     width: 100%;
-    min-height: 32px;
+    min-height: 38px;
 
-    padding: 7px 10px;
+    margin: 0;
+    padding: 8px 12px;
 
     border: 0;
-    border-radius: 4px;
+    border-radius: 0;
     outline: none;
     background-color: transparent;
 
-    color: var(--third-color);
+    color: var(--primary-color);
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    line-height: 17px;
+    line-height: 100%;
     text-align: left;
 
     cursor: pointer;
 
     transition:
-      color 0.3s ease,
       background-color 0.3s ease,
+      color 0.3s ease,
       opacity 0.3s ease;
 
-    &_active {
-      background-color: var(--border-fourth-color);
-
-      color: var(--hint-secondary-color);
+    &_active:not(&_selected):not(&_disabled) {
+      background-color: var(--sixth-color);
     }
 
     &_selected {
-      background-color: var(--hint-third-color);
+      background-color: var(--third-color);
 
       color: var(--primary-color);
     }
 
     &_disabled {
-      opacity: 0.4;
+      opacity: 0.5;
 
       cursor: not-allowed;
       pointer-events: none;
     }
 
-    @media (any-hover: hover) {
-      &:not(&_selected, &_disabled):hover {
-        background-color: var(--border-fourth-color);
+    &:focus-visible:not(:disabled) {
+      background-color: var(--sixth-color);
+    }
 
-        color: var(--hint-secondary-color);
+    @media (any-hover: hover) {
+      &:not(.base-select__option_selected):not(:disabled):hover {
+        background-color: var(--sixth-color);
       }
     }
   }
@@ -1066,25 +1112,31 @@ defineExpose({
   &__empty {
     padding: 12px;
 
-    color: var(--hint-primary-color);
-    font-size: 13px;
+    color: var(--secondary-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
     text-align: center;
   }
 
   &__error {
     width: 100%;
 
-    margin-top: 6px;
+    margin-top: 8px;
 
     color: var(--error-color);
-    font-size: 12px;
-    line-height: 16px;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0;
     text-align: left;
   }
 
   @media (max-width: $md4) {
     &__control {
-      min-height: 44px;
+      min-height: 40px;
     }
 
     &__option {
@@ -1096,15 +1148,29 @@ defineExpose({
 .base-select-list-enter-active,
 .base-select-list-leave-active {
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    visibility 0.3s ease;
 }
 
 .base-select-list-enter-from,
 .base-select-list-leave-to {
+  visibility: hidden;
+
   opacity: 0;
 
-  transform: translateY(-4px);
+  pointer-events: none;
+
+  transform: translateY(-6px);
+}
+
+.base-select-list-enter-to,
+.base-select-list-leave-from {
+  visibility: visible;
+
+  opacity: 1;
+
+  transform: translateY(0);
 }
 
 @keyframes base-select-loader {

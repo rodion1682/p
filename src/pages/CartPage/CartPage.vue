@@ -69,28 +69,28 @@
                 }"
               >
                 <div class="cart-item__product">
-                  <RouterLink
-                    :to="productLink(item)"
+                  <button
+                    type="button"
                     class="cart-item__preview"
+                    @click="openProductModal(item)"
                   >
                     <img
-                      :src="
-                        item.purchasable_type === 'pack'
-                          ? getPackImage(item)
-                          : item.details?.image
-                      "
+                      :src="item.details?.image"
                       :alt="item.details?.name || $t('Item')"
                     />
-                  </RouterLink>
-
+                  </button>
                   <div class="cart-item__information">
-                    <RouterLink :to="productLink(item)" class="cart-item__name">
+                    <button
+                      type="button"
+                      class="cart-item__name cart-item__name_button"
+                      @click="openProductModal(item)"
+                    >
                       {{ item.details?.name || $t('Item') }}
-                    </RouterLink>
+                    </button>
 
                     <span v-if="item.is_rental" class="cart-item__meta">
                       {{ $t('Rental') }}:
-                      {{ item.rental_period?.label || '—' }}
+                      {{ item.rental_period?.label || '' }}
                     </span>
 
                     <span
@@ -104,7 +104,7 @@
 
                 <div class="cart-item__quantity-cell">
                   <div v-if="item.is_rental" class="cart-item__rental-period">
-                    {{ item.rental_period?.label || '—' }}
+                    {{ item.rental_period?.label || '' }}
                   </div>
 
                   <div v-else class="cart-item__quantity">
@@ -294,6 +294,12 @@
       @close="handleCheckoutClose"
       @back="handleBackFromCheckout"
     />
+
+    <ProductDetailsModal
+      v-model:show="isProductModalActive"
+      :product-id="selectedProductId"
+      @close="closeProductModal"
+    />
   </main>
 </template>
 
@@ -315,6 +321,7 @@ import { usePurchaseStore } from '@/stores/purchase'
 import { useSettingsStore } from '@/stores/settings'
 import { useTopUpStore } from '@/stores/topup'
 import { useUserStore } from '@/stores/user'
+import ProductDetailsModal from '../ProductPages/modals/ProductDetailsModal.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -333,6 +340,21 @@ const isCheckoutModalOpen = ref(false)
 
 const errorMessage = ref('')
 const paymentMethodError = ref('')
+
+const isProductModalActive = ref(false)
+const selectedProductId = ref(null)
+
+const openProductModal = item => {
+  if (item.purchasable_type !== 'card') return
+
+  selectedProductId.value = item.purchasable_id
+  isProductModalActive.value = true
+}
+
+const closeProductModal = () => {
+  isProductModalActive.value = false
+  selectedProductId.value = null
+}
 
 const cardPaymentMethod = computed(() => {
   return (

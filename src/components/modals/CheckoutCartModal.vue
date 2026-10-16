@@ -1,8 +1,14 @@
 <template>
-  <BaseModal :show="props.show" size="small" @close="close">
+  <BaseModal
+    :show="props.show"
+    size="small"
+    class="cart-checkout-dialog"
+    content-class="cart-checkout-dialog__content"
+    @close="close"
+  >
     <div class="cart-checkout-modal">
-      <h2 class="cart-checkout-modal__title _h3">
-        {{ $t('Checkout') }}
+      <h2 class="cart-checkout-modal__title">
+        {{ $t('Payment details') }}
       </h2>
 
       <div class="cart-checkout-modal__summary">
@@ -10,7 +16,6 @@
           <span class="cart-checkout-modal__summary-label">
             {{ $t('Total') }}:
           </span>
-
           <span class="cart-checkout-modal__total">
             {{ formattedCartTotal }}
           </span>
@@ -20,20 +25,17 @@
 
         <div class="cart-checkout-modal__summary-row">
           <span class="cart-checkout-modal__payment-label">
-            {{ $t('Payment method') }}:
+            {{ $t('You get') }}:
           </span>
-
           <span class="cart-checkout-modal__payment-value">
-            {{
-              selectedPaymentMethod?.title || formatText(topupStore.paymentType)
-            }}
+            <PriceFormatter :price="normalizedCartTotal" size="size-14" />
           </span>
         </div>
       </div>
 
       <div
         v-if="formErrors.general"
-        class="cart-checkout-modal__error cart-checkout-modal__error_general"
+        class="cart-checkout-modal__error"
         role="alert"
       >
         {{ formErrors.general }}
@@ -48,7 +50,7 @@
           <BaseInput
             v-model="topupStore.checkoutFormData.name"
             class="cart-checkout-modal__input"
-            :placeholder="$t('First name')"
+            :placeholder="$t('First Name')"
             :error="formErrors.name"
             autocomplete="given-name"
             @input="clearFieldError('name')"
@@ -57,7 +59,7 @@
           <BaseInput
             v-model="topupStore.checkoutFormData.surname"
             class="cart-checkout-modal__input"
-            :placeholder="$t('Last name')"
+            :placeholder="$t('Last Name')"
             :error="formErrors.surname"
             autocomplete="family-name"
             @input="clearFieldError('surname')"
@@ -151,9 +153,7 @@
                 {{ $t('Terms & Conditions') }}
               </RouterLink>
 
-              <span>
-                {{ $t('and') }}
-              </span>
+              {{ $t('and') }}
 
               <RouterLink
                 v-if="privacyPage"
@@ -181,34 +181,18 @@
             class="cart-checkout-modal__submit"
             :disabled="!isFormValid || isLoading"
           >
-            <span>
-              {{ $t('Pay') }}
+            <span v-if="isLoading">
+              {{ $t('Processing...') }}
             </span>
-
-            <span
-              v-if="isLoading"
-              class="cart-checkout-modal__loader"
-              aria-hidden="true"
-            />
-          </BaseButton>
-
-          <BaseButton
-            v-if="false"
-            type="button"
-            variant="hint-bordered"
-            class="cart-checkout-modal__cancel"
-            :disabled="isLoading"
-            @click="emit('back')"
-          >
-            {{ $t('Back') }}
+            <span v-else>
+              {{ $t('Pay') }} —
+              {{
+                selectedPaymentMethod?.title ||
+                formatText(topupStore.paymentType)
+              }}
+            </span>
           </BaseButton>
         </div>
-
-        <div
-          v-if="settingsStore.settings?.requisites && false"
-          class="cart-checkout-modal__requisites"
-          v-html="settingsStore.settings.requisites"
-        />
       </form>
     </div>
   </BaseModal>
@@ -236,6 +220,7 @@ import { usePurchaseStore } from '@/stores/purchase'
 import { useSettingsStore } from '@/stores/settings'
 import { useTopUpStore } from '@/stores/topup'
 import { useUserStore } from '@/stores/user'
+import PriceFormatter from '../PriceFormatter.vue'
 
 const props = defineProps({
   show: {
@@ -314,7 +299,7 @@ const formattedCartTotal = computed(() => {
       maximumFractionDigits: 2,
     }).format(safeAmount)
   } catch (error) {
-    return `${symbol}${safeAmount.toFixed(2)}`
+    return `${safeAmount.toFixed(2)}${symbol}`
   }
 })
 
@@ -760,103 +745,92 @@ watch(
 
 <style lang="scss" scoped>
 .cart-checkout-modal {
+  @include adaptiveValue('padding-top', 8, 0);
+  @include adaptiveValue('padding-bottom', 6, 0);
+
   width: 100%;
-  max-width: 390px;
+  max-width: 300px;
 
   margin: 0 auto;
 
   &__title {
-    padding: 0 40px;
+    @include adaptiveValue('font-size', 30, 24);
+    @include adaptiveValue('margin-bottom', 25, 20);
 
-    color: var(--primary-color);
+    color: #ffe1cc;
+    font-family: var(--font-spectral);
+    font-weight: 500;
+    line-height: 1.2;
     text-align: center;
     text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 20);
-    }
   }
 
   &__summary {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
+    @include adaptiveValue('margin-bottom', 24, 18);
   }
 
   &__summary-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 12px;
 
-    min-height: 36px;
+    min-height: 34px;
   }
 
   &__summary-label {
-    color: var(--primary-color);
+    color: #fff;
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    line-height: 140%;
   }
 
   &__total {
+    @include adaptiveValue('font-size', 28, 24);
     color: var(--primary-color);
-    font-family: var(--font-spectral);
-    font-size: 22px;
-    font-weight: 600;
+    font-family: var(--font-ancizar-serif);
+    font-weight: 700;
     line-height: 120%;
-    text-align: right;
-  }
-
-  &__summary-divider {
-    width: 100%;
-    height: 1px;
-
-    margin: 12px 0;
-
-    background-color: var(--border-secondary-color);
-  }
-
-  &__payment-label {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 13px;
-    font-weight: 400;
-  }
-
-  &__payment-value {
-    overflow: hidden;
-
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 13px;
-    font-weight: 500;
-    text-align: right;
-    text-overflow: ellipsis;
-    text-transform: capitalize;
     white-space: nowrap;
   }
 
-  &__form {
+  &__summary-divider {
+    height: 1px;
+
+    margin: 8px 0;
+
+    background-color: var(--border-priamry-color);
+  }
+
+  &__payment-label {
+    color: var(--seventh-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+  }
+
+  &__payment-value {
+    :deep(.price) {
+      flex-direction: row-reverse;
+    }
+  }
+
+  &__form,
+  &__fields,
+  &__input,
+  &__select {
     width: 100%;
   }
 
   &__fields {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-
-    width: 100%;
-  }
-
-  &__input,
-  &__select {
-    width: 100%;
+    gap: 8px;
   }
 
   &__terms {
-    @include adaptiveValue('margin-top', 20, 16);
+    @include adaptiveValue('margin-top', 17, 14);
+
+    width: 100%;
   }
 
   &__checkbox {
@@ -864,144 +838,89 @@ watch(
   }
 
   &__terms-text {
-    color: var(--secondary-color);
+    color: #e2dce8;
     font-family: var(--font-inter);
     font-size: 12px;
     font-weight: 400;
-    line-height: 145%;
+    line-height: 1.35;
   }
 
   &__link {
-    margin: 0 2px;
-
-    color: var(--hint-secondary-color);
-
-    transition: color 0.3s ease;
+    color: #49a8ff;
+    text-decoration: none;
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        color: #8bc8ff;
       }
     }
+  }
+
+  &__field-error,
+  &__error {
+    color: var(--error-color);
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 1.4;
   }
 
   &__field-error {
     display: block;
 
     margin-top: 6px;
+  }
 
-    color: var(--error-color);
-    font-family: var(--font-inter);
-    font-size: 12px;
-    line-height: 140%;
+  &__error {
+    margin-bottom: 12px;
   }
 
   &__actions {
-    @include adaptiveValue('margin-top', 26, 20);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+    @include adaptiveValue('margin-top', 22, 18);
 
-  &__submit,
-  &__cancel {
     width: 100%;
   }
 
   &__submit {
-    @include adaptiveValue('min-height', 42, 40);
+    width: 100%;
+    min-height: 37px;
 
-    position: relative;
+    border-radius: 5px;
 
-    font-family: var(--font-spectral);
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  &__cancel {
-    @include adaptiveValue('min-height', 40, 38);
-
-    font-family: var(--font-spectral);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  &__loader {
-    width: 17px;
-    height: 17px;
-
-    border: 2px solid rgb(255 255 255 / 20%);
-    border-radius: 50%;
-
-    animation: cart-checkout-modal-spin 0.8s linear infinite;
-
-    border-top-color: var(--primary-color);
-  }
-
-  &__requisites {
-    margin-top: 22px;
-    padding-top: 18px;
-
-    border-top: 1px solid var(--border-fourth-color);
-    opacity: 0.65;
-
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 11px;
-    line-height: 150%;
-    white-space: pre-line;
-  }
-
-  &__error {
-    padding: 10px 12px;
-
-    border: 1px solid rgb(192 67 113 / 35%);
-    background-color: rgb(192 67 113 / 8%);
-
-    color: var(--error-color);
     font-family: var(--font-inter);
     font-size: 12px;
-    line-height: 145%;
-
-    &_general {
-      margin-bottom: 15px;
-    }
+    font-weight: 600;
+    text-transform: uppercase;
   }
 
   :deep(.base-input__control),
   :deep(.base-select__control) {
-    min-height: 38px;
+    min-height: 36px;
 
-    padding-right: 13px;
-    padding-left: 13px;
+    padding: 7px 13px;
 
-    border-color: var(--border-third-color);
-    border-radius: 0;
-    background-color: var(--bg-secondary-color);
+    border: 1px solid #69638d;
+    border-radius: 5px;
+    background: #3b3769;
 
-    color: var(--primary-color);
+    color: #fff;
     font-family: var(--font-inter);
-    font-size: 13px;
-    font-weight: 400;
+    font-size: 14px;
 
     &::placeholder {
-      opacity: 0.75;
+      opacity: 0.95;
 
-      color: var(--secondary-color);
+      color: #fff;
     }
 
     &:focus {
-      border-color: var(--hint-secondary-color);
+      border-color: #a68bea;
+      outline: none;
     }
   }
 
   :deep(.base-select__list) {
-    z-index: calc(var(--modal-z-index) + 1);
-
-    border-color: var(--border-third-color);
-    background-color: var(--bg-primary-color);
+    border: 1px solid #69638d;
+    background: #302b58;
   }
 
   :deep(.base-checkbox) {
@@ -1012,26 +931,33 @@ watch(
     max-width: none;
 
     &__title {
-      padding: 0 30px;
-    }
-
-    &__summary-row {
-      gap: 12px;
-    }
-
-    &__total {
-      font-size: 20px;
+      font-size: 24px;
     }
 
     &__fields {
-      gap: 10px;
+      gap: 8px;
     }
   }
 }
 
-@keyframes cart-checkout-modal-spin {
-  to {
-    transform: rotate(360deg);
+:global(.cart-checkout-dialog .base-modal__inner) {
+  width: min(408px, calc(100vw - 24px));
+  max-width: 408px;
+
+  background: #37335f;
+}
+
+:global(.cart-checkout-dialog .base-modal__frame) {
+  padding: 24px 24px 28px;
+}
+
+:global(.cart-checkout-dialog .base-modal__decor) {
+  display: none;
+}
+
+@media (max-width: 479.98px) {
+  :global(.cart-checkout-dialog .base-modal__frame) {
+    padding: 24px 15px;
   }
 }
 </style>
