@@ -135,37 +135,8 @@
             class="cart-checkout-modal__checkbox"
             :error="formErrors.termsAccepted"
             @update:model-value="clearFieldError('termsAccepted')"
-          >
-            <span class="cart-checkout-modal__terms-text">
-              {{
-                $t(
-                  'I confirm that I am 18 years old or older and I agree to the',
-                )
-              }}
-
-              <RouterLink
-                v-if="termsPage"
-                :to="getPageUrl(termsPage)"
-                class="cart-checkout-modal__link"
-                target="_blank"
-                @click.stop
-              >
-                {{ $t('Terms & Conditions') }}
-              </RouterLink>
-
-              {{ $t('and') }}
-
-              <RouterLink
-                v-if="privacyPage"
-                :to="getPageUrl(privacyPage)"
-                class="cart-checkout-modal__link"
-                target="_blank"
-                @click.stop
-              >
-                {{ $t('Privacy Notice') }}
-              </RouterLink>
-            </span>
-          </BaseCheckbox>
+            terms
+          />
 
           <span
             v-if="formErrors.termsAccepted"
@@ -185,7 +156,6 @@
               {{ $t('Processing...') }}
             </span>
             <span v-else>
-              {{ $t('Pay') }} —
               {{
                 selectedPaymentMethod?.title ||
                 formatText(topupStore.paymentType)
@@ -745,20 +715,17 @@ watch(
 
 <style lang="scss" scoped>
 .cart-checkout-modal {
-  @include adaptiveValue('padding-top', 8, 0);
-  @include adaptiveValue('padding-bottom', 6, 0);
-
   width: 100%;
-  max-width: 300px;
+  max-width: 328px;
 
   margin: 0 auto;
 
   &__title {
-    @include adaptiveValue('font-size', 30, 24);
-    @include adaptiveValue('margin-bottom', 25, 20);
+    @include adaptiveValue('font-size', 32, 24);
+    @include adaptiveValue('margin-bottom', 24, 18);
 
-    color: #ffe1cc;
-    font-family: var(--font-spectral);
+    color: var(--secondary-color);
+    font-family: var(--font-texturina);
     font-weight: 500;
     line-height: 1.2;
     text-align: center;
@@ -774,8 +741,6 @@ watch(
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-
-    min-height: 34px;
   }
 
   &__summary-label {
@@ -828,9 +793,9 @@ watch(
   }
 
   &__terms {
-    @include adaptiveValue('margin-top', 17, 14);
-
     width: 100%;
+
+    margin-top: 18px;
   }
 
   &__checkbox {
@@ -838,22 +803,9 @@ watch(
   }
 
   &__terms-text {
-    color: #e2dce8;
-    font-family: var(--font-inter);
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.35;
   }
 
   &__link {
-    color: #49a8ff;
-    text-decoration: none;
-
-    @media (any-hover: hover) {
-      &:hover {
-        color: #8bc8ff;
-      }
-    }
   }
 
   &__field-error,
@@ -890,41 +842,6 @@ watch(
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
-  }
-
-  :deep(.base-input__control),
-  :deep(.base-select__control) {
-    min-height: 36px;
-
-    padding: 7px 13px;
-
-    border: 1px solid #69638d;
-    border-radius: 5px;
-    background: #3b3769;
-
-    color: #fff;
-    font-family: var(--font-inter);
-    font-size: 14px;
-
-    &::placeholder {
-      opacity: 0.95;
-
-      color: #fff;
-    }
-
-    &:focus {
-      border-color: #a68bea;
-      outline: none;
-    }
-  }
-
-  :deep(.base-select__list) {
-    border: 1px solid #69638d;
-    background: #302b58;
-  }
-
-  :deep(.base-checkbox) {
-    align-items: flex-start;
   }
 
   @media (max-width: $md7) {

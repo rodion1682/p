@@ -382,6 +382,8 @@ defineExpose({
 
     margin: auto;
 
+    pointer-events: none;
+
     isolation: isolate;
   }
 
@@ -423,8 +425,10 @@ defineExpose({
     outline: none;
     background-color: var(--bg-fourth-color);
 
+    pointer-events: auto;
+
     &_small {
-      max-width: 484px;
+      max-width: 448px;
     }
 
     &_medium {
@@ -436,9 +440,9 @@ defineExpose({
     }
 
     &_product {
-      max-width: 1140px;
+      max-width: 1144px;
 
-      background-color: #191538;
+      background-color: var(--bg-primary-color);
     }
 
     &_full {

@@ -917,6 +917,7 @@ onMounted(async () => {
     font-size: 13px;
     font-weight: 500;
     line-height: 150%;
+    text-align: left;
 
     overflow-wrap: anywhere;
 
@@ -1307,6 +1308,8 @@ onMounted(async () => {
   @media (max-width: $md3) {
     width: 100%;
     max-width: 480px;
+
+    margin: 0 auto;
   }
 
   @media (max-width: $md6) {
