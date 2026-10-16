@@ -1,17 +1,13 @@
 <template>
   <Teleport to="body">
     <Transition name="unpack-screen">
-      <div
-        v-if="show"
-        class="unpack-overlay"
-        role="presentation"
-        @click.self="handleClose"
-      >
+      <div v-if="show" class="unpack-overlay" @click.self="handleClose">
         <section
           class="unpack-pack"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="titleId"
+          @click.self="handleClose"
         >
           <div class="unpack-pack__container">
             <h2 :id="titleId" class="unpack-pack__title">
@@ -94,25 +90,43 @@
                   v-for="(instance, index) in revealedCards"
                   :key="getCardKey(instance, index)"
                   class="unpack-pack__card-slot unpack-pack__card-slot_revealed"
-                  :class="getRarityClass(instance)"
                   :style="{ '--card-index': index }"
                 >
                   <div class="unpack-pack__card">
-                    <img
-                      v-if="getCard(instance).image"
-                      :src="resolveImageUrl(getCard(instance).image)"
-                      alt=""
-                      class="unpack-pack__card-art"
-                      draggable="false"
-                    />
+                    <div class="unpack-pack__card-background">
+                      <img
+                        :src="resolveImageUrl(getCard(instance).image_2)"
+                        alt=""
+                        class="unpack-pack__card-background-image"
+                        draggable="false"
+                      />
+                    </div>
 
-                    <img
-                      v-if="getCard(instance).image_2"
-                      :src="resolveImageUrl(getCard(instance).image_2)"
-                      :alt="getCard(instance).name || $t('Card')"
-                      class="unpack-pack__card-frame"
-                      draggable="false"
-                    />
+                    <div
+                      v-if="getCard(instance).image"
+                      class="unpack-pack__card-image-wrapper"
+                    >
+                      <img
+                        :src="resolveImageUrl(getCard(instance).image)"
+                        :alt="getCardName(instance)"
+                        class="unpack-pack__card-image"
+                        draggable="false"
+                      />
+                    </div>
+
+                    <div
+                      v-if="getCardName(instance)"
+                      class="unpack-pack__card-name"
+                    >
+                      {{ getCardName(instance) }}
+                    </div>
+
+                    <div
+                      v-if="getCard(instance).description"
+                      class="unpack-pack__card-description"
+                    >
+                      <span v-html="getCard(instance).description" />
+                    </div>
 
                     <span
                       v-if="hasValue(getCard(instance).mana_cost)"
@@ -120,19 +134,6 @@
                     >
                       {{ getCard(instance).mana_cost }}
                     </span>
-
-                    <span
-                      v-if="getCard(instance).name"
-                      class="unpack-pack__card-name"
-                    >
-                      {{ getCard(instance).name }}
-                    </span>
-
-                    <div
-                      v-if="getCard(instance).description"
-                      class="unpack-pack__card-description"
-                      v-html="getCard(instance).description"
-                    />
 
                     <span
                       v-if="hasValue(getCard(instance).attack)"
@@ -273,23 +274,19 @@ const getResponseCards = response => {
 const getCard = instance =>
   instance?.card ?? instance?.product ?? instance ?? {}
 
+const getCardName = instance => {
+  const card = getCard(instance)
+
+  return card.name ?? card.card_name ?? card.title ?? ''
+}
+
 const getCardKey = (instance, index) =>
   instance?.instance_uuid ?? instance?.id ?? `revealed-card-${index}`
-
-const getRarityClass = instance => {
-  const rarity = String(getCard(instance)?.rarity || '')
-    .trim()
-    .toLowerCase()
-    .replaceAll(' ', '-')
-    .replaceAll('_', '-')
-
-  return rarity ? `unpack-pack__card-slot_${rarity}` : ''
-}
 
 const hasValue = value => value !== null && value !== undefined && value !== ''
 
 function resolveImageUrl(image) {
-  if (!image) return defaultImage
+  if (!image || typeof image !== 'string') return defaultImage
 
   if (
     image.startsWith('http://') ||
@@ -359,26 +356,21 @@ const handleClose = () => {
   emit('close')
 }
 
-const handleShowUpdate = value => {
-  if (!value && isUnpacking.value) return
-
-  emit('update:show', value)
-
-  if (!value) emit('close')
-}
-
 const handleContinue = () => {
   handleClose()
 }
+
+const previousBodyOverflow = ref('')
 
 watch(
   () => props.show,
   isOpen => {
     if (isOpen) {
       resetModal()
+      previousBodyOverflow.value = document.body.style.overflow
       document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = previousBodyOverflow.value
     }
   },
   { immediate: true },
@@ -387,14 +379,16 @@ watch(
 watch(
   () => props.packId,
   () => {
-    if (props.show) {
+    if (props.show && !isUnpacking.value) {
       resetModal()
     }
   },
 )
 
 onBeforeUnmount(() => {
-  document.body.style.overflow = ''
+  if (props.show) {
+    document.body.style.overflow = previousBodyOverflow.value
+  }
 })
 </script>
 
@@ -404,13 +398,10 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 9999;
 
-  display: flex;
   overflow-x: hidden;
   overflow-y: auto;
-  flex-direction: column;
-  align-items: center;
 
-  width: 100vw;
+  width: 100%;
   height: 100dvh;
 
   background:
@@ -425,9 +416,10 @@ onBeforeUnmount(() => {
   justify-content: center;
 
   width: 100%;
+  min-height: 100dvh;
 
-  margin: auto;
-  padding: 30px 10px;
+  margin: 0;
+  padding: clamp(30px, 5vh, 80px) 20px;
 
   &__container {
     display: flex;
@@ -443,7 +435,7 @@ onBeforeUnmount(() => {
 
   &__title {
     @include adaptiveValue('font-size', 44, 26);
-    @include adaptiveValue('margin-bottom', 70, 32);
+    @include adaptiveValue('margin-bottom', 70, 30);
 
     margin-top: 0;
 
@@ -467,9 +459,9 @@ onBeforeUnmount(() => {
     margin: 0 auto;
 
     perspective: 1200px;
+
     &_revealed {
       align-items: stretch;
-      gap: clamp(10px, 1.5vw, 24px);
     }
   }
 
@@ -479,7 +471,7 @@ onBeforeUnmount(() => {
     flex: 0 1 235px;
 
     min-width: 0;
-    aspect-ratio: 0.69;
+    aspect-ratio: 2 / 3;
 
     transform-style: preserve-3d;
 
@@ -512,9 +504,11 @@ onBeforeUnmount(() => {
   &__card {
     position: relative;
 
+    display: block;
+
     width: 100%;
     height: 100%;
-    aspect-ratio: 0.69;
+    aspect-ratio: 2 / 3;
 
     transition: transform 0.3s ease;
 
@@ -529,26 +523,41 @@ onBeforeUnmount(() => {
     }
   }
 
-  &__card-art {
+  &__card-background {
     position: absolute;
-    top: 12%;
-    left: 50%;
-    z-index: 3;
+    inset: 0;
+    z-index: 1;
 
-    width: 78%;
-    height: 49%;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__card-background-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
 
     pointer-events: none;
 
-    object-fit: cover;
+    object-fit: contain;
+  }
+
+  &__card-image-wrapper {
+    position: absolute;
+    top: 15.3%;
+    left: 50%;
+    z-index: 3;
+
+    width: 77%;
+    height: 45.5%;
 
     transform: translateX(-50%);
   }
 
-  &__card-frame {
+  &__card-image {
     position: absolute;
     inset: 0;
-    z-index: 2;
 
     display: block;
 
@@ -557,53 +566,58 @@ onBeforeUnmount(() => {
 
     pointer-events: none;
 
-    object-fit: fill;
+    object-fit: cover;
   }
 
   &__card-name {
     position: absolute;
-    top: 9.5%;
-    left: 50%;
-    z-index: 3;
+    top: 9.25%;
+    left: 55%;
+    z-index: 4;
 
     overflow: hidden;
 
-    width: 64%;
+    width: 65%;
 
-    color: #fff;
+    padding: 0 5%;
+
+    color: var(--primary-color);
     font-family: var(--font-inter);
-    font-size: clamp(5px, 5.5cqi, 13px);
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
+    font-size: clamp(6px, 5cqi, 14px);
+    font-weight: 400;
+    line-height: 1;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    pointer-events: none;
 
     transform: translateX(-50%);
   }
 
   &__card-description {
     position: absolute;
-    bottom: 10%;
+    bottom: 11%;
     left: 50%;
-    z-index: 3;
+    z-index: 4;
 
     display: flex;
     overflow: hidden;
     align-items: center;
     justify-content: center;
 
-    width: 65%;
-    height: 23%;
+    width: 56%;
+    height: 22%;
 
     padding: 2%;
 
-    color: #f4d8c5;
+    color: var(--secondary-color);
     font-family: var(--font-inter);
-    font-size: clamp(4px, 4cqi, 10px);
-    font-weight: 500;
+    font-size: clamp(5px, 3.8cqi, 9px);
     line-height: 1.2;
     text-align: center;
+
+    pointer-events: none;
 
     transform: translateX(-50%);
 
@@ -614,44 +628,95 @@ onBeforeUnmount(() => {
 
   &__card-stat {
     position: absolute;
-    z-index: 4;
+    z-index: 5;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 17%;
+    width: 14%;
     aspect-ratio: 1;
 
-    color: #fff;
-    font-family: var(--font-sedan-sc);
-    font-size: clamp(10px, 10cqi, 28px);
+    border-radius: 50%;
+
+    color: var(--primary-color);
+    font-family: var(--font-spectral);
+    font-size: clamp(12px, 10cqi, 28px);
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.35;
 
     pointer-events: none;
 
+    paint-order: stroke fill;
+
+    -webkit-text-fill-color: var(--primary-color);
     -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
 
     &_mana {
-      top: 5%;
-      left: 5.5%;
+      top: 6.4%;
+      left: 7.5%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #4fa9df 0%,
+        #2c8bc4 28%,
+        #176fa8 48%,
+        #07578b 68%,
+        #003b66 86%,
+        #002a4b 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(0 10 25 / 35%),
+        inset 0 -5px 8px rgb(0 8 20 / 75%),
+        0 1px 3px rgb(0 0 0 / 60%);
 
       -webkit-text-stroke-color: #01588a;
     }
 
     &_attack {
-      bottom: 4.5%;
-      left: 3.5%;
+      right: 5.85%;
+      bottom: 5.5%;
 
-      -webkit-text-stroke-color: #066508;
+      width: 12%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #c44976 0%,
+        #a92e5d 28%,
+        #8c1e4b 48%,
+        #70123c 68%,
+        #52092e 86%,
+        #35051f 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(30 0 15 / 35%),
+        inset 0 -5px 8px rgb(20 0 10 / 75%),
+        0 1px 3px rgb(0 0 0 / 60%);
+
+      -webkit-text-stroke-color: #650c3b;
     }
 
     &_health {
-      right: 3.5%;
-      bottom: 4.5%;
+      bottom: 5.5%;
+      left: 5.85%;
 
-      -webkit-text-stroke-color: #7a0102;
+      width: 12%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #67d8ae 0%,
+        #36b98b 28%,
+        #16966e 48%,
+        #087453 68%,
+        #04573d 86%,
+        #023a29 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(0 25 15 / 35%),
+        inset 0 -5px 8px rgb(0 20 10 / 75%),
+        0 1px 3px rgb(0 0 0 / 60%);
+
+      -webkit-text-stroke-color: #07584c;
     }
   }
 
@@ -668,7 +733,18 @@ onBeforeUnmount(() => {
   }
 
   &__button {
+    width: 100%;
     max-width: 216px;
+    min-height: 40px;
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &_collection {
+      max-width: 230px;
+    }
   }
 
   &__opening-status {

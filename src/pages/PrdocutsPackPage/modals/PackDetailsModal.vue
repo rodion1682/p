@@ -140,7 +140,7 @@
               <button
                 type="button"
                 class="pack-details__quantity-button"
-                :disabled="Number(quantity) <= 1 || isSubmitting"
+                :disabled="isInCart || Number(quantity) <= 1 || isSubmitting"
                 :aria-label="$t('Decrease quantity')"
                 @click="decreaseQuantity"
               >
@@ -153,7 +153,7 @@
                 inputmode="numeric"
                 pattern="[0-9]*"
                 class="pack-details__quantity-input"
-                :disabled="isSubmitting"
+                :disabled="isInCart || isSubmitting"
                 :aria-label="$t('Quantity')"
                 @input="onQuantityInput"
                 @blur="normalizeQuantity"
@@ -163,7 +163,9 @@
               <button
                 type="button"
                 class="pack-details__quantity-button"
-                :disabled="Number(quantity) >= MAX_QUANTITY || isSubmitting"
+                :disabled="
+                  isInCart || Number(quantity) >= MAX_QUANTITY || isSubmitting
+                "
                 :aria-label="$t('Increase quantity')"
                 @click="increaseQuantity"
               >
