@@ -6,7 +6,9 @@
   --secondary-color: rgb(255, 255, 255, 0.7);
   --third-color: #fefeef;
   --fourth-color: #ffffff;
-  --fifth-color: #B0A79E;
+  --fifth-color: #b0a79e;
+  // #B0A79E 50%
+  --sixth-color: rgb(176, 167, 158, 0.5);
 
   // BACKGROUNDS
   --bg-primary-color: #090d17;
@@ -27,9 +29,10 @@
 
   // HINTS
   --hint-primary-color: #48d9ff;
-  --hint-secondary-color: #FBBC04;
-  --hint-third-color: #FFD695;
-  --hint-fourth-color: #12B5FF;
+  --hint-secondary-color: #fbbc04;
+  --hint-third-color: #ffd695;
+  --hint-fourth-color: #12b5ff;
+  --hint-fifth-color: #fa9c71;
 
   // STATUS -----------
   --error-color: #fc6677;

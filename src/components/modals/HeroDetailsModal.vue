@@ -4,12 +4,12 @@
     size="product"
     class="hero-details-modal"
     labelledby="hero-details-title"
+    :close-label="$t('Close modal')"
     @close="$emit('close')"
   >
     <div v-if="hero" class="hero-details" :style="{ '--hero-accent': accent }">
-      <!-- LEFT: Character artwork -->
       <div class="hero-details__art">
-        <div class="hero-details__aura" aria-hidden="true"></div>
+        <div class="hero-details__aura"></div>
 
         <img
           v-if="hero.image_plain || hero.image_with_card"
@@ -18,12 +18,20 @@
         />
       </div>
 
-      <!-- RIGHT: Hero information -->
       <div class="hero-details__body">
-        <p class="hero-details__overline">CHAMPION OF ETERNITY</p>
+        <p class="hero-details__overline">
+          {{ $t('CHAMPION OF ETERNITY') }}
+        </p>
 
         <div v-if="element" class="hero-details__element">
-          {{ element }}
+          <img
+            v-if="elementIcon"
+            :src="elementIcon"
+            alt=""
+            class="hero-details__element-icon"
+          />
+
+          <span>{{ $t(element) }}</span>
         </div>
 
         <h2 id="hero-details-title" class="hero-details__name">
@@ -34,21 +42,18 @@
           {{ hero.short_description }}
         </p>
 
-        <!-- Hero Power -->
         <div v-if="hero.hero_power" class="hero-details__group">
-          <h3>Hero power</h3>
+          <h3>{{ $t('Hero power') }}</h3>
           <p>{{ hero.hero_power }}</p>
         </div>
 
-        <!-- Hero Story -->
         <div v-if="hero.description" class="hero-details__group">
-          <h3>Story</h3>
+          <h3>{{ $t('Story') }}</h3>
           <p>{{ hero.description }}</p>
         </div>
 
-        <!-- Hero Playstyle -->
         <div v-if="hero.playstyle" class="hero-details__group">
-          <h3>Playstyle</h3>
+          <h3>{{ $t('Playstyle') }}</h3>
           <p>{{ hero.playstyle }}</p>
         </div>
       </div>
@@ -76,13 +81,16 @@ defineProps({
     type: String,
     default: 'Champion',
   },
+  elementIcon: {
+    type: String,
+    default: '',
+  },
 })
 
 defineEmits(['close'])
 </script>
 
 <style lang="scss" scoped>
-// Override existing BaseModal design
 :global(.hero-details-modal) {
   border-color: #3b3635;
   background: #090d17;
@@ -98,7 +106,6 @@ defineEmits(['close'])
   display: none;
 }
 
-// Modal content
 .hero-details {
   display: grid;
   grid-template-columns: 44% 56%;
@@ -113,7 +120,8 @@ defineEmits(['close'])
     ),
     #090d17;
 
-  // Character side
+  font-family: var(--font-open-sans, 'Open Sans', sans-serif);
+
   &__art {
     position: relative;
 
@@ -133,16 +141,21 @@ defineEmits(['close'])
     width: 70%;
     aspect-ratio: 1;
 
-    border: 4px solid var(--hero-accent);
-    border-radius: 50%;
-    box-shadow:
-      0 0 45px var(--hero-accent),
-      inset 0 0 45px var(--hero-accent);
-    opacity: 0.36;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--hero-accent) 25%, transparent),
+      transparent 70%
+    );
+
+    pointer-events: none;
+
+    filter: blur(35px);
   }
 
   &__art img {
     position: relative;
+
+    display: block;
 
     width: 100%;
     max-height: 580px;
@@ -151,7 +164,6 @@ defineEmits(['close'])
     object-position: center bottom;
   }
 
-  // Information side
   &__body {
     align-self: center;
 
@@ -164,23 +176,36 @@ defineEmits(['close'])
     margin: 0 0 24px;
 
     color: #5c5e66;
-    font-family: var(--font-audiowide);
+    font-family: var(--font-audiowide, 'Audiowide', sans-serif);
     font-size: 13px;
     letter-spacing: 0.06em;
   }
 
   &__element {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
     margin-bottom: 12px;
 
-    color: var(--hero-accent);
+    color: #aaa9ab;
     font-size: 16px;
+  }
+
+  &__element-icon {
+    display: block;
+
+    width: 26px;
+    height: 26px;
+
+    object-fit: contain;
   }
 
   &__name {
     margin: 0;
 
     color: #fefeef;
-    font-family: var(--font-audiowide);
+    font-family: var(--font-audiowide, 'Audiowide', sans-serif);
     font-size: clamp(34px, 4vw, 64px);
     font-weight: 400;
     line-height: 1.3;
@@ -200,34 +225,33 @@ defineEmits(['close'])
 
     font-size: 15px;
     line-height: 1.65;
+
+    h3 {
+      margin: 0 0 8px;
+
+      color: var(--hero-accent);
+      font-family: var(--font-audiowide, 'Audiowide', sans-serif);
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    p {
+      margin: 0;
+
+      white-space: pre-line;
+    }
   }
 
-  &__group h3 {
-    margin: 0 0 8px;
-
-    color: var(--hero-accent);
-    font-family: var(--font-audiowide);
-    font-size: 15px;
-    font-weight: 400;
-  }
-
-  &__group p {
-    margin: 0;
-
-    white-space: pre-line;
-  }
-
-  // Mobile modal
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
 
     &__art {
       min-height: 260px;
       max-height: 330px;
-    }
 
-    &__art img {
-      max-height: 330px;
+      img {
+        max-height: 330px;
+      }
     }
 
     &__aura {
