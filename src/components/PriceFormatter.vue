@@ -36,7 +36,7 @@ const props = defineProps({
     required: false,
   },
   isCurrency: { type: Boolean, default: false },
-  size: { type: String, default: 'size-28' }, // size-14 | size-28 | size-40 | size-64
+  size: { type: String, default: 'size-14' }, // size-14
 })
 
 const settingsStore = useSettingsStore()
@@ -60,49 +60,7 @@ const settingsStore = useSettingsStore()
     }
     .price__currency,
     .price__number {
-      font-family: var(--font-inter);
       font-size: 14px;
-      font-weight: 500;
-      line-height: 100%;
-    }
-  }
-  &.size-28 {
-    gap: 8px;
-
-    color: var(--primary-color);
-    .price__image {
-      @include adaptiveValue('min-width', 24, 20);
-      @include adaptiveValue('height', 24, 20);
-    }
-    .price__number {
-      @include adaptiveValue('font-size', 28, 24);
-      line-height: 100%;
-    }
-  }
-  &.size-40 {
-    @include adaptiveValue('gap', 12, 8);
-
-    color: var(--primary-color);
-    .price__image {
-      @include adaptiveValue('min-width', 30, 20);
-      @include adaptiveValue('height', 30, 20);
-    }
-    .price__number {
-      @include adaptiveValue('font-size', 30, 24);
-      line-height: 100%;
-    }
-  }
-  &.size-64 {
-    @include adaptiveValue('gap', 12, 8);
-
-    color: var(--primary-color);
-    .price__image {
-      @include adaptiveValue('min-width', 56, 24);
-      @include adaptiveValue('height', 56, 24);
-    }
-    .price__number {
-      @include adaptiveValue('font-size', 64, 28);
-      line-height: 100%;
     }
   }
   &__image {
@@ -111,8 +69,8 @@ const settingsStore = useSettingsStore()
   &__currency,
   &__number {
     color: inherit;
-    font-family: var(--font-ancizar-serif);
-    font-weight: 700;
+    font-family: var(--font-audiowide);
+    font-weight: 400;
     line-height: 100%;
   }
 }

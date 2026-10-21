@@ -6,7 +6,7 @@
           :to="{ name: 'HomePage' }"
           class="footer__logo _ibg-contain"
         >
-          <img src="@/assets/img/icons/logo-deck.svg" />
+          <img src="@/assets/img/icons/logo-deck.png" />
         </RouterLink>
         <div v-html="settingsStore.settings?.copyright" class="footer__copy" />
         <div

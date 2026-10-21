@@ -44,105 +44,109 @@
         </RouterLink>
       </div>
 
-      <CurrencyDropdown
-        data-da-id="header-currency"
-        data-da=".header__nav,767.98,first"
-        class="header__currency"
-      />
-
-      <div v-if="isAuthenticated" class="header__auth auth">
-        <RouterLink
-          :to="{ name: 'account-wallet' }"
-          class="header__balance balance"
-          :aria-label="$t('My balance')"
-        >
-          <SvgIcon :icon="WalletIcon" class="balance__wallet" />
-
-          <PriceFormatter
-            class="balance__price"
-            size="size-28"
-            :price="userStore.userBalance"
-          />
-        </RouterLink>
-        <RouterLink
-          :to="{ name: 'CartPage' }"
-          class="auth__link"
-          :aria-label="$t('Cart')"
-        >
-          <SvgIcon :icon="CartIcon" class="auth__link-icon" />
-
-          <div v-if="cartItemsCount > 0" class="auth__link-count">
-            {{ cartItemsCount }}
-          </div>
-        </RouterLink>
-        <div
-          class="auth__profile-menu profile-menu"
-          :class="{ 'profile-menu_active': isAccountRoute }"
-        >
+      <div class="header__auth auth">
+        <template v-if="isAuthenticated">
           <RouterLink
-            :to="{ name: 'account-personal' }"
-            class="profile-menu__trigger profile"
-            :aria-label="$t('Open profile')"
+            :to="{ name: 'CartPage' }"
+            class="auth__link"
+            :aria-label="$t('Cart')"
           >
-            <div class="profile__avatar-frame">
-              <div class="profile__avatar">
-                <img
-                  :src="profileImage"
-                  :alt="profileImageAlt"
-                  @error="handleProfileImageError"
-                />
-              </div>
+            <SvgIcon :icon="CartIcon" class="auth__link-icon" />
+
+            <div v-if="cartItemsCount > 0" class="auth__link-count">
+              {{ cartItemsCount }}
             </div>
-
-            <div class="profile__meta">
-              <div class="profile__name">
-                {{ nickName || $t('Profile') }}
-              </div>
-
-              <div class="profile__count">
-                {{ heroLevel }}
-              </div>
-            </div>
-
-            <SvgIcon :icon="ChevronDownIcon" class="profile__chevron" />
           </RouterLink>
+        </template>
+        <CurrencyDropdown
+          data-da-id="header-currency"
+          data-da=".header__nav,767.98,first"
+          class="header__currency"
+        />
+        <template v-if="isAuthenticated">
+          <RouterLink
+            :to="{ name: 'account-wallet' }"
+            class="header__balance balance"
+            :aria-label="$t('My balance')"
+          >
+            <SvgIcon :icon="WalletIcon" class="balance__wallet" />
 
-          <div class="profile-menu__dropdown">
-            <div class="profile-menu__dropdown-inner">
-              <RouterLink
-                v-for="item in accountLinks"
-                :key="item.name"
-                :to="{ name: item.name }"
-                class="profile-menu__link"
-                @click="closeMobileMenu"
-              >
-                <SvgIcon :icon="item.icon" class="profile-menu__link-icon" />
+            <PriceFormatter
+              class="balance__price"
+              size="size-14"
+              :price="userStore.userBalance"
+            />
+            <SvgIcon :icon="PlusIcon" class="balance__plus" />
+          </RouterLink>
+          <div
+            class="auth__profile-menu profile-menu"
+            :class="{ 'profile-menu_active': isAccountRoute }"
+          >
+            <RouterLink
+              :to="{ name: 'account-personal' }"
+              class="profile-menu__trigger profile"
+              :aria-label="$t('Open profile')"
+            >
+              <div class="profile__avatar-frame">
+                <div class="profile__avatar">
+                  <img
+                    :src="profileImage"
+                    :alt="profileImageAlt"
+                    @error="handleProfileImageError"
+                  />
+                </div>
+              </div>
 
-                <span> {{ item.label }}</span>
-              </RouterLink>
-              <button
-                type="button"
-                class="profile-menu__link"
-                :disabled="isLoggingOut"
-                @click="logout"
-              >
-                <SvgIcon
-                  :icon="LogoutDropdownIcon"
-                  class="profile-menu__link-icon"
-                />
-                <span>
-                  {{
-                    isLoggingOut ? $t('Logging out...') : $t('Log out')
-                  }}</span
+              <div class="profile__meta">
+                <div class="profile__name">
+                  {{ nickName || $t('Profile') }}
+                </div>
+
+                <div class="profile__count">
+                  {{ heroLevel }}
+                </div>
+              </div>
+
+              <SvgIcon :icon="ChevronDownIcon" class="profile__chevron" />
+            </RouterLink>
+
+            <div class="profile-menu__dropdown">
+              <div class="profile-menu__dropdown-inner">
+                <RouterLink
+                  v-for="item in accountLinks"
+                  :key="item.name"
+                  :to="{ name: item.name }"
+                  class="profile-menu__link"
+                  @click="closeMobileMenu"
                 >
-              </button>
+                  <SvgIcon :icon="item.icon" class="profile-menu__link-icon" />
+
+                  <span> {{ item.label }}</span>
+                </RouterLink>
+                <button
+                  type="button"
+                  class="profile-menu__link"
+                  :disabled="isLoggingOut"
+                  @click="logout"
+                >
+                  <SvgIcon
+                    :icon="LogoutDropdownIcon"
+                    class="profile-menu__link-icon"
+                  />
+                  <span>
+                    {{
+                      isLoggingOut ? $t('Logging out...') : $t('Log out')
+                    }}</span
+                  >
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
 
-      <div v-else class="header__auth auth">
-        <BaseButton class="auth__button" @click="openLogin">
+      <div v-if="!isAuthenticated" class="header__auth auth">
+        <BaseButton class="auth__button" variant="bordered" @click="openLogin">
           {{ $t('Sign In') }}
         </BaseButton>
       </div>
@@ -183,6 +187,7 @@ import {
   LogoutDropdownIcon,
   OffersDropdownIcon,
   OrderDropdownIcon,
+  PlusIcon,
   ProfileDropdownIcon,
   TransactionDropdownIcon,
   WalletDropdownIcon,
@@ -514,11 +519,13 @@ onBeforeUnmount(() => {
   min-width: 320px;
   max-width: none;
 
-  border-top: 1px solid var(--border-third-color);
-  border-bottom: 1px solid var(--border-third-color);
-  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  background-color: var(--bg-secondary-color);
 
   transition: all 0.3s ease 0s;
+
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   &.scrolled {
     background-color: var(--bg-primary-color);
     @media (min-width: $md2) {
@@ -539,8 +546,8 @@ onBeforeUnmount(() => {
   }
 
   &__inner {
-    @include adaptiveValue('gap', 32, 10, 1870, 1370, 1);
-    @include adaptiveValue('min-height', 66, 50, 1870, 1370, 1);
+    @include adaptiveValue('gap', 24, 10, 1800, 1370, 1);
+    @include adaptiveValue('min-height', 84, 50, 1800, 1370, 1);
 
     position: relative;
     z-index: 1;
@@ -554,6 +561,9 @@ onBeforeUnmount(() => {
     transition: min-height 0.3s ease;
   }
   &__logo {
+    @media (min-width: 1399.98px) {
+      @include adaptiveValue('margi-right', 24, 0, 1800, 1400, 1);
+    }
     @media (max-width: 1399.98px) {
       margin-right: auto;
     }
@@ -574,7 +584,7 @@ onBeforeUnmount(() => {
     @media (min-width: $md4) {
       align-self: center;
 
-      min-width: 100px;
+      min-width: 80px;
 
       margin-left: auto;
     }
@@ -592,8 +602,8 @@ onBeforeUnmount(() => {
 }
 
 .logo {
-  @include adaptiveValue('min-width', 209, 100, 1870, 1370, 1);
-  @include adaptiveValue('height', 32, 25, 1870, 1370, 1);
+  @include adaptiveValue('min-width', 103, 60, 1800, 1370, 1);
+  @include adaptiveValue('height', 58, 40, 1800, 1370, 1);
 
   display: block;
   align-self: center;
@@ -601,8 +611,8 @@ onBeforeUnmount(() => {
   width: fit-content;
 
   @media (max-width: $md6) {
-    min-width: 24px;
-    height: 40px;
+    min-width: 32px;
+    height: 32px;
   }
 
   &__desk {
@@ -621,7 +631,7 @@ onBeforeUnmount(() => {
 .nav {
   @media (min-width: 1399.98px) {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 8px;
   }
 
@@ -642,8 +652,7 @@ onBeforeUnmount(() => {
     margin-left: 0;
     padding: 25px 10px 30px;
 
-    border-top: 1px solid var(--border-third-color);
-    background-color: var(--bg-fourth-color);
+    background-color: var(--bg-fifth-color);
 
     transition: left 0.3s ease;
 
@@ -675,25 +684,23 @@ onBeforeUnmount(() => {
   }
 
   &__link {
-    @include adaptiveValue('padding-left', 24, 10, 1870, 1370, 1);
-    @include adaptiveValue('padding-right', 24, 10, 1870, 1370, 1);
+    @include adaptiveValue('padding-left', 16, 10, 1800, 1370, 1);
+    @include adaptiveValue('padding-right', 16, 10, 1800, 1370, 1);
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    height: 40px;
-
     padding-top: 10px;
     padding-bottom: 10px;
 
-    border: 1px solid transparent;
-    border-radius: 6px;
+    border-bottom: 1px solid transparent;
+    background: transparent;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--secondary-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 100%;
     letter-spacing: 0px;
     text-transform: uppercase;
@@ -702,75 +709,84 @@ onBeforeUnmount(() => {
     transition: all 0.3s ease;
 
     &.router-link-active {
-      border-color: var(--border-fourth-color);
-      background-color: var(--bg-third-color);
+      border-color: inherit;
+      background: linear-gradient(
+        180deg,
+        rgba(72, 217, 255, 0.1) 0%,
+        rgba(72, 217, 255, 0) 100%
+      );
 
-      color: var(--secondary-color);
+      color: var(--hint-primary-color);
 
       pointer-events: none;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--border-fourth-color);
+        border-color: inherit;
 
-        color: var(--secondary-color);
+        color: var(--third-color);
       }
     }
-
+    @media (min-width: 1399.98px) {
+      height: 100%;
+    }
     @media (max-width: 1399.98px) {
       width: 100%;
+      min-height: 45px;
+
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: var(--bg-third-color);
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
     }
   }
 }
 
 .auth {
-  @include adaptiveValue('gap', 32, 10, 1870, 1370, 1);
+  @include adaptiveValue('gap', 24, 10, 1800, 1370, 1);
 
   display: flex;
-  align-items: stretch;
+  align-items: center;
 
   &__profile-menu {
-    align-self: stretch;
+    // align-self: stretch;
   }
 
   &__link {
-    @include adaptiveValue('min-width', 64, 40, 1870, 1370, 1);
-
     position: relative;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    height: inherit;
+    min-width: 40px;
+    height: 40px;
 
-    color: var(--secondary-color);
+    border: 1px solid inherit;
+    border-radius: 6px;
+
+    color: var(--third-color);
 
     transition: opacity 0.3s ease 0s;
 
     &.router-link-active {
-      .auth__link-icon {
-        opacity: 1;
-      }
+      color: var(--hint-primary-color);
+
+      pointer-events: none;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        .auth__link-icon {
-          opacity: 1;
-        }
+        color: var(--hint-primary-color);
       }
     }
 
     &-icon {
-      min-width: 24px;
-      height: 24px;
-
-      transition: opacity 0.3s ease 0s;
-      @media (any-hover: hover) {
-        opacity: 0.5;
-      }
+      min-width: 18px;
+      height: 18px;
     }
 
     &-count {
@@ -788,15 +804,15 @@ onBeforeUnmount(() => {
 
       padding: 0px 5px;
 
-      border-radius: 50%;
+      border-radius: 6px;
       background-color: var(--bg-fourth-color);
 
-      color: var(--primary-color);
+      color: var(--hint-primary-color);
       font-size: 12px;
       line-height: 12px;
       letter-spacing: 0px;
 
-      transform: translate(25%, -50%);
+      transform: translate(70%, -70%);
     }
   }
 
@@ -804,31 +820,32 @@ onBeforeUnmount(() => {
     align-self: center;
 
     width: fit-content;
-    min-width: 100px;
+    min-width: 109px;
     min-height: 40px !important;
   }
 }
 
 .balance {
-  @include adaptiveValue('gap', 12, 10);
+  @include adaptiveValue('gap', 15, 10);
 
   display: flex;
   align-items: center;
 
-  height: 100%;
+  height: 40px;
 
-  color: var(--secondary-color);
-  @media (max-width: $md8) {
-    min-width: 45px;
-  }
+  padding-right: 10px;
+  padding-left: 10px;
+
+  border-radius: 6px;
+  background-color: var(--bg-third-color);
+
+  color: var(--primary-color);
 
   @media (any-hover: hover) {
     &:hover {
-      .balance__price {
-        color: var(--secondary-color);
-      }
+      color: var(--hint-primary-color);
       .balance__wallet {
-        opacity: 1;
+        color: var(--hint-primary-color);
       }
     }
   }
@@ -838,19 +855,18 @@ onBeforeUnmount(() => {
 
     width: fit-content;
   }
+  @media (max-width: $md8) {
+    min-width: 40px;
+  }
 
   &__wallet {
-    min-width: 24px;
-    height: 24px;
-    @media (any-hover: hover) {
-      opacity: 0.5;
-    }
+    @include hide-item;
   }
 
   &__price {
-    margin-top: 5px;
+    flex-direction: row-reverse;
 
-    color: var(--primary-color);
+    margin-top: 3px;
     @media (max-width: $md6) {
       :deep(.price__number) {
         overflow: hidden;
@@ -869,7 +885,10 @@ onBeforeUnmount(() => {
   }
 
   &__plus {
-    @include hide-item;
+    min-width: 12px;
+    height: 12px;
+
+    color: var(--hint-primary-color);
   }
 }
 
@@ -877,7 +896,7 @@ onBeforeUnmount(() => {
   position: relative;
 
   display: flex;
-  align-items: stretch;
+  // align-items: stretch;
 
   min-width: 0;
 
@@ -895,15 +914,6 @@ onBeforeUnmount(() => {
 
     .profile__chevron {
       transform: rotate(180deg);
-    }
-
-    .profile__name {
-    }
-
-    .profile__avatar-frame {
-    }
-
-    .profile__avatar img {
     }
   }
 
@@ -927,13 +937,13 @@ onBeforeUnmount(() => {
     width: max-content;
     min-width: 230px;
 
-    padding-top: 8px;
+    padding-top: 4px;
 
     opacity: 0;
 
     pointer-events: none;
 
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     transition: all 0.3s ease 0s;
   }
 
@@ -943,17 +953,17 @@ onBeforeUnmount(() => {
 
     max-height: calc(100dvh - 100px);
 
-    padding: 8px 0;
+    padding: 11px 0;
 
-    border: 1px solid var(--border-sixth-color);
+    border: 1px solid var(--hint-primary-color);
     border-radius: 8px;
-    background-color: var(--bg-fourth-color);
-    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
+    background-color: var(--bg-fifth-color);
+    box-shadow: 0 4px 16px 0px var(--shadow-primary-color);
 
     -webkit-overflow-scrolling: touch;
 
     overscroll-behavior: contain;
-    scrollbar-color: var(--border-fourth-color) transparent;
+    scrollbar-color: var(--hint-primary-color) transparent;
 
     // Scrollbar styling
     scrollbar-width: thin;
@@ -968,7 +978,7 @@ onBeforeUnmount(() => {
 
     &::-webkit-scrollbar-thumb {
       border-radius: 8px;
-      background-color: var(--border-fourth-color);
+      background-color: var(--hint-primary-color);
     }
 
     @media (max-width: $md4) {
@@ -977,6 +987,8 @@ onBeforeUnmount(() => {
   }
 
   &__link {
+    @include adaptiveValue('padding-left', 24, 10);
+    @include adaptiveValue('padding-right', 24, 10);
     display: flex;
     flex: 1 1 100%;
     align-items: center;
@@ -985,47 +997,37 @@ onBeforeUnmount(() => {
     width: 100%;
     min-height: 38px;
 
-    padding: 8px 7px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 
     background-color: transparent;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 100%;
     letter-spacing: 0px;
     text-align: center;
+    text-transform: capitalize;
     white-space: nowrap;
 
     cursor: pointer;
 
     transition: all 0.3s ease 0s;
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--sixth-color);
-        .profile-menu__link-icon {
-          opacity: 1;
-        }
-      }
-    }
 
     &-icon {
-      min-width: 24px;
-      height: 24px;
-
-      color: var(--secondary-color);
-      @media (any-hover: hover) {
-        opacity: 0.5;
-      }
+      @include hide-item;
     }
 
     &.router-link-active {
-      background-color: var(--third-color);
+      color: var(--hint-primary-color);
 
       pointer-events: none;
-      .profile-menu__link-icon {
-        opacity: 1;
+    }
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--hint-primary-color);
       }
     }
   }
@@ -1048,9 +1050,9 @@ onBeforeUnmount(() => {
   min-width: 0;
 
   &__avatar-frame {
-    @include adaptiveValue('width', 50, 40, 1870, 1370, 1);
-    @include adaptiveValue('min-width', 50, 40, 1870, 1370, 1);
-    @include adaptiveValue('height', 50, 40, 1870, 1370, 1);
+    @include adaptiveValue('width', 58, 40, 1800, 1370, 1);
+    @include adaptiveValue('min-width', 58, 40, 1800, 1370, 1);
+    @include adaptiveValue('height', 58, 40, 1800, 1370, 1);
 
     position: relative;
 
@@ -1058,14 +1060,26 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
 
-    border: 1px solid var(--fifth-color);
-    border-radius: 6px;
-
     pointer-events: none;
+    &::before {
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      background-image: url('@/assets/img/avatar.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+
+      content: '';
+    }
   }
 
   &__avatar {
-    @include adaptiveValue('width', 46, 36, 1870, 1370, 1);
+    @include adaptiveValue('width', 45, 35, 1800, 1370, 1);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1075,8 +1089,6 @@ onBeforeUnmount(() => {
 
     height: auto;
     aspect-ratio: 1 / 1;
-
-    border-radius: 6px;
 
     transform: translate(-50%, -50%);
 
@@ -1109,10 +1121,10 @@ onBeforeUnmount(() => {
 
     min-width: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 100%;
     text-overflow: ellipsis;
     text-transform: uppercase;
@@ -1120,14 +1132,14 @@ onBeforeUnmount(() => {
 
     transition: color 0.3s ease;
     &:not(:last-child) {
-      margin-bottom: 3px;
+      @include adaptiveValue('margin-bottom', 6, 3, 1800, 1370, 1);
     }
   }
 
   &__count {
-    color: var(--secondary-color);
+    color: var(--fifth-color);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 700;
     line-height: 100%;
   }
 
@@ -1135,7 +1147,7 @@ onBeforeUnmount(() => {
     min-width: 12px;
     height: 7px;
 
-    color: var(--secondary-color);
+    color: var(--hint-primary-color);
 
     transform: rotate(0deg);
     transition: all 0.3s ease 0s;
@@ -1173,7 +1185,7 @@ onBeforeUnmount(() => {
         span,
         &::before,
         &::after {
-          background-color: var(--primary-color);
+          background-color: var(--fourth-color);
         }
       }
     }
@@ -1187,7 +1199,7 @@ onBeforeUnmount(() => {
       width: 100%;
       height: 2px;
 
-      background-color: var(--primary-color);
+      background-color: var(--fifth-color);
 
       content: '';
 
@@ -1213,7 +1225,7 @@ onBeforeUnmount(() => {
 
       &::before,
       &::after {
-        background-color: var(--primary-color);
+        background-color: var(--fourth-color);
       }
 
       &::before {
@@ -1230,7 +1242,7 @@ onBeforeUnmount(() => {
     }
 
     &:focus-visible {
-      outline: 1px solid var(--hint-gradient-color);
+      outline: 1px solid var(--hint-primary-color);
       outline-offset: 4px;
     }
   }

@@ -128,7 +128,7 @@ const dropdownClasses = {
 
   width: fit-content;
 
-  color: var(--primary-color);
+  color: var(--fourth-color);
   &_footer {
     width: 100%;
   }
@@ -136,7 +136,7 @@ const dropdownClasses = {
   @media (any-hover: hover) {
     &:hover {
       .currency-select__caret {
-        color: var(--secondary-color);
+        color: var(--hint-primary-color);
       }
     }
   }
@@ -147,9 +147,9 @@ const dropdownClasses = {
     gap: 10px;
 
     color: inherit;
-    font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 500;
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
     line-height: 100%;
     letter-spacing: 0px;
     text-transform: uppercase;
@@ -169,7 +169,7 @@ const dropdownClasses = {
     min-width: 12px;
     height: 7px;
 
-    color: var(--fifth-color);
+    color: var(--fourth-color);
 
     transition: all 0.3s ease 0s;
     &.is-open {
@@ -194,14 +194,14 @@ const dropdownClasses = {
 
   &_open {
     .dropdown__wrapper {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
     }
   }
 
   &_open-top {
     .dropdown__list {
       top: auto;
-      bottom: calc(100% + 6px);
+      bottom: calc(100% + 4px);
     }
   }
 
@@ -225,20 +225,18 @@ const dropdownClasses = {
     padding-top: 5px;
     padding-bottom: 5px;
 
-    border: 1.5px solid var(--border-priamry-color);
+    border: 1px solid transparent;
     border-radius: 6px;
     outline: none;
-    background-color: var(--bg-secondary-color);
+    background-color: var(--bg-third-color);
 
     cursor: pointer;
 
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease;
+    transition: all 0.3s ease 0s;
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--fifth-color);
+        border-color: transparent;
       }
     }
 
@@ -279,7 +277,7 @@ const dropdownClasses = {
 
   &__list {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 4px);
     right: 0;
     z-index: var(--header-z-index);
 
@@ -290,12 +288,12 @@ const dropdownClasses = {
     min-width: 100%;
     max-height: min(220px, calc(100vh - 100px));
 
-    padding: 8px 0px;
+    padding: 11px 0;
 
-    border: 1px solid var(--border-sixth-color);
+    border: 1px solid var(--hint-primary-color);
     border-radius: 8px;
-    background-color: var(--bg-fourth-color);
-    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
+    background-color: var(--bg-fifth-color);
+    box-shadow: 0 4px 16px 0px var(--shadow-primary-color);
 
     transition: all 0.3s ease 0s;
 
@@ -350,10 +348,10 @@ const dropdownClasses = {
 
     background-color: transparent;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     line-height: 100%;
     letter-spacing: 0px;
     text-align: center;
@@ -361,13 +359,11 @@ const dropdownClasses = {
 
     cursor: pointer;
 
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
+    transition: all 0.3s ease 0s;
 
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--sixth-color);
+        color: var(--hint-primary-color);
       }
     }
 
@@ -375,13 +371,17 @@ const dropdownClasses = {
     }
 
     &_selected {
-      background-color: var(--third-color);
+      background-color: var(--bg-fourth-color);
+
+      color: var(--hint-primary-color);
 
       pointer-events: none;
     }
 
     &_selected.dropdown__option_pointed {
-      background-color: var(--third-color);
+      background-color: var(--bg-fourth-color);
+
+      color: var(--hint-primary-color);
     }
 
     &_disabled {

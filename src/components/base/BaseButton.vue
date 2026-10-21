@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ArrowIcon, BackIcon, ChevronDownIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | play | arrow | bordered | hint-bordered |
+  variant: { type: String, default: 'primary' }, // primary | bordered | play | discover
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -59,6 +59,7 @@ const buttonClasses = computed(() => [
 
 <style lang="scss" scoped>
 .btn {
+  @include adaptiveValue('min-height', 46, 40);
   position: relative;
   z-index: 1;
 
@@ -70,16 +71,15 @@ const buttonClasses = computed(() => [
 
   width: 100%;
   height: fit-content;
-  min-height: 40px;
 
   padding: 5px 10px;
 
   border: 1px solid transparent;
   border-radius: 6px;
 
-  font-family: var(--font-inter);
+  font-family: var(--font-audiowide);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 120%;
   letter-spacing: 0px;
   text-align: center;
@@ -106,29 +106,34 @@ const buttonClasses = computed(() => [
     gap: 10px;
   }
   &.primary {
-    background-color: var(--third-color);
+  }
+  &.bordered {
+    border-color: inherit;
+    background-color: transparent;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--bg-sixth-color);
+        color: var(--hint-primary-color);
       }
     }
   }
-  &.play {
-    max-width: 311px;
-    min-height: 111px;
+
+  &.play,
+  &.discover {
+    max-width: 272px;
+    min-height: 67px;
 
     border-radius: 0px;
 
-    color: var(--secondary-color);
-    font-family: var(--font-texturina);
-    font-size: 32px;
-    font-weight: 800;
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-size: 14px;
+    font-weight: 400;
     line-height: 100%;
-    text-transform: capitalize;
+    text-transform: uppercase;
     span {
-      margin-top: -15px;
+      margin-top: 2px;
     }
     &::before {
       position: absolute;
@@ -147,54 +152,18 @@ const buttonClasses = computed(() => [
     }
     @media (any-hover: hover) {
       &:hover {
-        font-size: 34px;
-
-        transform: scale(0.97);
+        color: var(--hint-secondary-color);
       }
     }
   }
-  &.arrow {
-    @include adaptiveValue('min-width', 56, 40);
-    @include adaptiveValue('min-height', 56, 40);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    height: fit-content;
-
-    background-color: var(--bg-fourth-color);
-
-    color: var(--secondary-color);
+  &.discover {
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--third-color);
-
-        color: var(--primary-color);
+        color: var(--hint-primary-color);
       }
     }
-  }
-  &.bordered {
-    border-color: var(--third-color);
-    background-color: transparent;
-
-    color: var(--primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--third-color);
-      }
-    }
-  }
-  &.hint-bordered {
-    border-color: inherit;
-    background-color: var(--bg-third-color);
-
-    color: var(--secondary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-eight-color);
-
-        color: var(--third-color);
-      }
+    &::before {
+      background-image: url('@/assets/img/discover-button-bg.png');
     }
   }
   &__addon {
