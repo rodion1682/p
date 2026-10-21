@@ -1,0 +1,53 @@
+@import '@vueform/multiselect/themes/tailwind.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#000000] text-[16px] font-normal leading-[1.15] text-primary;
+  }
+
+  section {
+    @apply my-[60px] md:my-[120px];
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    @apply appearance-none;
+    @apply m-0;
+  }
+
+  .title-small {
+    @apply font-secondary text-[14px] font-normal leading-[16px] lg:text-[18px] lg:leading-[21px];
+  }
+
+  .title-medium {
+    @apply font-secondary text-[18px] font-semibold leading-[21px] lg:text-[24px] lg:leading-[34px];
+  }
+
+  .title-big {
+    @apply font-secondary text-[36px] font-semibold leading-[52px] lg:text-[42px] lg:leading-[54px];
+  }
+}
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+}
+
+button img.google-pay {
+  height: 70px;
+}
+button img.apple-pay {
+  filter: brightness(0) invert(1);
+  height: 35px;
+}

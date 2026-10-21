@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Sons of Eternity compass flame emblem">
+  <defs>
+    <radialGradient id="navy"><stop offset="0" stop-color="#173653"/><stop offset=".58" stop-color="#091929"/><stop offset="1" stop-color="#030712"/></radialGradient>
+    <linearGradient id="gold" x1=".12" y1="0" x2=".88" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#fff1c4"/><stop offset=".24" stop-color="#dca65d"/><stop offset=".51" stop-color="#614024"/><stop offset=".75" stop-color="#e8c38d"/><stop offset="1" stop-color="#80512d"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d8e9f6"/><stop offset=".4" stop-color="#455e78"/><stop offset=".74" stop-color="#131e32"/><stop offset="1" stop-color="#a4bed3"/></linearGradient>
+    <radialGradient id="azure"><stop stop-color="#7eeeff"/><stop offset=".32" stop-color="#0bb8ff"/><stop offset=".75" stop-color="#0063c6"/><stop offset="1" stop-color="#00245d"/></radialGradient>
+  </defs>
+
+  <!-- Bold silhouetted eight-point compass, with extra-long vertical and horizontal rays. -->
+  <path d="M64 2 75 25 64 41 53 25Z M64 126 53 103 64 87 75 103Z M2 64 25 53 41 64 25 75Z M126 64 103 75 87 64 103 53Z
+           M20 20 46 31 48 46 31 48Z M108 20 97 46 82 48 80 31Z M20 108 31 80 46 82 48 97Z M108 108 80 97 82 82 97 80Z"
+        fill="#020812" stroke="#020812" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="64" cy="64" r="50.5" fill="url(#navy)" stroke="#03101f" stroke-width="6"/>
+  <!-- Interior energy ring: distinct electric blue against metallic bronze. -->
+  <circle cx="64" cy="64" r="45" fill="none" stroke="url(#gold)" stroke-width="7"/>
+  <circle cx="64" cy="64" r="39.5" fill="none" stroke="#15283d" stroke-width="3"/>
+  <circle cx="64" cy="64" r="37.2" fill="none" stroke="url(#azure)" stroke-width="5"/>
+  <circle cx="64" cy="64" r="33.5" fill="url(#navy)"/>
+
+  <!-- Metallic compass rays, deliberately simplified to stay legible in a 16px tab. -->
+  <g fill="url(#silver)" stroke="#080f1b" stroke-width="2" stroke-linejoin="round">
+    <path d="M64 3 76 29 64 42 52 29Z"/>
+    <path d="M64 125 52 99 64 86 76 99Z"/>
+    <path d="M3 64 29 52 42 64 29 76Z"/>
+    <path d="M125 64 99 76 86 64 99 52Z"/>
+    <path d="M20 20 45 32 49 48 32 45Z"/>
+    <path d="M108 20 96 45 79 49 83 32Z"/>
+    <path d="M20 108 32 83 49 79 45 96Z"/>
+    <path d="M108 108 83 96 79 79 96 83Z"/>
+  </g>
+  <g fill="url(#gold)" stroke="#20160f" stroke-width="1.2" stroke-linejoin="round">
+    <path d="M64 5 71 30 64 38 57 30Z"/>
+    <path d="M64 123 57 98 64 90 71 98Z"/>
+    <path d="M5 64 30 57 38 64 30 71Z"/>
+    <path d="M123 64 98 71 90 64 98 57Z"/>
+    <path d="M21 21 43 34 45 45 34 43Z"/>
+    <path d="M107 21 94 43 83 45 85 34Z"/>
+    <path d="M21 107 34 85 45 83 43 94Z"/>
+    <path d="M107 107 85 94 83 83 94 85Z"/>
+  </g>
+
+  <!-- Core: ring and three-pronged gold flame from the parent brand mark. -->
+  <circle cx="64" cy="64" r="25" fill="#07121e" stroke="#0c2438" stroke-width="4"/>
+  <circle cx="64" cy="64" r="24" fill="none" stroke="url(#gold)" stroke-width="5"/>
+  <circle cx="64" cy="64" r="19.5" fill="#071222" stroke="#0d82cd" stroke-width="1.8"/>
+  <path d="M64 39 C67 48 73 50 73 58 C77 55 78 51 78 49 C88 62 82 82 66 87 C56 89 46 81 46 69 C46 61 49 57 52 53 C52 62 55 64 57 64 C55 56 59 46 64 39Z" fill="url(#gold)" stroke="#070d16" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M64 61 C65 67 71 71 69 77 C68 80 66 82 63 82 C57 82 55 77 57 73 C59 69 62 67 64 61Z" fill="#0b6fb6" stroke="#03101a" stroke-width="1.5"/>
+</svg>
