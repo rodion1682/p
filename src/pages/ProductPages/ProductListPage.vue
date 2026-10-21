@@ -1,7 +1,7 @@
 <template>
   <main class="products-page">
     <div class="products-page__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
     <button
@@ -32,11 +32,10 @@
     </Transition>
 
     <div class="products-page__top top _cnt">
-      <div class="top__decor _ibg-contain">
-        <img src="@/assets/img/product-list-decor.png" />
+      <div class="top__title _h4">
+        {{ $t('Card Store') }}
       </div>
-
-      <div class="top__controls">
+      <div class="top__content">
         <div class="top__switcher">
           <BaseButton
             type="button"
@@ -58,7 +57,18 @@
             {{ $t('Rent') }}
           </BaseButton>
         </div>
-
+        <BaseInput
+          v-model="filters.search"
+          class="top__search"
+          :class="{
+            content__search_filled: filters.search.trim().length > 0,
+          }"
+          :placeholder="$t('Search')"
+        >
+          <template #suffix>
+            <SvgIcon :icon="SearchIcon" class="top__search-icon" />
+          </template>
+        </BaseInput>
         <div class="top__dropdown">
           <div class="top__dropdown-label">
             {{ $t('Sort') }}
@@ -91,21 +101,6 @@
           </BaseDropdown>
         </div>
       </div>
-      <div class="top__title _h5">
-        {{ $t('Card Store') }}
-      </div>
-      <BaseInput
-        v-model="filters.search"
-        class="top__search"
-        :class="{
-          content__search_filled: filters.search.trim().length > 0,
-        }"
-        :placeholder="$t('Search')"
-      >
-        <template #suffix>
-          <SvgIcon :icon="SearchIcon" class="top__search-icon" />
-        </template>
-      </BaseInput>
     </div>
 
     <div class="products-page__inner _cnt">
@@ -143,7 +138,6 @@
                 :placeholder="!selectedHeroOption"
                 variant="aside"
                 bordered
-                absolute
               >
                 <template #default="{ close }">
                   <button
@@ -179,77 +173,92 @@
                 </template>
               </BaseDropdown>
             </div>
-
             <div class="aside__section filter-group">
-              <div class="filter-group__top">
-                <div class="filter-group__title">
-                  {{ $t('Price Range') }}
+              <div class="filter-group__title">
+                {{ $t('Price') }}
+              </div>
+
+              <BaseDropdown
+                class="aside__dropdown"
+                :label="$t('Price')"
+                :placeholder="!selectedHeroOption"
+                variant="aside"
+                bordered
+              >
+                <div v-if="false" class="filter-group__top">
+                  <div class="filter-group__title">
+                    {{ $t('Price Range') }}
+                  </div>
+
+                  <div v-if="false" class="filter-group__info">
+                    {{ $t('from') }}
+                    {{ minPrice }}
+                    {{ $t('to') }}
+                    {{ maxPrice }}
+                  </div>
                 </div>
 
-                <div v-if="false" class="filter-group__info">
-                  {{ $t('from') }}
-                  {{ minPrice }}
-                  {{ $t('to') }}
-                  {{ maxPrice }}
+                <div v-if="false" class="filter-group__range price-slider">
+                  <div class="price-slider__track" />
+
+                  <div
+                    class="price-slider__progress"
+                    :style="priceRangeStyle"
+                  />
+
+                  <input
+                    v-model.number="minPrice"
+                    class="price-slider__input price-slider__input_min"
+                    type="range"
+                    :min="PRICE_MIN"
+                    :max="PRICE_MAX"
+                    :step="PRICE_STEP"
+                    :aria-label="$t('Minimum price')"
+                    @input="handleMinSliderChange"
+                  />
+
+                  <input
+                    v-model.number="maxPrice"
+                    class="price-slider__input price-slider__input_max"
+                    type="range"
+                    :min="PRICE_MIN"
+                    :max="PRICE_MAX"
+                    :step="PRICE_STEP"
+                    :aria-label="$t('Maximum price')"
+                    @input="handleMaxSliderChange"
+                  />
                 </div>
-              </div>
 
-              <div class="filter-group__range price-slider">
-                <div class="price-slider__track" />
+                <div class="filter-group__price">
+                  <BaseInput
+                    v-model="minPrice"
+                    class="filter-group__price-input"
+                    inputmode="decimal"
+                    :placeholder="$t('Min')"
+                    @input="handleMinInputChange"
+                  >
+                    <template #prefix>
+                      <PriceFormatter size="size-16" />
+                    </template>
+                  </BaseInput>
 
-                <div class="price-slider__progress" :style="priceRangeStyle" />
+                  <span class="filter-group__separator">-</span>
 
-                <input
-                  v-model.number="minPrice"
-                  class="price-slider__input price-slider__input_min"
-                  type="range"
-                  :min="PRICE_MIN"
-                  :max="PRICE_MAX"
-                  :step="PRICE_STEP"
-                  :aria-label="$t('Minimum price')"
-                  @input="handleMinSliderChange"
-                />
-
-                <input
-                  v-model.number="maxPrice"
-                  class="price-slider__input price-slider__input_max"
-                  type="range"
-                  :min="PRICE_MIN"
-                  :max="PRICE_MAX"
-                  :step="PRICE_STEP"
-                  :aria-label="$t('Maximum price')"
-                  @input="handleMaxSliderChange"
-                />
-              </div>
-
-              <div class="filter-group__price">
-                <BaseInput
-                  v-model="minPrice"
-                  class="filter-group__price-input"
-                  inputmode="decimal"
-                  :placeholder="$t('Min')"
-                  @input="handleMinInputChange"
-                >
-                  <template #prefix>
-                    <PriceFormatter size="size-16" />
-                  </template>
-                </BaseInput>
-
-                <span class="filter-group__separator">-</span>
-
-                <BaseInput
-                  v-model="maxPrice"
-                  class="filter-group__price-input"
-                  inputmode="decimal"
-                  :placeholder="$t('Max')"
-                  @input="handleMaxInputChange"
-                >
-                  <template #prefix>
-                    <PriceFormatter size="size-16" />
-                  </template>
-                </BaseInput>
-              </div>
+                  <BaseInput
+                    v-model="maxPrice"
+                    class="filter-group__price-input"
+                    inputmode="decimal"
+                    :placeholder="$t('Max')"
+                    @input="handleMaxInputChange"
+                  >
+                    <template #prefix>
+                      <PriceFormatter size="size-16" />
+                    </template>
+                  </BaseInput>
+                </div>
+              </BaseDropdown>
             </div>
+            <div class="aside__section filter-group"></div>
 
             <div class="aside__section filter-group">
               <h2 class="filter-group__title">
@@ -262,7 +271,6 @@
                 :placeholder="!selectedRarityOption"
                 variant="aside"
                 bordered
-                absolute
               >
                 <template #default="{ close }">
                   <button
@@ -310,7 +318,6 @@
                 :placeholder="!selectedTypeOption"
                 variant="aside"
                 bordered
-                absolute
               >
                 <template #default="{ close }">
                   <button
@@ -362,7 +369,6 @@
                 :placeholder="!selectedFrameTypeOption"
                 variant="aside"
                 bordered
-                absolute
               >
                 <template #default="{ close }">
                   <button
@@ -398,18 +404,31 @@
                 </template>
               </BaseDropdown>
             </div>
-
-            <BaseButton
-              type="button"
-              variant="bordered"
-              class="aside__submit"
-              @click="submitFilters"
-            >
-              {{ $t('Apply') }}
-            </BaseButton>
+            <div class="aside__bottom">
+              <BaseButton
+                type="button"
+                class="aside__submit"
+                variant="clear"
+                @click="resetFilters"
+              >
+                {{ $t('Clear') }}
+              </BaseButton>
+              <BaseButton
+                type="button"
+                class="aside__submit"
+                @click="submitFilters"
+              >
+                {{ $t('Apply') }}
+              </BaseButton>
+            </div>
           </div>
         </div>
-        <button type="button" class="aside__clear _link" @click="resetFilters">
+        <button
+          v-if="false"
+          type="button"
+          class="aside__clear _link"
+          @click="resetFilters"
+        >
           {{ $t('Сlear all') }}
         </button>
       </aside>
@@ -485,7 +504,6 @@
               :label="String(filters.perPage)"
               variant="aside"
               bordered
-              absolute
             >
               <template #default="{ close }">
                 <button
@@ -536,7 +554,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
-import { CloseIcon, SearchIcon } from '@/components/icons'
+import { CloseIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'

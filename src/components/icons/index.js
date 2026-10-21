@@ -259,6 +259,11 @@ export const SearchIcon = `
 <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M14.3269 14.44L17.8 17.8M8.8 4.6C10.7882 4.6 12.4 6.21177 12.4 8.2M16.68 8.84C16.68 13.1699 13.1699 16.68 8.84 16.68C4.51009 16.68 1 13.1699 1 8.84C1 4.51009 4.51009 1 8.84 1C13.1699 1 16.68 4.51009 16.68 8.84Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 </svg>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 0.5H26C29.0376 0.5 31.5 2.96243 31.5 6V26C31.5 29.0376 29.0376 31.5 26 31.5H6C2.96243 31.5 0.5 29.0376 0.5 26V6C0.5 2.96243 2.96243 0.5 6 0.5Z" stroke="currentColor"/>
+<path d="M22.7501 22.75L19.4951 19.495" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/>
+<path d="M21.25 15.25C21.25 18.5637 18.5637 21.25 15.25 21.25C11.9363 21.25 9.25 18.5637 9.25 15.25C9.25 11.9363 11.9363 9.25 15.25 9.25C18.5637 9.25 21.25 11.9363 21.25 15.25Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/>
+</svg>
 `
 
 export const PaginationArrowIcon = `

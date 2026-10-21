@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ArrowIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | bordered | play | discover | back
+  variant: { type: String, default: 'primary' }, // primary | bordered | play | discover | back | clear
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -183,6 +183,18 @@ const buttonClasses = computed(() => [
         .btn__icon_arrow {
           color: var(--hint-primary-color);
         }
+      }
+    }
+  }
+  &.clear {
+    background-color: rgb(234, 67, 53, 0.1);
+    background-color: var(--bg-primary-color);
+
+    color: var(--error-color);
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: inherit;
+        background-color: var(--bg-primary-color);
       }
     }
   }
