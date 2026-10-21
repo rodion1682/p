@@ -232,7 +232,9 @@ onMounted(() => {
   }
 
   &__content {
+    display: flex;
     flex: 0 1 59%;
+    flex-direction: column;
   }
 
   &__title {
@@ -347,9 +349,14 @@ onMounted(() => {
   }
 
   &__loading {
+    margin: auto;
   }
 
   &__empty {
+    margin: auto;
+
+    color: var(--fifth-color);
+    text-align: center;
   }
 }
 </style>

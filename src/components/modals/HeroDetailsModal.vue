@@ -2,59 +2,57 @@
   <BaseModal
     :show="show"
     size="product"
-    class="hero-details-modal"
     labelledby="hero-details-title"
     :close-label="$t('Close modal')"
     @close="$emit('close')"
   >
-    <div v-if="hero" class="hero-details" :style="{ '--hero-accent': accent }">
-      <div class="hero-details__art">
-        <div class="hero-details__aura"></div>
-
-        <img
-          v-if="hero.image_plain || hero.image_with_card"
-          :src="hero.image_plain || hero.image_with_card"
-          :alt="hero.name"
-        />
-      </div>
-
-      <div class="hero-details__body">
-        <p class="hero-details__overline">
-          {{ $t('CHAMPION OF ETERNITY') }}
-        </p>
-
-        <div v-if="element" class="hero-details__element">
+    <div v-if="hero" class="heros">
+      <div class="heros__inner _cnt-home">
+        <div class="heros__iamge _ibg-contain">
           <img
-            v-if="elementIcon"
-            :src="elementIcon"
-            alt=""
-            class="hero-details__element-icon"
+            v-if="hero.image_plain"
+            :src="hero.image_plain"
+            :alt="hero.name"
           />
-
-          <span>{{ $t(element) }}</span>
         </div>
 
-        <h2 id="hero-details-title" class="hero-details__name">
-          {{ hero.name }}
-        </h2>
+        <div class="heros__content">
+          <div class="heros__title _h4">
+            <div>{{ $t('FIVE CHAMPIONS.') }}</div>
+            <div>{{ $t('FIVE FORCES OF ETERNITY.') }}</div>
+          </div>
 
-        <p v-if="hero.short_description" class="hero-details__subtitle">
-          {{ hero.short_description }}
-        </p>
+          <div class="heros__style">
+            <div class="heros__style-icon _ibg-contain">
+              <img v-if="elementIcon" :src="elementIcon" alt="" />
+            </div>
 
-        <div v-if="hero.hero_power" class="hero-details__group">
-          <h3>{{ $t('Hero power') }}</h3>
-          <p>{{ hero.hero_power }}</p>
-        </div>
+            <div class="heros__style-label">
+              {{ hero.name }}
+            </div>
+          </div>
 
-        <div v-if="hero.description" class="hero-details__group">
-          <h3>{{ $t('Story') }}</h3>
-          <p>{{ hero.description }}</p>
-        </div>
+          <div class="heros__name">
+            <h2 id="hero-details-title" class="heros__name-large _h3">
+              {{ hero.name }}
+            </h2>
 
-        <div v-if="hero.playstyle" class="hero-details__group">
-          <h3>{{ $t('Playstyle') }}</h3>
-          <p>{{ hero.playstyle }}</p>
+            <div v-if="hero.hero_power" class="heros__name-small">
+              {{ hero.hero_power }}
+            </div>
+          </div>
+
+          <div v-if="hero.playstyle" class="heros__playstyle">
+            {{ hero.playstyle }}
+          </div>
+
+          <div v-if="hero.short_description" class="heros__desc">
+            {{ hero.short_description }}
+          </div>
+
+          <div v-if="hero.description" class="heros__desc">
+            {{ hero.description }}
+          </div>
         </div>
       </div>
     </div>
@@ -91,183 +89,113 @@ defineEmits(['close'])
 </script>
 
 <style lang="scss" scoped>
-:global(.hero-details-modal) {
-  border-color: #3b3635;
-  background: #090d17;
-}
+.heros {
+  @include adaptiveValue('padding-top', 64, 30);
+  @include adaptiveValue('padding-bottom', 83, 30);
 
-:global(.hero-details-modal .base-modal__frame) {
-  padding: 0;
-
-  background: #090d17;
-}
-
-:global(.hero-details-modal .base-modal__decor) {
-  display: none;
-}
-
-.hero-details {
-  display: grid;
-  grid-template-columns: 44% 56%;
-
-  min-height: 520px;
-
-  background:
-    radial-gradient(
-      circle at 20% 38%,
-      color-mix(in srgb, var(--hero-accent) 12%, transparent),
-      transparent 47%
-    ),
-    #090d17;
-
-  font-family: var(--font-open-sans, 'Open Sans', sans-serif);
-
-  &__art {
-    position: relative;
-
+  &__inner {
+    @include adaptiveValue('gap', 130, 20, 1370, 992, 1);
     display: flex;
-    overflow: hidden;
-    align-items: flex-end;
-    justify-content: center;
 
-    min-height: 520px;
+    max-width: 1370px;
+
+    @media (max-width: $md3) {
+      flex-direction: column-reverse;
+      gap: 10px;
+    }
   }
 
-  &__aura {
-    position: absolute;
-    top: 20%;
-    left: 15%;
+  &__iamge {
+    flex: 0 1 41%;
 
-    width: 70%;
-    aspect-ratio: 1;
+    aspect-ratio: 1 / 1.62;
 
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--hero-accent) 25%, transparent),
-      transparent 70%
-    );
+    @media (max-width: $md3) {
+      width: 100%;
+      max-width: 491px;
 
-    pointer-events: none;
-
-    filter: blur(35px);
+      margin: 0 auto;
+    }
   }
 
-  &__art img {
-    position: relative;
-
-    display: block;
-
-    width: 100%;
-    max-height: 580px;
-
-    object-fit: contain;
-    object-position: center bottom;
+  &__content {
+    flex: 0 1 59%;
   }
 
-  &__body {
-    align-self: center;
+  &__title {
+    @include adaptiveValue('font-size', 42, 19);
+    color: var(--sixth-color);
 
-    padding: 70px 52px 60px 26px;
-
-    color: #beb9b5;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 84, 18);
+    }
   }
 
-  &__overline {
-    margin: 0 0 24px;
-
-    color: #5c5e66;
-    font-family: var(--font-audiowide, 'Audiowide', sans-serif);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-  }
-
-  &__element {
+  &__style {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
 
-    margin-bottom: 12px;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 24, 18);
+    }
 
-    color: #aaa9ab;
-    font-size: 16px;
-  }
+    &-icon {
+      min-width: 29px;
+      height: 29px;
+    }
 
-  &__element-icon {
-    display: block;
-
-    width: 26px;
-    height: 26px;
-
-    object-fit: contain;
+    &-label {
+      @include adaptiveValue('font-size', 24, 20);
+      @include adaptiveValue('line-height', 33, 38);
+      color: var(---fifth-color);
+    }
   }
 
   &__name {
-    margin: 0;
-
-    color: #fefeef;
-    font-family: var(--font-audiowide, 'Audiowide', sans-serif);
-    font-size: clamp(34px, 4vw, 64px);
     font-weight: 400;
-    line-height: 1.3;
 
-    overflow-wrap: anywhere;
-  }
-
-  &__subtitle {
-    margin: 4px 0 32px;
-
-    color: #fefeef;
-    font-size: 21px;
-  }
-
-  &__group {
-    margin-top: 25px;
-
-    font-size: 15px;
-    line-height: 1.65;
-
-    h3 {
-      margin: 0 0 8px;
-
-      color: var(--hero-accent);
-      font-family: var(--font-audiowide, 'Audiowide', sans-serif);
-      font-size: 15px;
-      font-weight: 400;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 42, 18);
     }
 
-    p {
-      margin: 0;
-
-      white-space: pre-line;
+    @media (min-width: $md6) {
+      @include adaptiveValue('gap', 46, 20, 1370, 992, 1);
+      display: flex;
     }
-  }
 
-  @media (max-width: 767px) {
-    grid-template-columns: 1fr;
+    @media (max-width: $md6) {
+      text-align: left;
+    }
 
-    &__art {
-      min-height: 260px;
-      max-height: 330px;
+    &-large {
+      color: var(--third-color);
 
-      img {
-        max-height: 330px;
+      @media (min-width: $md6) {
+        line-height: 100%;
       }
     }
 
-    &__aura {
-      top: 10%;
-      left: 30%;
+    &-small {
+      @include adaptiveValue('font-size', 24, 20);
+      @include adaptiveValue('line-height', 33, 38);
+      align-self: flex-end;
 
-      width: 40%;
+      color: var(--third-color);
     }
+  }
 
-    &__body {
-      padding: 24px 22px 40px;
-    }
+  &__playstyle {
+    color: var(--fifth-color);
+    font-weight: 700;
 
-    &__subtitle {
-      margin-bottom: 20px;
+    &:not(:last-child) {
+      margin-bottom: 12px;
     }
+  }
+
+  &__desc {
+    color: var(--fifth-color);
   }
 }
 </style>

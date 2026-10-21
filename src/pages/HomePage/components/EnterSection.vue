@@ -91,16 +91,17 @@ const openPlayPage = () => {
   }
 
   &__subtitle {
+    @include adaptiveValue('font-size', 32, 20);
     color: var(--hint-fourth-color);
     text-shadow: 1px 1px 1px var(--bg-primary-color);
-    @media (max-width: $md6) {
-      flex: 1 1 100%;
-    }
     &_left {
       text-align: left;
     }
     &_right {
       text-align: right;
+    }
+    @media (max-width: $md6) {
+      flex: 1 1 100%;
     }
   }
 
