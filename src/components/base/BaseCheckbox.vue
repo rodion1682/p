@@ -222,21 +222,9 @@ function getPageTitle(page, fallback) {
   }
 
   &_bordered {
-    padding: 14px;
-
-    border: 1px solid var(--border-secondary-color, rgba(238, 201, 142, 0.23));
-    border-radius: 8px;
-    background: var(--bg-fourth-color, #252524);
   }
 
   &_secondary {
-    .base-checkbox__box {
-      background: var(--bg-fifth-color, #120b0b);
-    }
-
-    .base-checkbox__label {
-      color: var(--secondary-color, #ffffff);
-    }
   }
 }
 
@@ -253,11 +241,7 @@ function getPageTitle(page, fallback) {
   @media (any-hover: hover) {
     &:hover {
       .base-checkbox__box {
-        border-color: var(--hint-secondary-color);
-      }
-
-      .base-checkbox__box::before {
-        opacity: 0.14;
+        border-color: var(--hint-primary-color);
       }
     }
   }
@@ -295,26 +279,13 @@ function getPageTitle(page, fallback) {
   width: 24px;
   height: 24px;
 
-  border: 1px solid var(--border-priamry-color);
+  border: 1px solid var(--bg-third-color);
   border-radius: 6px;
-  background: var(--bg-secondary-color);
+  background: var(--bg-primary-color);
 
   transition: all 0.3s ease 0s;
-  &::before {
-    position: absolute;
-    inset: 0;
-
-    background: var(--third-color);
-    opacity: 0;
-
-    content: '';
-
-    transition: opacity 0.3s ease;
-  }
 
   &_checked {
-    background: var(--third-color);
-
     &::before {
       opacity: 1;
     }
@@ -334,19 +305,27 @@ function getPageTitle(page, fallback) {
   width: 12px;
   height: 12px;
 
+  color: var(--hint-primary-color);
+
   transform: translate(-50%, -50%);
 }
 
 .base-checkbox__label {
   display: inline;
 
-  color: var(--primary-color);
+  color: var(--fifth-color);
   font-size: 14px !important;
   font-weight: 400 !important;
   line-height: 120% !important;
   text-align: left;
 
   cursor: pointer;
+  :deep(a) {
+    color: var(--hint-primary-color) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 120% !important;
+  }
 }
 
 .base-checkbox__error {

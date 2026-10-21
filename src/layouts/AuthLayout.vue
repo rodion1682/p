@@ -1,10 +1,26 @@
 <template>
   <main class="auth">
     <div class="auth__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
     <div class="auth__inner _cnt">
+      <div class="auth__decor auth__decor_left _ibg-contain">
+        <img
+          v-if="!props.isRedDecor"
+          src="@/assets/img/blue-left-decor.png"
+          alt=""
+        />
+        <img v-else src="@/assets/img/red-left-decor.png" alt="" />
+      </div>
+      <div class="auth__decor auth__decor_right _ibg-contain">
+        <img
+          v-if="!props.isRedDecor"
+          src="@/assets/img/blue-right-decor.png"
+          alt=""
+        />
+        <img v-else src="@/assets/img/red-right-decor.png" alt="" />
+      </div>
       <div class="auth__form">
         <slot />
       </div>
@@ -12,84 +28,79 @@
   </main>
 </template>
 
-<script setup></script>
+<script setup>
+const props = defineProps({
+  isRedDecor: {
+    type: Boolean,
+    default: false,
+  },
+})
+</script>
 
 <style lang="scss" scoped>
 .auth {
-  @include adaptiveValue('padding-top', 140, 75);
-  @include adaptiveValue('padding-bottom', 100, 40);
+  @include adaptiveValue('padding-top', 150, 80);
+  @include adaptiveValue('padding-bottom', 100, 30);
 
   position: relative;
 
   display: flex;
-  overflow: hidden;
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  width: 100%;
-  min-width: 0;
-  min-height: 550px;
 
   background-color: var(--bg-primary-color);
 
   &__bg {
     position: absolute;
-    inset: 0;
-    z-index: 0;
+    top: 0;
+    left: 0;
 
     width: 100%;
     height: 100%;
 
     pointer-events: none;
-
-    img {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-
-      object-fit: cover;
-      object-position: center top;
-    }
   }
 
   &__inner {
     position: relative;
     z-index: 1;
 
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
     width: 100%;
-    min-width: 0;
+    max-width: 620px;
 
-    margin-top: auto;
-    margin-bottom: auto;
+    margin: auto;
+    @media (max-width: $md5) {
+      padding: 0px;
+    }
+  }
+
+  &__decor {
+    @include adaptiveValue('width', 189, 105);
+    position: absolute;
+    top: 0;
+    z-index: 5;
+
+    aspect-ratio: 1 / 0.82;
+
+    pointer-events: none;
+    &_left {
+      left: 0;
+
+      transform: translate(-10%, -20%);
+    }
+
+    &_right {
+      right: 0;
+
+      transform: translate(10%, -20%);
+    }
   }
 
   &__form {
     position: relative;
-
-    width: 100%;
-    min-width: 0;
-    max-width: 476px;
-
-    margin: 0 auto;
-  }
-
-  @media (max-width: $md4) {
-    min-height: 500px;
-
-    &__bg {
-      img {
-        object-position: center top;
-      }
-    }
+    z-index: 1;
   }
 }
 </style>

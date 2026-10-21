@@ -177,8 +177,9 @@ export const BackIcon = `
 `
 
 export const ArrowIcon = `
-<svg width="24" height="21" viewBox="0 0 24 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9.88893 19.6667L1.00004 10.3333L9.88893 1M1.00004 10.3333L22.3334 10.3333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 14.25L3.75 9L9 3.75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/>
+<path d="M14.25 9H3.75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/>
 </svg>
 `
 

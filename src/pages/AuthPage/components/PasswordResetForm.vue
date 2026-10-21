@@ -12,7 +12,7 @@
         {{ $t('LOG IN') }}
       </button>
     </div> -->
-    <div class="sign-in__title _h5">
+    <div class="sign-in__title sign-in__title_reset _h4">
       <div>{{ $t('Reset Your') }}</div>
       <div>{{ $t('Password') }}</div>
     </div>
@@ -27,17 +27,19 @@
       @submit.prevent="handlePasswordReset"
       class="sign-in__form sign-in__form_large"
     >
-      <BaseInput
-        v-model="email"
-        type="email"
-        name="email"
-        autocomplete="email"
-        icon="email"
-        :error="errorMessage"
-        :placeholder="$t('Email')"
-        required
-        class="sign-in__input"
-      />
+      <div class="sign-in__inputs sign-in__inputs_log">
+        <BaseInput
+          v-model="email"
+          type="email"
+          name="email"
+          autocomplete="email"
+          icon="email"
+          :error="errorMessage"
+          :placeholder="$t('Email')"
+          required
+          class="sign-in__input"
+        />
+      </div>
       <BaseButton
         :disabled="isLoading"
         type="submit"
@@ -51,9 +53,10 @@
         :disabled="isLoading"
         @click="backToSignIn"
         class="sign-in__back"
-        variant="bordered"
+        variant="back"
+        icon="arrow"
       >
-        {{ $t('Back') }}
+        {{ $t('Back to Login') }}
       </BaseButton>
     </form>
   </div>

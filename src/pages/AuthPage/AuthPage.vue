@@ -1,24 +1,21 @@
-<!-- AuthPage.vue -->
 <template>
-  <AuthLayout>
+  <AuthLayout :is-red-decor="activeForm === 'reset'">
     <div class="auth">
       <div class="auth__top">
-        <button @click="close()" class="auth__clsoe">
+        <button v-if="false" @click="close()" class="auth__clsoe">
           <SvgIcon :icon="CloseIcon" class="auth__clsoe-icon" />
         </button>
-        <div class="auth__box">
-          <div class="auth__content">
-            <SignInForm
-              v-if="activeForm === 'signin'"
-              @forgot-password="toggleForm('reset')"
-              @switch-form="toggleForm('signup')"
-            />
-            <SignUpForm
-              v-else-if="activeForm === 'signup'"
-              @switch-form="toggleForm('signin')"
-            />
-            <PasswordResetForm v-else @back-to-signin="toggleForm('signin')" />
-          </div>
+        <div class="auth__form">
+          <SignInForm
+            v-if="activeForm === 'signin'"
+            @forgot-password="toggleForm('reset')"
+            @switch-form="toggleForm('signup')"
+          />
+          <SignUpForm
+            v-else-if="activeForm === 'signup'"
+            @switch-form="toggleForm('signin')"
+          />
+          <PasswordResetForm v-else @back-to-signin="toggleForm('signin')" />
         </div>
       </div>
 
@@ -27,31 +24,27 @@
         class="auth__bottom"
       >
         <div v-if="activeForm === 'signup'" class="auth__box">
-          <div class="auth__content">
-            <div class="auth__title _h6">
-              {{ $t('Already have an account?') }}
-            </div>
-            <BaseButton
-              @click="toggleForm('signin')"
-              variant="bordered"
-              class="auth__button"
-              >{{ $t('Login') }}</BaseButton
-            >
+          <div class="auth__title">
+            {{ $t('Already have an account?') }}
           </div>
+          <BaseButton
+            @click="toggleForm('signin')"
+            variant="bordered"
+            class="auth__button"
+            >{{ $t('Login') }}</BaseButton
+          >
         </div>
         <div v-else-if="activeForm === 'signin'" class="auth__box">
-          <div class="auth__content">
-            <div class="auth__title _h6">
-              {{ $t("Don't have account?") }}
-            </div>
-            <BaseButton
-              @click="toggleForm('signup')"
-              variant="bordered"
-              class="auth__button"
-            >
-              {{ $t('Create Account') }}
-            </BaseButton>
+          <div class="auth__title">
+            {{ $t("Don't have account?") }}
           </div>
+          <BaseButton
+            @click="toggleForm('signup')"
+            variant="bordered"
+            class="auth__button"
+          >
+            {{ $t('REGISTER') }}
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -77,57 +70,33 @@ const FORM_TYPES = {
   signup: 'signup',
   reset: 'reset',
 }
-// Create an array of valid form types for easier validation
+
 const VALID_FORM_TYPES = Object.values(FORM_TYPES)
 
 const { t } = useI18n()
-const getFormTitle = () => {
-  if (activeForm.value === FORM_TYPES.signin) {
-    return t('Login')
-  } else if (activeForm.value === FORM_TYPES.signup) {
-    return t('Create new account')
-  } else if (activeForm.value === FORM_TYPES.reset) {
-    return t('Reset Password')
-  }
-}
 
-// const getFormDesc = () => {
-//   if (activeForm.value === FORM_TYPES.signin) {
-//     return t('Welcome back!')
-//   } else if (activeForm.value === FORM_TYPES.signup) {
-//     return t('Create your account!')
-//   }
-// }
-
-// Function to validate if a form type is valid
 function isValidFormType(formType) {
   return VALID_FORM_TYPES.includes(formType)
 }
 
-// Initialize with validated form type or fallback to signin
 const activeForm = ref(
   isValidFormType(route.query.form) ? route.query.form : FORM_TYPES.signin,
 )
-
-// Watch for route query changes and validate the form type
 watch(
   () => route.query.form,
   newForm => {
     if (newForm === undefined && route.path === '/auth') {
-      // If refreshed without query param, add it back
       router.replace({ name: 'Auth', query: { form: activeForm.value } })
     } else {
       activeForm.value = isValidFormType(newForm) ? newForm : FORM_TYPES.signin
     }
   },
-  { immediate: true }, // Run immediately on component creation
+  { immediate: true },
 )
 
 const toggleForm = form => {
   if (isValidFormType(form)) {
     activeForm.value = form
-
-    // Create a new query object without the existing form parameter
     // eslint-disable-next-line no-unused-vars
     const { form: _form, ...otherQueryParams } = route.query
 
@@ -137,14 +106,11 @@ const toggleForm = form => {
         query: { form, ...otherQueryParams },
       })
       .catch(err => {
-        // Handle navigation errors - usually happens with duplicated navigation
         console.error('Navigation error:', err)
       })
   } else {
-    // If invalid form type, default to signin
     activeForm.value = FORM_TYPES.signin
 
-    // Create a new query object without the existing form parameter
     // eslint-disable-next-line no-unused-vars
     const { form: _form, ...otherQueryParams } = route.query
 
@@ -160,9 +126,7 @@ const toggleForm = form => {
 }
 
 onMounted(() => {
-  // Ensure there's always a form query parameter
   if (route.path === '/auth' && !route.query.form) {
-    // Make a copy of the current query parameters
     const newQuery = { ...route.query, form: FORM_TYPES.signin }
 
     router
@@ -185,72 +149,52 @@ const close = () => {
 .auth {
   &__top,
   &__bottom {
-    @include adaptiveValue('border-radius', 10, 6);
-    position: relative;
-
-    padding: 5px;
-
-    border: 1px solid var(--border-secondary-color);
-    background-color: var(--bg-fourth-color);
+    @include adaptiveValue('border-radius', 22, 10);
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
     &:not(:last-child) {
-      margin-bottom: 10px;
+      @include adaptiveValue('margin-bottom', 12, 10);
     }
   }
+  &__top {
+    @include adaptiveValue('padding-top', 50, 30);
+    @include adaptiveValue('padding-bottom', 42, 10);
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+  &__form {
+    max-width: 328px;
 
-  &__clsoe {
-    @include adaptiveValue('min-width', 64, 40);
-    @include adaptiveValue('height', 64, 40);
-    @include adaptiveValue('top', 12, 2);
-    @include adaptiveValue('right', 12, 2);
-    position: absolute;
-    z-index: 1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: var(--hint-primary-color);
-
-    transition: color 0.3s ease 0s;
-    &-icon {
-      min-width: 24px;
-      height: 24px;
-    }
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--hint-secondary-color);
-      }
-    }
+    margin: 0 auto;
+  }
+  &__bottom {
+    @include adaptiveValue('padding-top', 18, 10);
+    @include adaptiveValue('padding-right', 50, 10);
+    @include adaptiveValue('padding-bottom', 18, 10);
+    @include adaptiveValue('padding-left', 50, 10);
   }
 
   &__box {
-    @include adaptiveValue('padding-top', 30, 10);
-    @include adaptiveValue('padding-bottom', 30, 10);
-    @include adaptiveValue('border-radius', 10, 6);
-    padding-right: 10px;
-    padding-left: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
 
-    border: 1px solid var(--border-secondary-color);
-    background-color: var(--bg-fifth-color);
-  }
-
-  &__content {
-    max-width: 384px;
-
-    margin: 0 auto;
-
-    text-align: center;
-  }
-
-  &__title {
-    color: var(--primary-color);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
+    width: 100%;
+    @media (max-width: $md8) {
+      flex-direction: column;
+      justify-content: center;
     }
   }
 
-  &__button {
+  &__title {
+    color: var(--fifth-color);
+    font-size: 14px;
+    line-height: 120%;
+  }
 
+  &__button {
+    max-width: 147px;
   }
 }
 </style>

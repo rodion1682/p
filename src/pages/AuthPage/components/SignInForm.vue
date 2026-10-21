@@ -1,8 +1,8 @@
 <template>
   <div class="sign-in sign-in_in">
-    <div class="sign-in__title sign-in__title_large _h5">{{ $t('Login') }}</div>
+    <div class="sign-in__title sign-in__title _h4">{{ $t('Login') }}</div>
     <form @submit.prevent="handleSignIn" class="sign-in__form">
-      <div class="sign-in__inputs">
+      <div class="sign-in__inputs sign-in__inputs_log">
         <BaseInput
           v-model="form.username"
           type="text"
@@ -23,13 +23,6 @@
         />
       </div>
 
-      <button
-        type="button"
-        @click="$emit('forgot-password')"
-        class="sign-in__forgot _link"
-      >
-        {{ $t('Forgot password?') }}
-      </button>
       <div v-if="error" class="sign-in__error _text-error">
         {{ error }}
       </div>
@@ -37,6 +30,13 @@
         <span v-if="isLoading">{{ $t('Signing in...') }}</span>
         <span v-else>{{ $t('LOGIN') }}</span></BaseButton
       >
+      <button
+        type="button"
+        @click="$emit('forgot-password')"
+        class="sign-in__forgot _link"
+      >
+        {{ $t('Forgot password?') }}
+      </button>
     </form>
   </div>
 </template>
@@ -133,55 +133,56 @@ const handleSignIn = async () => {
     @include adaptiveValue('padding-bottom', 58, 0);
   }
   &__title {
-    color: var(--secondary-color);
-    font-weight: 500;
+    color: var(--third-color);
+    font-weight: 400;
+    text-align: center;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 42, 18);
+    }
+    &_reset {
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 32, 18);
+      }
+    }
+  }
+  &__text {
+    color: var(--fifth-color);
+    font-size: 14px;
+    font-weight: 400;
     line-height: 120%;
     text-align: center;
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 32, 18);
     }
-    &_large {
-      &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 90, 18);
-      }
-    }
-  }
-  &__text {
-    color: var(--primary-color);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 120%;
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
   }
 
   &__form {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 131, 18);
-    }
   }
 
   &__inputs {
     &:not(:last-child) {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
+    }
+    &_log {
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 42, 22);
+      }
     }
   }
 
   &__input {
     &:not(:last-child) {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
   }
   &__forgot {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 20);
-    }
+    color: var(--hint-primary-color);
+    font-size: 14px;
+    font-weight: 400;
   }
   &__terms {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 20);
+      @include adaptiveValue('margin-bottom', 42, 22);
     }
   }
 
@@ -190,7 +191,7 @@ const handleSignIn = async () => {
 
     width: fit-content;
 
-    margin-left: auto;
+    margin: 0 auto;
   }
 
   &__error {
@@ -200,11 +201,14 @@ const handleSignIn = async () => {
   }
 
   &__submit {
+    max-width: 214px;
+
+    margin-right: auto;
+    margin-left: auto;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 42, 18);
+    }
     &_reset {
-      @include adaptiveValue('margin-top', 131, 18);
-      &:not(:last-child) {
-        margin-bottom: 16px;
-      }
     }
   }
   &__back {

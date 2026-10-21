@@ -80,9 +80,11 @@
     <HeroDetailsModal
       :show="isDetailsOpen"
       :hero="selectedHero"
+      :heroes="heroes"
       :accent="activeAccent"
       :element="getElementName(selectedHero)"
       :element-icon="getElementIcon(selectedHero)"
+      @select-hero="selectHeroById"
       @close="isDetailsOpen = false"
     />
   </div>
@@ -173,6 +175,16 @@ const activeAccent = computed(() => {
 
 function selectHero(index) {
   selectedIndex.value = index
+}
+
+function selectHeroById(heroId) {
+  const index = heroes.value.findIndex(
+    hero => Number(hero.id) === Number(heroId),
+  )
+
+  if (index !== -1) {
+    selectedIndex.value = index
+  }
 }
 
 function openHeroDetails() {

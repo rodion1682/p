@@ -314,38 +314,38 @@ const togglePasswordVisibility = () => {
   }
 
   &__control {
+    @include adaptiveValue('min-height', 44, 40);
     width: 100%;
-    min-height: 40px;
 
     margin: 0;
     padding-top: 5px;
-    padding-right: 12px;
+    padding-right: 16px;
     padding-bottom: 5px;
-    padding-left: 12px;
+    padding-left: 16px;
 
-    border: 1.5px solid var(--border-priamry-color);
+    border: 1px solid var(--bg-third-color);
     border-radius: 6px;
     outline: none;
-    background-color: var(--bg-secondary-color);
+    background-color: var(--bg-primary-color);
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 16px;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 100%;
 
     transition: all 0.3s ease;
 
     &::placeholder {
       opacity: 1;
 
-      color: var(--secondary-color);
+      color: var(--eight-color);
 
       transition: opacity 0.3s ease 0s;
     }
 
     &:focus {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
       &::placeholder {
         opacity: 0;
       }
@@ -363,11 +363,12 @@ const togglePasswordVisibility = () => {
     }
 
     &_with-prefix {
-      padding-left: 40px;
+      // @include adaptiveValue('padding-left', 44, 40);
+      padding-left: 16px;
     }
 
     &_with-suffix {
-      padding-right: 40px;
+      @include adaptiveValue('padding-right', 44, 40);
     }
 
     &_dark {
@@ -395,30 +396,30 @@ const togglePasswordVisibility = () => {
   }
 
   &__prefix {
-    left: 12px;
+    left: 16px;
 
     pointer-events: none;
     &-icon {
+      @include hide-item;
       min-width: 24px;
       height: 24px;
 
       opacity: 0.4;
 
-      color: var(--secondary-color);
+      color: var(--fourth-color);
 
       transition: color 0.3s ease 0s;
     }
   }
 
   &__suffix {
-    right: 12px;
+    right: 16px;
   }
 
   &__password-toggle {
-    right: 12px;
-
-    width: 40px;
-    height: 40px;
+    @include adaptiveValue('width', 44, 40);
+    @include adaptiveValue('height', 44, 40);
+    right: 16px;
 
     margin: 0;
     padding: 0;
@@ -426,7 +427,7 @@ const togglePasswordVisibility = () => {
     border: 0;
     background: transparent;
 
-    color: var(--secondary-color);
+    color: var(--fourth-color);
 
     cursor: pointer;
 

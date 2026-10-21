@@ -2,7 +2,7 @@
   <BaseModal
     :show="show"
     size="product"
-    labelledby="hero-details-title"
+    modal-class="heros-modal"
     :close-label="$t('Close modal')"
     @close="$emit('close')"
   >
@@ -11,6 +11,7 @@
         <div class="heros__iamge _ibg-contain">
           <img
             v-if="hero.image_plain"
+            :key="hero.id"
             :src="hero.image_plain"
             :alt="hero.name"
           />
@@ -37,7 +38,7 @@
               {{ hero.name }}
             </h2>
 
-            <div v-if="hero.hero_power" class="heros__name-small">
+            <div class="heros__name-small">
               {{ hero.hero_power }}
             </div>
           </div>
@@ -52,6 +53,30 @@
 
           <div v-if="hero.description" class="heros__desc">
             {{ hero.description }}
+          </div>
+
+          <div class="heros__cards">
+            <button
+              v-for="item in heroes"
+              :key="item.id"
+              type="button"
+              class="heros__card"
+              :class="{
+                heros__card_selected: Number(hero.id) === Number(item.id),
+              }"
+              :aria-label="`${$t('Select')} ${item.name}`"
+              :aria-pressed="Number(hero.id) === Number(item.id)"
+              @click="selectHero(item.id)"
+            >
+              <div class="heros__card-iamge _ibg-contain">
+                <img
+                  v-if="item.image_plain"
+                  :src="item.image_plain"
+                  :alt="item.name"
+                  loading="lazy"
+                />
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -71,6 +96,10 @@ defineProps({
     type: Object,
     default: null,
   },
+  heroes: {
+    type: Array,
+    default: () => [],
+  },
   accent: {
     type: String,
     default: '#f77936',
@@ -85,13 +114,17 @@ defineProps({
   },
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'select-hero'])
+
+function selectHero(heroId) {
+  emit('select-hero', heroId)
+}
 </script>
 
 <style lang="scss" scoped>
 .heros {
-  @include adaptiveValue('padding-top', 64, 30);
-  @include adaptiveValue('padding-bottom', 83, 30);
+  padding-top: 30px;
+  padding-bottom: 30px;
 
   &__inner {
     @include adaptiveValue('gap', 130, 20, 1370, 992, 1);
@@ -101,6 +134,9 @@ defineEmits(['close'])
 
     @media (max-width: $md3) {
       flex-direction: column-reverse;
+    }
+
+    @media (max-width: $md3) {
       gap: 10px;
     }
   }
@@ -119,7 +155,9 @@ defineEmits(['close'])
   }
 
   &__content {
+    display: flex;
     flex: 0 1 59%;
+    flex-direction: column;
   }
 
   &__title {
@@ -196,6 +234,66 @@ defineEmits(['close'])
 
   &__desc {
     color: var(--fifth-color);
+  }
+
+  &__cards {
+    @include adaptiveValue('margin-top', 124, 22);
+    display: flex;
+    flex-wrap: wrap;
+
+    @media (max-width: $md6) {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
+  &__card {
+    @include adaptiveValue('padding-left', 17, 10);
+    @include adaptiveValue('padding-right', 17, 10);
+    @include adaptiveValue('padding-top', 20, 10);
+    @include adaptiveValue('padding-bottom', 20, 10);
+
+    flex: 0 1 20%;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+    opacity: 0.5;
+
+    transition: all 0.3s ease 0s;
+
+    &_selected {
+      border-color: var(--hint-fifth-color);
+      opacity: 1;
+
+      pointer-events: none;
+    }
+
+    &-iamge {
+      width: 100%;
+      aspect-ratio: 1 / 1.5;
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--hint-fifth-color);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: $md6) {
+      flex: 0 1 33.333%;
+    }
+  }
+
+  &__loading {
+    margin: auto;
+  }
+
+  &__empty {
+    margin: auto;
+
+    color: var(--fifth-color);
+    text-align: center;
   }
 }
 </style>

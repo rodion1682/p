@@ -4,64 +4,51 @@
       <div
         v-if="props.show"
         class="base-modal"
-        :class="props.backdropClass"
+        :class="props.modalClass"
         role="presentation"
         @mousedown="handleBackdropClick"
       >
-        <div class="base-modal__layout">
-          <div v-if="$slots.hero" class="base-modal__hero" aria-hidden="true">
-            <slot name="hero" />
+        <div
+          ref="innerRef"
+          class="base-modal__inner"
+          :class="innerClasses"
+          :style="attrs.style"
+          role="dialog"
+          aria-modal="true"
+          :aria-describedby="props.describedby || undefined"
+          tabindex="-1"
+          @mousedown.stop
+        >
+          <div class="base-modal__decor base-modal__decor_left _ibg-contain">
+            <img src="@/assets/img/blue-left-decor.png" alt="" />
+          </div>
+          <div class="base-modal__decor base-modal__decor_right _ibg-contain">
+            <img src="@/assets/img/blue-right-decor.png" alt="" />
           </div>
 
-          <div
-            ref="innerRef"
-            class="base-modal__inner"
-            :class="innerClasses"
-            :style="attrs.style"
-            role="dialog"
-            aria-modal="true"
-            :aria-labelledby="props.labelledby || undefined"
-            :aria-describedby="props.describedby || undefined"
-            tabindex="-1"
-            @mousedown.stop
-          >
-            <div class="base-modal__decor _ibg-contain">
-              <img src="@/assets/img/modal-decor.png" alt="" />
+          <div class="base-modal__frame">
+            <button
+              v-if="!props.hideCloseButton"
+              type="button"
+              class="base-modal__close"
+              :class="props.closeButtonClass"
+              @click="handleClose"
+            >
+              <slot name="close-icon">
+                <SvgIcon :icon="CloseIcon" class="base-modal__close-icon" />
+              </slot>
+            </button>
+
+            <div
+              v-if="$slots.header"
+              class="base-modal__header"
+              :class="props.headerClass"
+            >
+              <slot name="header" />
             </div>
 
-            <div class="base-modal__frame">
-              <button
-                v-if="!props.hideCloseButton"
-                type="button"
-                class="base-modal__close"
-                :class="props.closeButtonClass"
-                :aria-label="props.closeLabel"
-                @click="handleClose"
-              >
-                <slot name="close-icon">
-                  <SvgIcon :icon="CloseIcon" class="base-modal__close-icon" />
-                </slot>
-              </button>
-
-              <div
-                v-if="$slots.header"
-                class="base-modal__header"
-                :class="props.headerClass"
-              >
-                <slot name="header" />
-              </div>
-
-              <div class="base-modal__content" :class="props.contentClass">
-                <slot />
-              </div>
-
-              <div
-                v-if="$slots.footer"
-                class="base-modal__footer"
-                :class="props.footerClass"
-              >
-                <slot name="footer" />
-              </div>
+            <div class="base-modal__content">
+              <slot />
             </div>
           </div>
         </div>
@@ -96,57 +83,12 @@ const props = defineProps({
     required: true,
   },
 
-  persistent: {
-    type: Boolean,
-    default: false,
-  },
-
   hideCloseButton: {
     type: Boolean,
     default: false,
   },
 
-  noRelative: {
-    type: Boolean,
-    default: false,
-  },
-
-  noOverflowHidden: {
-    type: Boolean,
-    default: false,
-  },
-
-  backdropClass: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  modalContainerClass: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  wrapperClasses: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  closeButtonClass: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  headerClass: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  contentClass: {
-    type: [String, Array, Object],
-    default: '',
-  },
-
-  footerClass: {
+  modalClass: {
     type: [String, Array, Object],
     default: '',
   },
@@ -157,21 +99,6 @@ const props = defineProps({
     validator: value => {
       return ['small', 'medium', 'large', 'product', 'full'].includes(value)
     },
-  },
-
-  closeLabel: {
-    type: String,
-    default: 'Close modal',
-  },
-
-  labelledby: {
-    type: String,
-    default: '',
-  },
-
-  describedby: {
-    type: String,
-    default: '',
   },
 })
 
@@ -185,16 +112,7 @@ let didLockScroll = false
 let previouslyFocusedElement = null
 
 const innerClasses = computed(() => {
-  return [
-    attrs.class,
-    props.modalContainerClass,
-    props.wrapperClasses,
-    `base-modal__inner_${props.size}`,
-    {
-      'base-modal__inner_static': props.noRelative,
-      'base-modal__inner_overflow-visible': props.noOverflowHidden,
-    },
-  ]
+  return [attrs.class, `base-modal__inner_${props.size}`]
 })
 
 const getScrollbarWidth = () => {
@@ -221,9 +139,6 @@ const lockScroll = () => {
   scrollLockState.count += 1
   didLockScroll = true
 
-  /*
-   * Another modal has already locked the page.
-   */
   if (scrollLockState.count > 1) {
     return
   }
@@ -351,6 +266,12 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+.heros-modal {
+  .base-modal__inner {
+    max-width: 1370px;
+  }
+}
+
 .base-modal {
   position: fixed;
   inset: 0;
@@ -365,50 +286,23 @@ defineExpose({
   width: 100%;
   height: 100%;
 
-  padding: 60px 20px;
+  background: var(--bg-primary-color);
 
-  background-color: rgb(0 0 0 / 50%);
-
-  -webkit-backdrop-filter: blur(64px);
-  backdrop-filter: blur(64px);
+  // -webkit-backdrop-filter: blur(64px);
+  // backdrop-filter: blur(64px);
 
   overscroll-behavior: contain;
 
   &__layout {
-    position: relative;
+    // position: relative;
 
-    width: 100%;
-    max-width: 1140px;
+    // width: 100%;
 
-    margin: auto;
+    // margin: auto;
 
-    pointer-events: none;
+    // pointer-events: none;
 
-    isolation: isolate;
-  }
-
-  &__hero {
-    position: absolute;
-    bottom: -10%;
-    left: -33%;
-    z-index: 2;
-
-    width: 49%;
-    aspect-ratio: 1 / 0.95;
-
-    pointer-events: none;
-
-    :deep(img) {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-
-      object-fit: contain;
-      object-position: center bottom;
-
-      filter: drop-shadow(0 15px 24px rgb(0 0 0 / 30%));
-    }
+    // isolation: isolate;
   }
 
   &__inner {
@@ -416,118 +310,42 @@ defineExpose({
     z-index: 1;
 
     width: 100%;
-    max-height: calc(100dvh - 120px);
+    max-height: calc(100dvh);
 
     margin: auto;
 
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 12px;
     outline: none;
-    background-color: var(--bg-fourth-color);
+    background-color: var(--bg-primary-color);
 
     pointer-events: auto;
-
-    &_small {
-      max-width: 448px;
-    }
-
-    &_medium {
-      max-width: 608px;
-    }
-
-    &_large {
-      max-width: 820px;
-    }
-
-    &_product {
-      max-width: 1144px;
-
-      background-color: var(--bg-primary-color);
-    }
-
-    &_full {
-      max-width: calc(100vw - 30px);
-    }
-
-    &_static {
-      position: static;
-    }
-
-    &_overflow-visible {
-      overflow: visible;
-    }
   }
 
   &__decor {
-    @include adaptiveValue('width', 216, 100);
-
-    position: absolute;
-    top: 0;
-    left: 50%;
-    z-index: 5;
-
-    aspect-ratio: 1 / 0.22;
-
-    pointer-events: none;
-
-    transform: translate(-50%, -100%);
+    @include hide-item;
   }
 
   &__frame {
-    @include adaptiveValue('padding-top', 24, 20);
-    @include adaptiveValue('padding-bottom', 24, 20);
-
     position: relative;
 
     overflow-x: hidden;
     overflow-y: auto;
 
     width: 100%;
-    max-height: calc(100dvh - 120px);
-
-    padding-right: 10px;
-    padding-left: 10px;
-
-    border-radius: 12px;
-    background-color: var(--bg-primary-colorr);
-
-    scrollbar-color: var(--border-secondary-color) transparent;
-    scrollbar-width: thin;
-
-    &::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      border-radius: 5px;
-      background-color: var(--border-secondary-color);
-    }
-  }
-
-  &__inner_product {
-    .base-modal__frame {
-      @include adaptiveValue('padding-top', 42, 24);
-      @include adaptiveValue('padding-bottom', 42, 24);
-      @include adaptiveValue('padding-left', 48, 16);
-      @include adaptiveValue('padding-right', 48, 16);
-
-      background-color: #191538;
-    }
+    max-height: calc(100dvh);
   }
 
   &__close {
-    @include adaptiveValue('top', 17, 12);
-    @include adaptiveValue('right', 17, 12);
-
     position: absolute;
+    top: 10px;
+    right: 10px;
     z-index: 10;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
 
     padding: 0;
 
@@ -535,17 +353,15 @@ defineExpose({
     outline: none;
     background: transparent;
 
-    color: var(--secondary-color);
+    color: var(--fourth-color);
 
     cursor: pointer;
 
-    transition: opacity 0.3s ease;
+    transition: color 0.3s ease 0s;
 
     @media (any-hover: hover) {
-      opacity: 0.5;
-
       &:hover {
-        opacity: 1;
+        color: var(--hint-primary-color);
       }
     }
   }
@@ -558,8 +374,7 @@ defineExpose({
   }
 
   &__header,
-  &__content,
-  &__footer {
+  &__content {
     position: relative;
     z-index: 1;
 
@@ -569,18 +384,6 @@ defineExpose({
 
   &__header:not(:last-child) {
     margin-bottom: clamp(20px, 3vw, 36px);
-  }
-
-  &__footer:not(:first-child) {
-    margin-top: clamp(20px, 3vw, 36px);
-  }
-
-  @media (max-width: $md2) {
-    &__hero {
-      left: -16%;
-
-      width: 35%;
-    }
   }
 
   @media (max-width: $md3) {
@@ -598,9 +401,6 @@ defineExpose({
     &__inner,
     &__frame {
       max-height: calc(100dvh - 70px);
-    }
-    &__hero {
-      @include hide-item;
     }
   }
 
@@ -635,10 +435,6 @@ defineExpose({
       }
     }
 
-    &__hero {
-      display: none;
-    }
-
     &__decor {
       width: 120px;
     }
@@ -649,8 +445,7 @@ defineExpose({
 .base-modal-fade-leave-active {
   transition: opacity 0.3s ease;
 
-  .base-modal__inner,
-  .base-modal__hero {
+  .base-modal__inner {
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
@@ -666,20 +461,13 @@ defineExpose({
 
     transform: translateY(15px) scale(0.98);
   }
-
-  .base-modal__hero {
-    opacity: 0;
-
-    transform: translateX(-15px);
-  }
 }
 
 .base-modal-fade-enter-to,
 .base-modal-fade-leave-from {
   opacity: 1;
 
-  .base-modal__inner,
-  .base-modal__hero {
+  .base-modal__inner {
     opacity: 1;
 
     transform: none;

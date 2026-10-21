@@ -12,7 +12,7 @@
         {{ $t('LOG IN') }}
       </button>
     </div> -->
-    <div class="sign-in__title _h5">{{ $t('Register') }}</div>
+    <div class="sign-in__title _h4">{{ $t('Register') }}</div>
     <form @submit.prevent="handleSignUp" class="sign-in__form">
       <div class="sign-in__inputs">
         <BaseInput
