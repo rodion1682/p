@@ -205,18 +205,30 @@ onMounted(() => {
 <style lang="scss" scoped>
 .heros {
   @include adaptiveValue('padding-top', 64, 30);
-  @include adaptiveValue('padding', 83, 30);
+  @include adaptiveValue('padding-bottom', 83, 30);
   &__inner {
     @include adaptiveValue('gap', 130, 20, 1370, 992, 1);
     display: flex;
 
     max-width: 1370px;
+    @media (max-width: $md3) {
+      flex-direction: column-reverse;
+    }
+    @media (max-width: $md3) {
+      gap: 10px;
+    }
   }
 
   &__iamge {
     flex: 0 1 41%;
 
     aspect-ratio: 1 / 1.62;
+    @media (max-width: $md3) {
+      width: 100%;
+      max-width: 491px;
+
+      margin: 0 auto;
+    }
   }
 
   &__content {
@@ -224,6 +236,7 @@ onMounted(() => {
   }
 
   &__title {
+    @include adaptiveValue('font-size', 42, 19);
     color: var(--sixth-color);
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 84, 18);
@@ -250,16 +263,22 @@ onMounted(() => {
   }
 
   &__name {
-    @include adaptiveValue('gap', 46, 20, 1370, 992, 1);
-    display: flex;
-
     font-weight: 400;
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 42, 18);
     }
+    @media (min-width: $md6) {
+      @include adaptiveValue('gap', 46, 20, 1370, 992, 1);
+      display: flex;
+    }
+    @media (max-width: $md6) {
+      text-align: left;
+    }
     &-large {
       color: var(--third-color);
-      line-height: 100%;
+      @media (min-width: $md6) {
+        line-height: 100%;
+      }
     }
 
     &-small {
@@ -287,6 +306,10 @@ onMounted(() => {
     @include adaptiveValue('margin-top', 124, 22);
     display: flex;
     flex-wrap: wrap;
+    @media (max-width: $md6) {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 
   &__card {
@@ -301,12 +324,6 @@ onMounted(() => {
     opacity: 0.5;
 
     transition: all 0.3s ease 0s;
-    @media (any-hover: hover) {
-      &:hover {
-        border-color: var(--hint-fifth-color);
-        opacity: 1;
-      }
-    }
     &_selected {
       border-color: var(--hint-fifth-color);
       opacity: 1;
@@ -317,6 +334,15 @@ onMounted(() => {
     &-iamge {
       width: 100%;
       aspect-ratio: 1 / 1.5;
+    }
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--hint-fifth-color);
+        opacity: 1;
+      }
+    }
+    @media (max-width: $md6) {
+      flex: 0 1 33.333%;
     }
   }
 

@@ -1,35 +1,38 @@
 <template>
   <div class="build">
-    <div class="build__decor build__decor_top _ibg-contain">
-      <img src="@/assets/img/top-decor.png" />
-    </div>
-
-    <div class="build__decor build__decor_bottom _ibg-contain">
-      <img src="@/assets/img/bottom-decor.png" />
-    </div>
-    <div class="build__bg _ibg">
-      <img src="@/assets/img/build-bg.jpg" />
-    </div>
     <div class="build__inner _cnt-home">
-      <div class="build__image _ibg-contain">
-        <img src="@/assets/img/build.png" />
+      <div class="build__bg _ibg-contain">
+        <img src="@/assets/img/cards-bg.png" />
       </div>
-      <div class="build__content">
-        <div class="build__subtitle">{{ $t('CARD COLLECTION') }}</div>
-        <div class="build__title _h4">
-          <div>{{ $t('Build Your ') }}</div>
-          <div>{{ $t('Constellation') }}</div>
+      <div class="build__title _h4">
+        {{ $t('BUILD YOUR POWER.') }}
+      </div>
+      <div class="build__cards">
+        <div class="build__card _ibg-contain">
+          <img src="@/assets/img/cards-01.png" />
         </div>
-        <div class="build__text">
-          {{
-            $t(
-              'Build a deck around your hero, combine powerful cards and create strategies that evolve with every turn.',
-            )
-          }}
+        <div class="build__card _ibg-contain">
+          <img src="@/assets/img/cards-02.png" />
         </div>
-        <BaseButton class="build__button" @click="goToCardStore">
-          {{ $t('EXPLORE CARDS') }}
-        </BaseButton>
+        <div class="build__card _ibg-contain">
+          <img src="@/assets/img/cards-03.png" />
+        </div>
+        <div class="build__card _ibg-contain">
+          <img src="@/assets/img/cards-04.png" />
+        </div>
+        <div class="build__card _ibg-contain">
+          <img src="@/assets/img/cards-05.png" />
+        </div>
+      </div>
+      <BaseButton
+        variant="discover"
+        class="build__button"
+        @click="goToCardStore"
+      >
+        {{ $t('DISCOVER ETERNITY') }}
+      </BaseButton>
+      <div class="build__subtitle _h4">
+        {{ $t('SOME POWERS WERE NEVER MEANT TO AWAKEN.') }}
       </div>
     </div>
   </div>

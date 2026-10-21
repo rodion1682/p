@@ -1,6 +1,7 @@
 <script setup>
 import { useModalStore } from '@/stores/modal'
 import AboutSection from './components/AboutSection.vue'
+import BuildSection from './components/BuildSection.vue'
 import EnterSection from './components/EnterSection.vue'
 import HeroSection from './components/HeroSection.vue'
 import HeroesSection from './components/HeroesSection.vue'
@@ -17,4 +18,5 @@ const handleModalClose = () => {
   <AboutSection />
   <HeroesSection />
   <EnterSection />
+  <BuildSection />
 </template>
