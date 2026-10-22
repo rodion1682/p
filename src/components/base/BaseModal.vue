@@ -21,16 +21,11 @@
           @mousedown.stop
         >
           <div
-            v-if="props.variant === 'fullscreen'"
+            v-if="props.variant === 'dialog'"
             class="base-modal__decor base-modal__decor_left _ibg-contain"
+            aria-hidden="true"
           >
             <img src="@/assets/img/blue-left-decor.png" alt="" />
-          </div>
-          <div
-            v-if="props.variant === 'fullscreen'"
-            class="base-modal__decor base-modal__decor_right _ibg-contain"
-          >
-            <img src="@/assets/img/blue-right-decor.png" alt="" />
           </div>
 
           <div class="base-modal__frame">
@@ -336,7 +331,26 @@ defineExpose({
   }
 
   &__decor {
-    @include hide-item;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+
+    width: clamp(90px, 12vw, 150px);
+    aspect-ratio: 1 / 0.82;
+
+    pointer-events: none;
+
+    transform: translate(-10%, -20%);
+
+    img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: contain;
+    }
   }
 
   &__frame {

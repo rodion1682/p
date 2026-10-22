@@ -886,6 +886,12 @@ watch(
     grid-template-columns: minmax(0, 1fr);
 
     padding: 12px;
+    &__main {
+      padding-top: 50px;
+    }
+    &__sidebar {
+      padding-top: 10px;
+    }
     &__sidebar-title {
       margin-bottom: 18px;
     }
@@ -895,7 +901,7 @@ watch(
     }
   }
   @media (max-width: $md6) {
-    padding: 8px;
+    padding: 0px;
     &__fields {
       gap: 10px;
       grid-template-columns: minmax(0, 1fr);
