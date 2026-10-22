@@ -553,7 +553,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
-import { CloseIcon, SearchIcon } from '@/components/icons'
+import { CloseIcon, FilterIcon, SearchIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
@@ -565,9 +565,12 @@ import { useProductList } from '@/composables/useProductList'
 import { useHeroesStore } from '@/stores/heroes'
 import { useNavigationStore } from '@/stores/navigation'
 
+import { useRouter } from 'vue-router'
 import ProductDetailsModal from './modals/ProductDetailsModal.vue'
 
 const PRODUCT_DETAILS_MODAL_ACTIVE = false
+
+const router = useRouter()
 
 const heroesStore = useHeroesStore()
 const navigationStore = useNavigationStore()
@@ -648,59 +651,6 @@ function scheduleAsidePosition() {
     updateAsidePosition()
   })
 }
-
-const FilterIcon = `
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M4 6H20"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-    <path
-      d="M7 12H17"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-    <path
-      d="M10 18H14"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-    <circle
-      cx="8"
-      cy="6"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
-    />
-    <circle
-      cx="15"
-      cy="12"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
-    />
-    <circle
-      cx="12"
-      cy="18"
-      r="2"
-      fill="#07080e"
-      stroke="currentColor"
-      stroke-width="1.5"
-    />
-  </svg>
-`
 
 const PRICE_MIN = 0
 const PRICE_MAX = 1000

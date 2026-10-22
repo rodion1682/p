@@ -62,6 +62,59 @@ export const CartIcon = `
 </svg>
 `
 
+export const FilterIcon = `
+ <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M4 6H20"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+    <path
+      d="M7 12H17"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+    <path
+      d="M10 18H14"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+    <circle
+      cx="8"
+      cy="6"
+      r="2"
+      fill="#07080e"
+      stroke="currentColor"
+      stroke-width="1.5"
+    />
+    <circle
+      cx="15"
+      cy="12"
+      r="2"
+      fill="#07080e"
+      stroke="currentColor"
+      stroke-width="1.5"
+    />
+    <circle
+      cx="12"
+      cy="18"
+      r="2"
+      fill="#07080e"
+      stroke="currentColor"
+      stroke-width="1.5"
+    />
+  </svg>
+`
+
 export const TrashIcon = `
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M2 4H14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"/>
@@ -196,59 +249,6 @@ export const ArrowIcon = `
 export const CheckIcon = `
 <svg width="12" height="9" viewBox="0 0 12 9" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M10.7777 1.94975C11.1682 1.55922 11.1682 0.926031 10.7777 0.535534C10.3872 0.145037 9.75403 0.14501 9.36351 0.535534L4.24219 5.65685L2.12087 3.53553C1.73037 3.14504 1.09718 3.14501 0.706655 3.53553C0.316131 3.92606 0.316158 4.55925 0.706655 4.94975L3.53508 7.77817C3.92558 8.16867 4.55877 8.1687 4.9493 7.77817L10.7777 1.94975Z" fill="currentColor"/>
-</svg>
-`
-
-export const FilterIcon = `
-<svg
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <path
-    d="M4 6H20"
-    stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-  />
-  <path
-    d="M7 12H17"
-    stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-  />
-  <path
-    d="M10 18H14"
-    stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-  />
-  <circle
-    cx="8"
-    cy="6"
-    r="2"
-    fill="var(--bg-primary-color)"
-    stroke="currentColor"
-    stroke-width="1.5"
-  />
-  <circle
-    cx="15"
-    cy="12"
-    r="2"
-    fill="var(--bg-primary-color)"
-    stroke="currentColor"
-    stroke-width="1.5"
-  />
-  <circle
-    cx="12"
-    cy="18"
-    r="2"
-    fill="var(--bg-primary-color)"
-    stroke="currentColor"
-    stroke-width="1.5"
-  />
 </svg>
 `
 

@@ -5,10 +5,15 @@
     </div>
 
     <div class="product-page__back-row _cnt">
-      <button type="button" class="product-page__back" @click="goBack">
-        <span aria-hidden="true">←</span>
+      <BaseButton
+        type="button"
+        class="product-page__back"
+        @click="goBack"
+        variant="back"
+        icon="arrow"
+      >
         {{ isFromCollection ? $t('Back to collections') : $t('Back to store') }}
-      </button>
+      </BaseButton>
     </div>
 
     <div class="product-page__inner _cnt">
@@ -19,6 +24,7 @@
       <div v-else-if="error" class="product-page__state">
         <h1 class="_h4">{{ $t('Unable to load product') }}</h1>
         <p>{{ error }}</p>
+
         <BaseButton variant="bordered" @click="fetchProductData">
           {{ $t('Try again') }}
         </BaseButton>
@@ -32,6 +38,7 @@
             alt=""
             aria-hidden="true"
           />
+
           <img
             class="product-details-page__decor product-details-page__decor_bottom"
             src="@/assets/img/blue-left-decor.png"
@@ -40,58 +47,69 @@
           />
 
           <div class="product-details-page__card">
-            <img
-              v-if="currentProduct.image"
-              class="product-details-page__card-art"
-              :src="currentProduct.image"
-              :alt="currentProduct.name"
-            />
-            <img
-              v-if="currentProduct.image_2"
-              class="product-details-page__card-frame"
-              :src="currentProduct.image_2"
-              alt=""
-            />
-            <div class="product-details-page__card-name">{{ cardName }}</div>
+            <div class="product-details-page__card-background">
+              <img
+                :src="currentProduct.image_2 || defaultImage"
+                alt=""
+                class="product-details-page__card-background-image"
+                @error="handleImageError"
+              />
+            </div>
+
+            <div class="product-details-page__card-image-wrapper">
+              <img
+                :src="currentProduct.image || defaultImage"
+                :alt="cardName"
+                class="product-details-page__card-image"
+                @error="handleImageError"
+              />
+            </div>
+
+            <div v-if="cardName" class="product-details-page__card-name">
+              {{ cardName }}
+            </div>
+
             <div
               v-if="currentProduct.description"
               class="product-details-page__card-description"
-              v-html="currentProduct.description"
-            />
-            <span
+            >
+              <span v-html="currentProduct.description" />
+            </div>
+
+            <div
               v-if="hasValue(currentProduct.mana_cost)"
               class="product-details-page__card-stat product-details-page__card-stat_mana"
             >
               {{ currentProduct.mana_cost }}
-            </span>
-            <span
+            </div>
+
+            <div
               v-if="hasValue(currentProduct.attack)"
               class="product-details-page__card-stat product-details-page__card-stat_attack"
             >
               {{ currentProduct.attack }}
-            </span>
-            <span
+            </div>
+
+            <div
               v-if="hasValue(currentProduct.health)"
               class="product-details-page__card-stat product-details-page__card-stat_health"
             >
               {{ currentProduct.health }}
-            </span>
+            </div>
           </div>
         </div>
 
-        <section
-          class="product-details-page__content"
-          :aria-label="currentProduct.name"
-        >
+        <div class="product-details-page__content" :aria-label="cardName">
           <div class="product-details-page__main">
-            <h1 class="product-details-page__title _h4">
-              {{ currentProduct.name }}
-            </h1>
+            <div class="product-details-page__title _h6">
+              {{ cardName }}
+            </div>
 
             <div class="product-details-page__description">
               <div class="product-details-page__label">
                 {{ $t('Description:') }}
               </div>
+
               <div
                 class="product-details-page__description-text"
                 v-html="currentProduct.description || '—'"
@@ -128,6 +146,7 @@
               >
                 {{ $t('Sell card') }}
               </button>
+
               <button
                 type="button"
                 class="product-details-page__tab"
@@ -139,6 +158,7 @@
               >
                 {{ $t('Buy card') }}
               </button>
+
               <button
                 v-if="canRent"
                 type="button"
@@ -161,18 +181,23 @@
                   :price="currentProduct.price"
                   size="size-14"
                 />
+
                 <PriceFormatter
                   v-if="hasValue(totalPrice)"
                   class="product-details-page__price-value"
                   :price="totalPrice"
                   size="size-20"
                 />
+
                 <span v-else>—</span>
               </div>
 
               <div
                 v-if="purchaseMode !== 'rent'"
                 class="product-details-page__quantity"
+                :class="{
+                  'product-details-page__quantity_disabled': isInCart,
+                }"
               >
                 <button
                   type="button"
@@ -182,6 +207,7 @@
                 >
                   −
                 </button>
+
                 <input
                   v-model="quantity"
                   type="text"
@@ -191,6 +217,7 @@
                   @blur="normalizeQuantity"
                   @keydown.enter="normalizeQuantity"
                 />
+
                 <button
                   type="button"
                   :aria-label="$t('Increase quantity')"
@@ -209,6 +236,7 @@
                 v-else
                 class="product-details-page__rental"
                 :label="$t(selectedRentalPrice?.label || 'Select period')"
+                :disabled="isSubmitting || isInCart"
                 :placeholder="!selectedRentalPrice"
                 bordered
                 absolute
@@ -245,6 +273,7 @@
                   class="product-details-page__spinner"
                   aria-hidden="true"
                 />
+
                 <span v-else>{{ $t(actionLabel) }}</span>
               </button>
             </div>
@@ -256,12 +285,13 @@
               <template v-if="availabilityLoading">
                 {{ $t('Checking availability...') }}
               </template>
+
               <template v-else>
                 {{ $t('Available for sale') }}: {{ availableForSale }}
               </template>
             </div>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   </main>
@@ -272,6 +302,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import defaultImage from '@/assets/img/default-image.png'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
@@ -288,6 +319,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { t } = useI18n()
+
 const cartStore = useCartStore()
 const heroesStore = useHeroesStore()
 const productStore = useProductStore()
@@ -302,9 +334,11 @@ const rentalPeriodId = ref(null)
 const isSubmitting = ref(false)
 const availabilityLoading = ref(false)
 const availableForSale = ref(0)
+
 let activeRequestId = 0
 
 const currentProduct = computed(() => productStore.currentProduct)
+
 const cardName = computed(
   () =>
     currentProduct.value?.name ??
@@ -312,11 +346,15 @@ const cardName = computed(
     currentProduct.value?.title ??
     '',
 )
+
 const isFromCollection = computed(() => route.query.from === 'collection')
+
 const isRentedCollection = computed(() => route.query.collection === 'rented')
+
 const sellEnabled = computed(
   () => settingsStore.settings?.payouts?.offer_enabled === true,
 )
+
 const showSellTab = computed(
   () =>
     isFromCollection.value && !isRentedCollection.value && sellEnabled.value,
@@ -327,16 +365,60 @@ const rentalOptions = computed(() =>
     ? currentProduct.value.rental_prices
     : [],
 )
+
 const canRent = computed(() => rentalOptions.value.length > 0)
+
 const selectedRentalPrice = computed(() =>
   rentalOptions.value.find(
     period => String(period.rental_period_id) === String(rentalPeriodId.value),
   ),
 )
+
+const hasValue = value => value !== null && value !== undefined && value !== ''
+
+const displayValue = value => (hasValue(value) ? value : '—')
+
+const formatValue = value => {
+  if (!hasValue(value)) return '—'
+
+  const text = String(value).replaceAll('_', ' ').trim()
+
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+}
+
+const productStats = computed(() => [
+  {
+    label: 'Hero',
+    value: currentProduct.value?.hero?.name || '—',
+  },
+  {
+    label: 'Type',
+    value: formatValue(currentProduct.value?.type),
+  },
+  {
+    label: 'Rarity',
+    value: formatValue(currentProduct.value?.rarity),
+  },
+  {
+    label: 'Mana',
+    value: displayValue(currentProduct.value?.mana_cost),
+  },
+  {
+    label: 'Attack',
+    value: displayValue(currentProduct.value?.attack),
+  },
+  {
+    label: 'Health',
+    value: displayValue(currentProduct.value?.health),
+  },
+])
+
 const buyPrice = computed(() => {
   if (!hasValue(currentProduct.value?.price)) return null
+
   const regular = Number(currentProduct.value.price)
   const sale = Number(currentProduct.value?.sale_price)
+
   if (
     Number.isFinite(sale) &&
     sale > 0 &&
@@ -345,10 +427,13 @@ const buyPrice = computed(() => {
   ) {
     return sale
   }
+
   return Number.isFinite(regular) ? regular : null
 })
+
 const saleUnitPrice = computed(() => {
   const sale = Number(currentProduct.value?.sale_price)
+
   if (
     Number.isFinite(sale) &&
     sale >= 0 &&
@@ -356,12 +441,15 @@ const saleUnitPrice = computed(() => {
   ) {
     return sale
   }
+
   const regular = Number(currentProduct.value?.price ?? 0)
   const commission = Number(
     settingsStore.settings?.payouts?.card_sale_commission_percent ?? 0,
   )
+
   return Number((regular * (1 - commission / 100)).toFixed(2))
 })
+
 const hasOldPrice = computed(
   () =>
     purchaseMode.value === 'buy' &&
@@ -371,17 +459,25 @@ const hasOldPrice = computed(
     Number(currentProduct.value?.sale_price) <
       Number(currentProduct.value?.price),
 )
+
 const totalPrice = computed(() => {
-  if (purchaseMode.value === 'rent')
+  if (purchaseMode.value === 'rent') {
     return selectedRentalPrice.value?.price ?? null
+  }
+
   const unitPrice =
     purchaseMode.value === 'sell' ? saleUnitPrice.value : buyPrice.value
+
   return unitPrice === null
     ? null
     : Number((unitPrice * Math.max(1, Number(quantity.value) || 1)).toFixed(2))
 })
+
 const isInCart = computed(() => {
-  if (!currentProduct.value?.id || purchaseMode.value === 'sell') return false
+  if (!currentProduct.value?.id || purchaseMode.value === 'sell') {
+    return false
+  }
+
   if (purchaseMode.value === 'rent') {
     return rentalPeriodId.value
       ? cartStore.isItemInCart(
@@ -391,27 +487,15 @@ const isInCart = computed(() => {
         )
       : false
   }
+
   return cartStore.isItemInCart(currentProduct.value.id, 'card')
 })
-const hasValue = value => value !== null && value !== undefined && value !== ''
-const displayValue = value => (hasValue(value) ? value : '—')
-const formatValue = value => {
-  if (!hasValue(value)) return '—'
-  const text = String(value).replaceAll('_', ' ').trim()
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
-}
-const productStats = computed(() => [
-  { label: 'Hero', value: currentProduct.value?.hero?.name || '—' },
-  { label: 'Type', value: formatValue(currentProduct.value?.type) },
-  { label: 'Rarity', value: formatValue(currentProduct.value?.rarity) },
-  { label: 'Mana', value: displayValue(currentProduct.value?.mana_cost) },
-  { label: 'Attack', value: displayValue(currentProduct.value?.attack) },
-  { label: 'Health', value: displayValue(currentProduct.value?.health) },
-])
+
 const actionLabel = computed(() => {
-  if (purchaseMode.value === 'sell') return 'Sell card'
-  if (isInCart.value) return 'Remove from cart'
-  return purchaseMode.value === 'rent' ? 'Rent card' : 'Buy card'
+  if (purchaseMode.value === 'sell') return t('Sell card')
+  if (isInCart.value) return t('Remove')
+
+  return purchaseMode.value === 'rent' ? t('Rent card') : t('Buy card')
 })
 const actionDisabled = computed(
   () =>
@@ -423,47 +507,77 @@ const actionDisabled = computed(
     !hasValue(totalPrice.value),
 )
 
+function handleImageError(event) {
+  const image = event.currentTarget
+
+  if (!image.src.endsWith('/default-image.png')) {
+    image.src = defaultImage
+  }
+}
+
 function normalizeQuantity() {
   const parsed = Number.parseInt(String(quantity.value), 10)
+
   const value = Math.max(1, Number.isFinite(parsed) ? parsed : 1)
+
   quantity.value =
     purchaseMode.value === 'sell'
       ? Math.min(value, Math.max(1, availableForSale.value))
       : value
 }
+
 function increaseQuantity() {
   normalizeQuantity()
-  if (purchaseMode.value === 'sell' && quantity.value >= availableForSale.value)
+
+  if (
+    purchaseMode.value === 'sell' &&
+    quantity.value >= availableForSale.value
+  ) {
     return
+  }
+
   quantity.value = Number(quantity.value) + 1
 }
+
 function decreaseQuantity() {
   normalizeQuantity()
   quantity.value = Math.max(1, Number(quantity.value) - 1)
 }
+
 function setInitialRentalPeriod() {
   if (!canRent.value) {
     rentalPeriodId.value = null
     return
   }
-  if (!selectedRentalPrice.value)
+
+  if (!selectedRentalPrice.value) {
     rentalPeriodId.value = rentalOptions.value[0].rental_period_id
+  }
 }
+
 function setPurchaseMode(mode) {
   if (mode === 'rent' && !canRent.value) return
   if (mode === 'sell' && !showSellTab.value) return
+
   purchaseMode.value = mode
   quantity.value = 1
-  if (mode === 'rent') setInitialRentalPeriod()
+
+  if (mode === 'rent') {
+    setInitialRentalPeriod()
+  }
 }
+
 function selectRentalPeriod(periodId, close) {
   const period = rentalOptions.value.find(
     item => String(item.rental_period_id) === String(periodId),
   )
+
   if (!period) return
+
   rentalPeriodId.value = period.rental_period_id
   close?.()
 }
+
 function setInitialMode() {
   if (
     isFromCollection.value &&
@@ -480,16 +594,20 @@ function setInitialMode() {
     setPurchaseMode('buy')
   }
 }
+
 async function fetchAvailability() {
   if (!showSellTab.value || !currentProduct.value?.id) {
     availableForSale.value = 0
     return
   }
+
   availabilityLoading.value = true
+
   try {
     const { data } = await axios.get(
       `/players/me/cards/${currentProduct.value.id}/available-for-sale`,
     )
+
     availableForSale.value = Math.max(
       0,
       Number(
@@ -499,9 +617,13 @@ async function fetchAvailability() {
           0,
       ),
     )
-    if (purchaseMode.value === 'sell') normalizeQuantity()
+
+    if (purchaseMode.value === 'sell') {
+      normalizeQuantity()
+    }
   } catch (availabilityError) {
     availableForSale.value = 0
+
     if (availabilityError?.response?.status !== 401) {
       toast.error(
         availabilityError?.response?.data?.message ||
@@ -513,17 +635,21 @@ async function fetchAvailability() {
     availabilityLoading.value = false
   }
 }
+
 async function fetchProductData() {
   const productId = route.params.productId
   const requestId = ++activeRequestId
+
   loading.value = true
   error.value = ''
   availableForSale.value = 0
+
   if (!productId) {
     error.value = 'Product ID is missing'
     loading.value = false
     return
   }
+
   try {
     await Promise.all([
       productStore.fetchProductDetails(productId),
@@ -532,27 +658,39 @@ async function fetchProductData() {
         ? Promise.resolve()
         : settingsStore.fetchSettings().catch(() => null),
     ])
+
     if (requestId !== activeRequestId) return
+
     quantity.value = 1
     rentalPeriodId.value = null
+
     setInitialMode()
-    if (showSellTab.value) await fetchAvailability()
+
+    if (showSellTab.value) {
+      await fetchAvailability()
+    }
   } catch (fetchError) {
     if (requestId !== activeRequestId) return
+
     error.value =
       fetchError?.response?.data?.message ||
       fetchError?.message ||
       'Unable to load product details'
   } finally {
-    if (requestId === activeRequestId) loading.value = false
+    if (requestId === activeRequestId) {
+      loading.value = false
+    }
   }
 }
+
 function goBack() {
   router.push(
     isFromCollection.value
       ? {
           name: 'MyCardsPage',
-          query: { collection: isRentedCollection.value ? 'rented' : 'bought' },
+          query: {
+            collection: isRentedCollection.value ? 'rented' : 'bought',
+          },
         }
       : {
           name: 'ProductListPage',
@@ -560,39 +698,55 @@ function goBack() {
         },
   )
 }
+
 function redirectToLogin(message) {
   toast.warning(t(message))
+
   router.push({
     name: 'Auth',
-    query: { form: 'signin', redirect: route.fullPath || '/' },
+    query: {
+      form: 'signin',
+      redirect: route.fullPath || '/',
+    },
   })
 }
+
 async function handleSell() {
   normalizeQuantity()
-  if (!showSellTab.value || availableForSale.value < Number(quantity.value))
+
+  if (!showSellTab.value || availableForSale.value < Number(quantity.value)) {
     return
+  }
+
   try {
     const { data } = await axios.post('/offers/cards', {
       id: currentProduct.value.id,
       quantity: Number(quantity.value),
     })
+
     toast.success(data?.message || t('Sale offer created'))
+
     quantity.value = 1
+
     await Promise.all([
       fetchAvailability(),
       userStore.fetchProfile().catch(() => null),
     ])
   } catch (sellError) {
     const response = sellError?.response?.data
+
     if (response?.error_type === 'not_enough_cards') {
       availableForSale.value = Math.max(0, Number(response.available || 0))
+
       normalizeQuantity()
     }
+
     toast.error(
       response?.message || sellError?.message || t('Unable to sell card'),
     )
   }
 }
+
 async function handleCartAction() {
   if (isInCart.value) {
     const result = await cartStore.removeFromCart(
@@ -600,14 +754,20 @@ async function handleCartAction() {
       'card',
       purchaseMode.value === 'rent' ? rentalPeriodId.value : null,
     )
-    if (!result?.success)
+
+    if (!result?.success) {
       throw new Error(
         result?.error || result?.message || t('Failed to remove item'),
       )
+    }
+
     toast.success(result.message || t('Item removed from cart'))
+
     return true
   }
+
   normalizeQuantity()
+
   const result =
     purchaseMode.value === 'rent'
       ? await cartStore.rentCard(currentProduct.value.id, rentalPeriodId.value)
@@ -616,33 +776,46 @@ async function handleCartAction() {
           Number(quantity.value),
           'card',
         )
+
   if (result?.isUnauthorized) {
     redirectToLogin(
       purchaseMode.value === 'rent'
         ? 'Please login to rent a card'
         : 'Please login to add items to cart',
     )
+
     return false
   }
+
   if (!result?.success) {
     if (result?.isAlreadyInCart) {
       toast.warning(result.message || t('Item is already in cart'))
+
       return false
     }
+
     throw new Error(result?.message || t('Failed to add item to cart'))
   }
+
   toast.success(result.message || t('Item added to cart'))
+
   return true
 }
+
 async function handleAction() {
   if (actionDisabled.value) return
+
   isSubmitting.value = true
+
   try {
     if (purchaseMode.value === 'sell') {
       await handleSell()
     } else {
       const succeeded = await handleCartAction()
-      if (succeeded) await userStore.fetchProfile().catch(() => null)
+
+      if (succeeded) {
+        await userStore.fetchProfile().catch(() => null)
+      }
     }
   } catch (actionError) {
     toast.error(
@@ -656,32 +829,39 @@ async function handleAction() {
 }
 
 watch(() => route.params.productId, fetchProductData, { immediate: true })
+
 watch(
   () => [route.query.rent, route.query.from, route.query.collection],
   () => {
-    if (!loading.value && currentProduct.value) setInitialMode()
+    if (!loading.value && currentProduct.value) {
+      setInitialMode()
+    }
   },
 )
 </script>
 
 <style lang="scss" scoped>
 .product-page {
-  @include adaptiveValue('padding-top', 92, 68);
-  @include adaptiveValue('padding-bottom', 100, 40);
+  @include adaptiveValue('padding-top', 100, 80);
+  @include adaptiveValue('padding-bottom', 80, 30);
+
   position: relative;
 
-  min-height: 100dvh;
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+
+  min-height: 100%;
 
   &__bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
 
     pointer-events: none;
-
-    img {
-      object-position: center top;
-    }
   }
 
   &__back-row {
@@ -689,35 +869,15 @@ watch(
     z-index: 1;
 
     width: 100%;
+    @media (max-width: $md4) {
+      &:not(:last-child) {
+        margin-bottom: 18px;
+      }
+    }
   }
 
   &__back {
-    @include adaptiveValue('margin-bottom', 44, 24);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-
-    padding: 0;
-
-    border: 0;
-    background: transparent;
-
-    color: var(--seventh-color);
-    font-size: 13px;
-
-    cursor: pointer;
-
-    transition: color 0.3s ease;
-
-    span {
-      color: var(--fourth-color);
-      font-size: 22px;
-    }
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--hint-primary-color);
-      }
-    }
+    width: fit-content;
   }
 
   &__inner {
@@ -725,7 +885,9 @@ watch(
     z-index: 1;
 
     width: 100%;
-    max-width: 960px;
+    max-width: 1040px;
+
+    margin: auto;
   }
 
   &__state {
@@ -747,24 +909,30 @@ watch(
 }
 
 .product-details-page {
-  @include adaptiveValue('gap', 24, 16);
+  @include adaptiveValue('gap', 28, 10);
+
   display: grid;
-  align-items: stretch;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  align-items: center;
+  grid-template-columns: minmax(0, 0.74fr) minmax(0, 1.18fr);
 
   &__preview,
   &__content {
+    @include adaptiveValue('border-radius', 22, 10);
     position: relative;
 
     min-width: 0;
 
-    border-radius: 18px;
-    background: linear-gradient(135deg, #111624, #101523);
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
   }
 
   &__preview {
-    @include adaptiveValue('padding-top', 36, 24);
-    @include adaptiveValue('padding-bottom', 36, 24);
+    height: fit-content;
+  }
+
+  &__preview {
+    @include adaptiveValue('padding-top', 40, 30);
+    @include adaptiveValue('padding-bottom', 40, 30);
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -773,52 +941,50 @@ watch(
   }
 
   &__decor {
+    @include adaptiveValue('width', 133, 105);
     position: absolute;
     z-index: 3;
 
-    width: 165px;
-    max-width: 46%;
+    aspect-ratio: 1 / 0.82;
 
     pointer-events: none;
 
     &_top {
-      top: -14px;
-      left: -17px;
-    }
-    &_bottom {
-      right: -17px;
-      bottom: -15px;
+      top: 0;
+      left: 0;
 
-      transform: rotate(180deg);
+      transform: translate(-10%, -20%);
+    }
+
+    &_bottom {
+      right: 0;
+      bottom: 0px;
+
+      transform: translate(10%, 20%) rotate(180deg);
     }
   }
 
   &__card {
     position: relative;
 
-    width: min(80%, 270px);
-    aspect-ratio: 0.69;
+    width: min(80%, 278px);
+    aspect-ratio: 2 / 3;
 
     container-type: inline-size;
+
     filter: drop-shadow(0 12px 14px rgb(0 0 0 / 35%));
   }
 
-  &__card-art {
-    position: absolute;
-    top: 14%;
-    left: 11%;
-    z-index: 1;
-
-    width: 78%;
-    height: 48%;
-
-    object-fit: cover;
-  }
-
-  &__card-frame {
+  &__card-background {
     position: absolute;
     inset: 0;
-    z-index: 2;
+
+    width: 100%;
+    height: 100%;
+  }
+
+  &__card-background-image {
+    display: block;
 
     width: 100%;
     height: 100%;
@@ -826,45 +992,78 @@ watch(
     object-fit: contain;
   }
 
+  &__card-image-wrapper {
+    position: absolute;
+    top: 15.3%;
+    left: 50%;
+
+    width: 77%;
+    height: 45.5%;
+
+    transform: translateX(-50%);
+  }
+
+  &__card-image {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+  }
+
   &__card-name {
     position: absolute;
-    top: 58%;
-    left: 12%;
+    top: 9.25%;
+    left: 55%;
     z-index: 3;
 
     overflow: hidden;
 
-    width: 76%;
+    width: 65%;
+    height: fit-content;
+
+    padding: 0 5%;
 
     color: var(--fourth-color);
     font-family: var(--font-audiowide);
-    font-size: clamp(8px, 4.6cqi, 16px);
-    text-align: center;
+    font-size: clamp(6px, 5cqi, 14px);
+    font-weight: 400;
+    line-height: 1;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    pointer-events: none;
+
+    transform: translateX(-50%);
   }
 
   &__card-description {
     position: absolute;
-    top: 77%;
+    bottom: 11%;
     left: 50%;
-    z-index: 3;
+    z-index: 2;
 
-    display: -webkit-box;
+    display: flex;
     overflow: hidden;
+    align-items: center;
+    justify-content: center;
 
-    width: 64%;
-    max-height: 15%;
+    width: 56%;
+    height: 22%;
+
+    padding: 2%;
 
     color: var(--secondary-color);
-    font-size: clamp(7px, 3.4cqi, 12px);
+    font-family: var(--font-inter);
+    font-size: clamp(5px, 3.8cqi, 9px);
     line-height: 1.2;
     text-align: center;
 
     transform: translateX(-50%);
 
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
     :deep(p) {
       margin: 0;
     }
@@ -872,32 +1071,109 @@ watch(
 
   &__card-stat {
     position: absolute;
-    z-index: 4;
+    z-index: 2;
 
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    width: 11%;
+    width: 14%;
     aspect-ratio: 1;
 
     border-radius: 50%;
 
-    color: var(--fourth-color);
-    font-family: var(--font-audiowide);
-    font-size: clamp(10px, 7cqi, 22px);
-    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+    color: var(--primary-color);
+    font-family: var(--font-spectral);
+    font-size: clamp(14px, 10cqi, 28px);
+    font-weight: 700;
+    line-height: 135%;
+
+    paint-order: stroke fill;
+
+    -webkit-text-fill-color: var(--primary-color);
+    -webkit-text-stroke-width: clamp(1px, 0.8cqi, 2px);
 
     &_mana {
-      top: 4%;
-      left: 43%;
+      top: 6.4%;
+      left: 7.5%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #4fa9df 0%,
+        #2c8bc4 28%,
+        #176fa8 48%,
+        #07578b 68%,
+        #003b66 86%,
+        #002a4b 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(0 10 25 / 35%),
+        inset 0 3px 5px rgb(0 15 30 / 45%),
+        inset 0 -5px 8px rgb(0 8 20 / 75%),
+        inset 4px 0 6px rgb(0 12 28 / 40%),
+        inset -4px 0 6px rgb(0 12 28 / 40%),
+        0 1px 3px rgb(0 0 0 / 60%),
+        0 0 5px rgb(0 20 40 / 50%);
+
+      -webkit-text-stroke-color: #01588a;
     }
+
     &_attack {
-      bottom: 3%;
-      left: 5%;
+      right: 5.85%;
+      bottom: 5.5%;
+
+      width: 12%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #c44976 0%,
+        #a92e5d 28%,
+        #8c1e4b 48%,
+        #70123c 68%,
+        #52092e 86%,
+        #35051f 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(45 0 20 / 35%),
+        inset 0 3px 5px rgb(55 0 25 / 45%),
+        inset 0 -5px 8px rgb(35 0 18 / 75%),
+        inset 4px 0 6px rgb(45 0 22 / 40%),
+        inset -4px 0 6px rgb(45 0 22 / 40%),
+        0 1px 3px rgb(0 0 0 / 60%),
+        0 0 5px rgb(40 0 20 / 50%);
+
+      line-height: 110%;
+
+      -webkit-text-stroke-color: #72153e;
     }
+
     &_health {
-      right: 5%;
-      bottom: 3%;
+      bottom: 5.5%;
+      left: 5.85%;
+
+      width: 12%;
+
+      background: radial-gradient(
+        circle at 50% 42%,
+        #42a995 0%,
+        #268878 28%,
+        #146d62 48%,
+        #09564f 68%,
+        #03413e 86%,
+        #022d2d 100%
+      );
+      box-shadow:
+        inset 0 0 4px rgb(0 25 23 / 35%),
+        inset 0 3px 5px rgb(0 35 30 / 45%),
+        inset 0 -5px 8px rgb(0 18 20 / 75%),
+        inset 4px 0 6px rgb(0 25 25 / 40%),
+        inset -4px 0 6px rgb(0 25 25 / 40%),
+        0 1px 3px rgb(0 0 0 / 60%),
+        0 0 5px rgb(0 25 25 / 50%);
+
+      line-height: 110%;
+
+      -webkit-text-stroke-color: #07584f;
     }
   }
 
@@ -908,38 +1184,43 @@ watch(
   }
 
   &__main {
-    @include adaptiveValue('padding-top', 32, 22);
-    @include adaptiveValue('padding-left', 28, 16);
-    @include adaptiveValue('padding-right', 28, 16);
-    @include adaptiveValue('padding-bottom', 26, 20);
+    @include adaptiveValue('padding-top', 40, 10);
+    @include adaptiveValue('padding-left', 32, 10);
+    @include adaptiveValue('padding-right', 32, 10);
+    @include adaptiveValue('padding-bottom', 40, 10);
     flex: 1 1 auto;
+
+    border-bottom-left-radius: 0px;
+
+    border-bottom-right-radius: 0px;
   }
 
   &__title {
-    @include adaptiveValue('font-size', 27, 22);
-    @include adaptiveValue('margin-bottom', 22, 15);
     color: var(--fourth-color);
-    font-family: var(--font-audiowide);
-    font-weight: 400;
-    line-height: 1.25;
     text-transform: none;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 22, 18);
+    }
   }
 
   &__label {
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 
-    color: var(--seventh-color);
+    color: var(--fifth-color);
     font-size: 12px;
+    font-weight: 600;
   }
 
   &__description {
-    @include adaptiveValue('margin-bottom', 22, 16);
+    @include adaptiveValue('margin-bottom', 20, 18);
   }
 
   &__description-text {
-    color: var(--secondary-color);
-    font-size: 13px;
-    line-height: 1.5;
+    color: var(--fourth-color);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 150%;
+
     :deep(p) {
       margin: 0;
     }
@@ -952,25 +1233,31 @@ watch(
   }
 
   &__stat {
-    @include adaptiveValue('padding', 15, 10);
+    @include adaptiveValue('padding-top', 16, 10);
+    @include adaptiveValue('padding-left', 20, 10);
+    @include adaptiveValue('padding-right', 20, 10);
+    @include adaptiveValue('padding-bottom', 16, 10);
+
+    @include adaptiveValue('border-radius', 12, 10);
+
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 11px;
 
     min-width: 0;
-    min-height: 70px;
 
-    border-radius: 10px;
     background: var(--bg-primary-color);
 
-    font-size: 13px;
+    font-size: 14px;
 
     span {
-      color: var(--seventh-color);
+      color: var(--fifth-color);
+      font-weight: 500;
     }
+
     strong {
       color: var(--fourth-color);
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
 
       overflow-wrap: anywhere;
@@ -978,32 +1265,36 @@ watch(
   }
 
   &__actions {
-    border-radius: 0 0 18px 18px;
     background: var(--bg-primary-color);
   }
 
   &__tabs {
-    @include adaptiveValue('padding-left', 28, 16);
-    @include adaptiveValue('padding-right', 28, 16);
+    @include adaptiveValue('padding-left', 32, 10);
+    @include adaptiveValue('padding-right', 32, 10);
+
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
 
   &__tab {
+    @include adaptiveValue('padding-left', 24, 10);
+    @include adaptiveValue('padding-right', 24, 10);
     position: relative;
 
     min-height: 40px;
 
-    padding: 8px 18px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 
     border: 0;
     background: transparent;
 
-    color: var(--seventh-color);
-    font-size: 13px;
+    color: var(--fifth-color);
+    font-size: 14px;
     font-weight: 700;
+    line-height: 100%;
     text-transform: uppercase;
 
     cursor: pointer;
@@ -1012,6 +1303,7 @@ watch(
 
     &_active {
       color: var(--hint-primary-color);
+
       &::after {
         position: absolute;
         right: 0;
@@ -1025,6 +1317,7 @@ watch(
         content: '';
       }
     }
+
     @media (any-hover: hover) {
       &:hover {
         color: var(--hint-primary-color);
@@ -1033,16 +1326,18 @@ watch(
   }
 
   &__purchase {
-    @include adaptiveValue('padding', 25, 16);
+    @include adaptiveValue('padding', 32, 10);
+
+    @include adaptiveValue('border-radius', 22, 10);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 15px;
 
-    min-height: 95px;
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
 
-    border-radius: 0 0 18px 18px;
-    background: var(--bg-fifth-color);
+    border-bottom-right-radius: 0px;
+    border-top-left-radius: 0px;
   }
 
   &__price {
@@ -1060,6 +1355,7 @@ watch(
     :deep(.price__number) {
       @include adaptiveValue('font-size', 22, 17);
     }
+
     :deep(.price__image) {
       order: -1;
     }
@@ -1082,7 +1378,11 @@ watch(
     border: 1px solid var(--border-priamry-color);
     border-radius: 6px;
     background: var(--bg-primary-color);
+    &_disabled {
+      opacity: 0.5;
 
+      cursor: not-allowed;
+    }
     button {
       flex: 0 0 32px;
 
@@ -1094,12 +1394,14 @@ watch(
       color: var(--fourth-color);
 
       cursor: pointer;
+
       &:disabled {
         opacity: 0.35;
 
         cursor: not-allowed;
       }
     }
+
     input {
       width: 34px;
       min-width: 0;
@@ -1129,8 +1431,8 @@ watch(
     align-items: center;
     justify-content: center;
 
-    width: 190px;
-    height: 54px;
+    width: 208px;
+    height: 56px;
 
     padding: 5px 20px;
 
@@ -1150,11 +1452,13 @@ watch(
     &_buy {
       background-image: url('@/assets/img/play-button-bg.png');
     }
+
     &:disabled {
       opacity: 0.5;
 
       cursor: not-allowed;
     }
+
     @media (any-hover: hover) {
       &:not(:disabled):hover {
         filter: brightness(1.25);
@@ -1183,12 +1487,15 @@ watch(
 
   @media (max-width: $md3) {
     grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+
     &__decor {
       width: 120px;
     }
+
     &__card {
       width: min(83%, 260px);
     }
+
     &__purchase {
       flex-wrap: wrap;
     }
@@ -1200,9 +1507,11 @@ watch(
     max-width: 520px;
 
     margin: 0 auto;
+
     &__preview {
       min-height: 470px;
     }
+
     &__card {
       width: min(62%, 270px);
     }
@@ -1212,23 +1521,29 @@ watch(
     &__preview {
       min-height: 390px;
     }
+
     &__card {
       width: min(68%, 245px);
     }
+
     &__decor {
       width: 100px;
     }
+
     &__stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
     &__purchase {
-      gap: 12px;
+      gap: 18px;
     }
+
     &__rental {
       flex: 1 1 140px;
 
       min-width: 0;
     }
+
     &__action {
       flex: 1 1 100%;
 
@@ -1237,6 +1552,7 @@ watch(
 
       margin: 0 auto;
     }
+
     &__tab {
       flex: 1 1 auto;
 
@@ -1258,11 +1574,13 @@ watch(
   text-align: left;
 
   cursor: pointer;
+
   &_selected {
     color: var(--hint-primary-color);
 
     pointer-events: none;
   }
+
   @media (any-hover: hover) {
     &:not(&_selected):hover {
       color: var(--hint-primary-color);
