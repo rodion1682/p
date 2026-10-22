@@ -32,11 +32,15 @@
     </Transition>
 
     <div class="collection-page__inner _cnt">
-      <div class="collection-page__aside-slot">
+      <div ref="asideSlotRef" class="collection-page__aside-slot">
         <aside
           id="collection-filters"
           class="collection-page__aside aside"
-          :class="{ aside_open: isFiltersOpen }"
+          :class="{
+            aside_open: isFiltersOpen,
+            aside_fixed: isAsideFixed,
+          }"
+          :style="asideFixedStyle"
           :aria-hidden="isFiltersMobile && !isFiltersOpen"
         >
           <div class="aside__header">
@@ -469,6 +473,7 @@ import { useProductList } from '@/composables/useProductList'
 import { useHeroesStore } from '@/stores/heroes'
 import { useNavigationStore } from '@/stores/navigation'
 
+import { onMounted } from 'vue'
 import MyProductCard from './components/MyProductCard.vue'
 import MyCardDetailsModal from './modals/MyCardDetailsModal.vue'
 
@@ -481,6 +486,85 @@ const heroesStore = useHeroesStore()
 
 const isMobileView = useMediaQuery('(max-width: 767.98px)')
 const isFiltersMobile = useMediaQuery('(max-width: 991.98px)')
+
+const asideSlotRef = ref(null)
+const isAsideFixed = ref(false)
+const asideFixedStyle = ref({})
+const asideSlotHeight = ref(0)
+
+const DESKTOP_BREAKPOINT = 992
+const HEADER_GAP = 12
+
+function updateAsidePosition() {
+  const slot = asideSlotRef.value
+  const aside = slot?.querySelector('.aside')
+  const contentTop = document.querySelector('.collection-page .content__top')
+
+  if (!slot || !aside || !contentTop) return
+
+  if (window.innerWidth < DESKTOP_BREAKPOINT) {
+    isAsideFixed.value = false
+    asideFixedStyle.value = {}
+    slot.style.height = ''
+    return
+  }
+
+  const header = document.querySelector('.header')
+
+  const headerBottom = header
+    ? Math.max(0, header.getBoundingClientRect().bottom)
+    : 0
+
+  const top = headerBottom + HEADER_GAP
+
+  const slotRect = slot.getBoundingClientRect()
+  const contentTopRect = contentTop.getBoundingClientRect()
+
+  if (!isAsideFixed.value) {
+    asideSlotHeight.value = aside.offsetHeight
+  }
+
+  const shouldUnstick = contentTopRect.top > top
+
+  if (shouldUnstick) {
+    isAsideFixed.value = false
+    asideFixedStyle.value = {}
+    slot.style.height = ''
+    return
+  }
+
+  slot.style.height = `${asideSlotHeight.value}px`
+
+  const pageBottom = slot.parentElement.getBoundingClientRect().bottom
+
+  const availableHeight = Math.max(120, window.innerHeight - top - HEADER_GAP)
+
+  const renderedHeight = Math.min(asideSlotHeight.value, availableHeight)
+
+  const fixedTop = Math.min(top, pageBottom - renderedHeight)
+
+  asideFixedStyle.value = {
+    top: `${fixedTop}px`,
+    left: `${slotRect.left}px`,
+    width: `${slotRect.width}px`,
+    minWidth: `${slotRect.width}px`,
+    maxWidth: `${slotRect.width}px`,
+    maxHeight: `${availableHeight}px`,
+  }
+
+  isAsideFixed.value = true
+}
+
+let asideFrame = null
+
+function scheduleAsidePosition() {
+  if (asideFrame !== null) return
+
+  asideFrame = window.requestAnimationFrame(() => {
+    asideFrame = null
+    updateAsidePosition()
+  })
+}
 
 const { isFiltersOpen } = storeToRefs(navigationStore)
 
@@ -915,7 +999,24 @@ watch(collectionMode, () => {
 
 onBeforeUnmount(() => {
   document.body.classList.remove('filters-drawer-open')
+
+  window.removeEventListener('scroll', scheduleAsidePosition)
+
+  window.removeEventListener('resize', scheduleAsidePosition)
+
+  if (asideFrame !== null) {
+    window.cancelAnimationFrame(asideFrame)
+  }
+
   closeFilters()
+})
+
+onMounted(() => {
+  window.addEventListener('scroll', scheduleAsidePosition, { passive: true })
+
+  window.addEventListener('resize', scheduleAsidePosition)
+
+  scheduleAsidePosition()
 })
 </script>
 
@@ -998,6 +1099,8 @@ onBeforeUnmount(() => {
     position: fixed;
     inset: 51px 0 0;
     z-index: 100;
+
+    display: none;
 
     width: 100%;
     height: calc(100dvh - 51px);
@@ -1156,6 +1259,21 @@ onBeforeUnmount(() => {
 
 .aside {
   height: fit-content;
+
+  @media (min-width: $md3) {
+    overflow-y: auto;
+
+    width: 100%;
+
+    transition: all 0.3s ease 0s;
+
+    overscroll-behavior-y: contain;
+
+    &.aside_fixed {
+      position: fixed;
+      z-index: 5;
+    }
+  }
 
   @media (max-width: $md3) {
     position: fixed;
