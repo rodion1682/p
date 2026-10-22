@@ -1,780 +1,1278 @@
 <template>
-  <div class="relative min-h-screen py-14 pb-[145px] pt-[124px]">
-    <div class="px-4">
-      <div
-        class="pointer-events-none absolute right-0 top-0 h-[60vw] w-full select-none bg-gradient-to-b from-[#00000099] to-[#000000]"
-      ></div>
-      <!-- Page Content Container -->
-      <div class="relative z-[1] mx-auto max-w-[1320px]">
-        <div v-if="loading" class="flex h-96 items-center justify-center">
-          <!-- <LoadingSpinner /> -->
-        </div>
-        <div
-          v-else-if="error"
-          class="flex h-96 items-center justify-center text-error"
-        >
-          <p>{{ error }}</p>
-        </div>
+  <main class="product-page">
+    <div class="product-page__bg _ibg" aria-hidden="true">
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
+    </div>
 
-        <div v-else>
-          <div class="">
-            <div class="mb-8 lg:mb-[36px]">
-              <div class="flex items-center gap-[36px]">
-                <button
-                  @click="router.back()"
-                  class="group relative h-[68px] w-[76px] transition duration-300 hover:text-accent"
-                >
-                  <div
-                    class="absolute left-0 top-0 h-full w-full bg-black opacity-[69%] blur-[12px]"
-                  ></div>
+    <div class="product-page__back-row _cnt">
+      <button type="button" class="product-page__back" @click="goBack">
+        <span aria-hidden="true">←</span>
+        {{ isFromCollection ? $t('Back to collections') : $t('Back to store') }}
+      </button>
+    </div>
 
-                  <span
-                    class="absolute left-[calc(50%+4px)] top-[calc(50%-1px)] -translate-x-1/2 -translate-y-1/2 opacity-[56%] transition duration-300 group-hover:opacity-100"
-                  >
-                  </span>
-                </button>
+    <div class="product-page__inner _cnt">
+      <div v-if="loading" class="product-page__state">
+        <LoadingSpinner />
+      </div>
 
-                <div class="text-[16px] font-medium opacity-40">
-                  {{ $t('Back') }}
-                </div>
-              </div>
-            </div>
+      <div v-else-if="error" class="product-page__state">
+        <h1 class="_h4">{{ $t('Unable to load product') }}</h1>
+        <p>{{ error }}</p>
+        <BaseButton variant="bordered" @click="fetchProductData">
+          {{ $t('Try again') }}
+        </BaseButton>
+      </div>
+
+      <div v-else-if="currentProduct" class="product-details-page">
+        <div class="product-details-page__preview">
+          <img
+            class="product-details-page__decor product-details-page__decor_top"
+            src="@/assets/img/blue-left-decor.png"
+            alt=""
+            aria-hidden="true"
+          />
+          <img
+            class="product-details-page__decor product-details-page__decor_bottom"
+            src="@/assets/img/blue-left-decor.png"
+            alt=""
+            aria-hidden="true"
+          />
+
+          <div class="product-details-page__card">
+            <img
+              v-if="currentProduct.image"
+              class="product-details-page__card-art"
+              :src="currentProduct.image"
+              :alt="currentProduct.name"
+            />
+            <img
+              v-if="currentProduct.image_2"
+              class="product-details-page__card-frame"
+              :src="currentProduct.image_2"
+              alt=""
+            />
+            <div class="product-details-page__card-name">{{ cardName }}</div>
             <div
-              class="relative flex min-h-[602px] flex-col items-center justify-between gap-8 rounded-[16px] bg-[#1A1A1AB8] py-10 pl-[18px] pr-[18px] lg:flex-row lg:gap-4 xl:pr-[86px]"
+              v-if="currentProduct.description"
+              class="product-details-page__card-description"
+              v-html="currentProduct.description"
+            />
+            <span
+              v-if="hasValue(currentProduct.mana_cost)"
+              class="product-details-page__card-stat product-details-page__card-stat_mana"
             >
-              <div class="relative h-[540px] w-full text-center lg:w-[406px]">
-                <div
-                  class="absolute left-1/2 top-1/2 mx-auto block h-[290px] w-[180px] -translate-x-1/2 -translate-y-1/2 scale-[1.9] transition duration-300"
-                >
-                  <img
-                    :src="currentProduct.image_2"
-                    alt="cardBg Image"
-                    class="absolute left-1/2 top-1/2 w-[210px] max-w-[unset] -translate-x-1/2 -translate-y-1/2 object-contain transition-opacity duration-300"
-                  />
-                  <img
-                    :src="currentProduct.image"
-                    alt="cardImg Image"
-                    class="absolute left-1/2 top-[40px] ml-[1px] w-[120px] max-w-[unset] -translate-x-1/2 object-contain transition-opacity duration-300"
-                  />
+              {{ currentProduct.mana_cost }}
+            </span>
+            <span
+              v-if="hasValue(currentProduct.attack)"
+              class="product-details-page__card-stat product-details-page__card-stat_attack"
+            >
+              {{ currentProduct.attack }}
+            </span>
+            <span
+              v-if="hasValue(currentProduct.health)"
+              class="product-details-page__card-stat product-details-page__card-stat_health"
+            >
+              {{ currentProduct.health }}
+            </span>
+          </div>
+        </div>
 
-                  <div
-                    class="absolute bottom-[40px] left-1/2 flex h-[70px] w-[100px] -translate-x-1/2 flex-col items-center justify-center text-[8px] leading-[120%] text-[#411E00]"
-                  >
-                    <span v-html="currentProduct.description" />
-                  </div>
-                  <div
-                    v-if="
-                      currentProduct.mana_cost ||
-                      currentProduct.mana_cost == '0'
-                    "
-                    class="absolute left-[14px] top-[24px] z-[2] flex h-[32px] w-[32px] items-center justify-center font-tertiary text-[24px] text-[#fff] [-webkit-text-stroke:2px_#01588A]"
-                  >
-                    {{ currentProduct.mana_cost }}
-                  </div>
-                  <div
-                    v-if="currentProduct.attack || currentProduct.attack == '0'"
-                    class="absolute bottom-[21px] left-[14px] z-[2] flex h-[32px] w-[32px] items-center justify-center font-tertiary text-[24px] text-[#fff] [-webkit-text-stroke:2px_#066508]"
-                  >
-                    {{ currentProduct.attack }}
-                  </div>
-                  <div
-                    v-if="currentProduct.health || currentProduct.health == '0'"
-                    class="absolute bottom-[21px] right-[14px] z-[2] flex h-[32px] w-[32px] items-center justify-center font-tertiary text-[24px] text-[#fff] [-webkit-text-stroke:2px_#7A0102]"
-                  >
-                    {{ currentProduct.health }}
-                  </div>
+        <section
+          class="product-details-page__content"
+          :aria-label="currentProduct.name"
+        >
+          <div class="product-details-page__main">
+            <h1 class="product-details-page__title _h4">
+              {{ currentProduct.name }}
+            </h1>
 
-                  <div
-                    v-if="currentProduct.type == 'spell'"
-                    class="absolute bottom-[108px] left-1/2 -translate-x-1/2"
-                  >
-                    <svg viewBox="0 0 500 200" class="h-auto w-full">
-                      <path
-                        id="curvePath2"
-                        fill="transparent"
-                        d="M50,90 Q250,160 450,140"
-                      />
-                      <text class="fill-current text-[46px]">
-                        <textPath
-                          href="#curvePath2"
-                          startOffset="50%"
-                          text-anchor="middle"
-                        >
-                          {{ currentProduct.name }}
-                        </textPath>
-                      </text>
-                    </svg>
-                  </div>
-                  <div
-                    v-else
-                    class="absolute bottom-[112px] left-1/2 -translate-x-1/2"
-                  >
-                    <svg viewBox="0 0 500 200" class="h-auto w-full">
-                      <path
-                        id="curvePath"
-                        fill="transparent"
-                        d="M50,150 Q250,100 450,150"
-                      />
-                      <text class="fill-current text-[46px]">
-                        <textPath
-                          href="#curvePath"
-                          startOffset="50%"
-                          text-anchor="middle"
-                        >
-                          {{ currentProduct.name }}
-                        </textPath>
-                      </text>
-                    </svg>
-                  </div>
-                </div>
+            <div class="product-details-page__description">
+              <div class="product-details-page__label">
+                {{ $t('Description:') }}
               </div>
+              <div
+                class="product-details-page__description-text"
+                v-html="currentProduct.description || '—'"
+              />
+            </div>
 
-              <div class="relative w-full flex-1">
-                <div class="flex flex-col">
-                  <div class="font-primary text-[40px]">
-                    {{ currentProduct.name }}
-                  </div>
-                  <div class="mb-[50px] mt-[46px] flex flex-col md:flex-row">
-                    <div class="flex flex-col md:w-[150px]">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Hero') }}
-                      </div>
-                      <div
-                        class="mt-2 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        {{ currentProduct.hero.name }}
-                      </div>
-                    </div>
-                    <div class="mt-4 flex flex-1 flex-col md:mt-0">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Type') }}
-                      </div>
-                      <div
-                        class="mt-2 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        {{ currentProduct.type }}
-                      </div>
-                    </div>
-                    <div class="mt-4 flex flex-1 flex-col md:mt-0">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Rarity') }}
-                      </div>
-                      <div
-                        class="mt-2 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        {{ currentProduct.rarity }}
-                      </div>
-                    </div>
-                    <div class="mt-4 flex flex-1 flex-col md:mt-0">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Mana') }}
-                      </div>
-                      <div
-                        class="mt-2 flex items-center gap-3 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        <span>
-                          {{
-                            currentProduct.mana_cost ||
-                            currentProduct.mana_cost == '0'
-                              ? currentProduct.mana_cost
-                              : '-'
-                          }}</span
-                        >
-                      </div>
-                    </div>
-                    <div class="mt-4 flex flex-1 flex-col md:mt-0">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Attack') }}
-                      </div>
-                      <div
-                        class="mt-2 flex items-center gap-3 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        <span>
-                          {{
-                            currentProduct.attack ||
-                            currentProduct.attack == '0'
-                              ? currentProduct.attack
-                              : '-'
-                          }}</span
-                        >
-                      </div>
-                    </div>
-                    <div class="mt-4 flex flex-col md:mt-0">
-                      <div class="text-sm font-medium opacity-60">
-                        <span>{{ $t('Health') }}</span>
-                      </div>
-                      <div
-                        class="mt-2 flex items-center gap-3 border-t-[2px] border-white/20 pt-2 text-sm font-medium md:mt-4 md:pt-4"
-                      >
-                        <span>
-                          {{
-                            currentProduct.health ||
-                            currentProduct.health == '0'
-                              ? currentProduct.health
-                              : '-'
-                          }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex flex-col md:flex-row">
-                    <div class="w-full md:w-[150px]">
-                      <div class="text-sm font-medium opacity-60">
-                        {{ $t('Description') }}:
-                      </div>
-                    </div>
-                    <div
-                      class="mt-3 flex-1 whitespace-pre-line text-sm font-medium md:mt-0"
-                      v-html="currentProduct.description"
-                    ></div>
-                  </div>
-                  <div
-                    class="mt-[46px] flex gap-5"
-                    v-if="
-                      myProducts &&
-                      settingsStore.settings?.payouts?.offer_enabled &&
-                      myProducts.find(item => item.card.id == currentProduct.id)
-                    "
-                  >
-                    <div class="group">
-                      <label
-                        class="relative flex cursor-pointer items-center gap-3"
-                      >
-                        <div
-                          class="h-6 w-6 rounded-[6px] border border-[#EEC98E3B] bg-[#30302F] shadow-[inset_0px_4px_4px_0px_#00000040]"
-                        >
-                          <transition name="fade"> </transition>
-                        </div>
-
-                        <input
-                          name="pageType"
-                          value="buy"
-                          type="radio"
-                          v-model="pageType"
-                          class="hidden"
-                        />
-
-                        <span class="text-base capitalize">
-                          {{ $t('Buy') }}
-                        </span>
-                      </label>
-                    </div>
-                    <div class="group">
-                      <label
-                        class="relative flex cursor-pointer items-center gap-3"
-                      >
-                        <div
-                          class="h-6 w-6 rounded-[6px] border border-[#EEC98E3B] bg-[#30302F] shadow-[inset_0px_4px_4px_0px_#00000040]"
-                        >
-                          <transition name="fade"> </transition>
-                        </div>
-
-                        <input
-                          name="pageType"
-                          value="sell"
-                          type="radio"
-                          v-model="pageType"
-                          class="hidden"
-                        />
-
-                        <span class="text-base capitalize">
-                          {{ $t('Sell') }}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                  <div
-                    class="relative z-[1] mt-[46px] flex flex-wrap items-center justify-between gap-5"
-                    :class="{
-                      'mt-0':
-                        myProducts &&
-                        settingsStore.settings?.payouts?.offer_enabled &&
-                        myProducts.find(
-                          item => item.card.id == currentProduct.id,
-                        ),
-                    }"
-                  >
-                    <div
-                      class="flex max-w-[406px] flex-1 flex-wrap items-center justify-between gap-5"
-                    >
-                      <div class="flex flex-col gap-4">
-                        <div class="text-sm font-medium opacity-60">
-                          {{ $t('Price') }}:
-                        </div>
-                        <div class="flex min-w-[150px] flex-col">
-                          <div
-                            v-if="
-                              currentProduct.old_price &&
-                              parseFloat(currentProduct.old_price) >
-                                parseFloat(displayPrice)
-                            "
-                            class="flex flex-col gap-2"
-                          >
-                            <span
-                              class="text-[14px] text-secondary line-through"
-                            >
-                              <PriceFormatter
-                                :price="currentProduct.old_price"
-                              />
-                            </span>
-                            <div v-if="pageType == 'buy'">
-                              <PriceFormatter
-                                :price="displayPrice"
-                                currencyClasses="size-[32px]"
-                                textClasses="text-[40px]"
-                                class="items-center !gap-4"
-                              />
-                            </div>
-                            <div v-if="pageType == 'sell'">
-                              <PriceFormatter
-                                :price="currentProduct.sale_price"
-                                currencyClasses="size-[32px]"
-                                textClasses="text-[40px]"
-                                class="items-center !gap-4"
-                              />
-                            </div>
-                          </div>
-                          <div v-else>
-                            <div v-if="pageType == 'buy'">
-                              <PriceFormatter
-                                :price="displayPrice"
-                                currencyClasses="size-[32px]"
-                                textClasses="text-[40px]"
-                                class="items-center !gap-4"
-                              />
-                            </div>
-                            <div v-if="pageType == 'sell'">
-                              <PriceFormatter
-                                :price="currentProduct.sale_price"
-                                currencyClasses="size-[32px]"
-                                textClasses="text-[40px]"
-                                class="items-center !gap-4"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="flex flex-col gap-4" v-if="!route.query.rent">
-                        <div class="text-sm font-medium opacity-60">
-                          {{ $t('Quantity') }}:
-                        </div>
-                        <div class="flex items-center gap-4">
-                          <BaseInput
-                            v-model="quantity"
-                            class="!w-[55px]"
-                            inputClasses="text-center  p-0"
-                          />
-                          <div class="flex items-center gap-[9px]">
-                            <button
-                              :disabled="quantity == 1"
-                              @click="decreaseQty()"
-                              class="opacity-[56%]"
-                              :class="[
-                                { '!opacity-20': quantity == 1 },
-                                {
-                                  'hover:text-accent hover:opacity-100':
-                                    quantity != 1,
-                                },
-                              ]"
-                            ></button>
-                            <button
-                              @click="increaseQty()"
-                              class="opacity-[56%] hover:text-accent hover:opacity-100"
-                            ></button>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="flex flex-col gap-4" v-if="route.query.rent">
-                        <div class="text-sm font-medium opacity-60">
-                          {{ $t('Rent Period') }}:
-                        </div>
-
-                        <div class="relative">
-                          <select
-                            class="h-[46px] w-full appearance-none rounded-[8px] border border-[#EEC98E3B] bg-[#30302F] px-4 pr-10 text-[16px] leading-[20px] text-primary shadow-[inset_0_4px_4px_0_rgba(0,0,0,0.25)]"
-                            v-model="rentalPeriodId"
-                          >
-                            <option
-                              v-for="item in cartStore?.rentalPeriods"
-                              :value="item.id"
-                              :key="item.id"
-                            >
-                              {{ item.label }}
-                            </option>
-                          </select>
-                          <svg
-                            class="absolute right-3 top-1/2 -translate-y-1/2"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            :class="[
-                              isOpen ? 'rotate-180' : '',
-                              'transition-transform',
-                            ]"
-                          >
-                            <path
-                              d="M6.84512 9.02666L11.2021 4.66963C11.6709 4.20088 11.6709 3.44385 11.2021 2.9751C10.7334 2.50635 9.97637 2.50635 9.50762 2.9751L5.99902 6.48604L2.49043 2.9751C2.02168 2.50635 1.26465 2.50635 0.795898 2.9751C0.327148 3.44385 0.327148 4.20088 0.795898 4.66963L5.15293 9.02666C5.61934 9.49307 6.37871 9.49307 6.84512 9.02666Z"
-                              fill="#fff"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      class="group relative h-[92px] w-[232px]"
-                      @click.stop="handleSell"
-                      :disabled="isLoading"
-                      v-if="
-                        !route.query.rent &&
-                        pageType == 'sell' &&
-                        myProducts &&
-                        settingsStore.settings?.payouts?.offer_enabled &&
-                        myProducts.find(
-                          item => item.card.id == currentProduct.id,
-                        )
-                      "
-                    >
-                      <span
-                        class="relative mx-auto inline-block"
-                        v-if="isLoading"
-                      >
-                        <span class="loading-spinner block w-5" />
-                      </span>
-                      <span
-                        v-else
-                        class="font-secondary text-[24px] transition duration-300 group-hover:text-accent"
-                      >
-                        <span class="mx-auto inline-block">
-                          {{ $t('SELL') }}
-                        </span>
-                      </span>
-                    </button>
-
-                    <button
-                      v-if="pageType == 'buy'"
-                      class="group relative h-[92px] w-[232px]"
-                      @click.stop="handleCartAction"
-                      :disabled="isLoading"
-                    >
-                      <span
-                        class="relative mx-auto inline-block"
-                        v-if="isLoading"
-                      >
-                        <span class="loading-spinner block w-5" />
-                      </span>
-                      <span
-                        v-else
-                        class="font-secondary text-[24px] transition duration-300 group-hover:text-accent"
-                      >
-                        <span
-                          v-if="
-                            cartStore.isItemInCart(currentProduct.id, 'card')
-                          "
-                          class="mx-auto inline-block"
-                        >
-                          {{ $t('REMOVE') }}
-                        </span>
-                        <span v-else>{{ $t('BUY') }}</span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
+            <div class="product-details-page__stats">
+              <div
+                v-for="stat in productStats"
+                :key="stat.label"
+                class="product-details-page__stat"
+              >
+                <span>{{ $t(stat.label) }}</span>
+                <strong>{{ stat.value }}</strong>
               </div>
             </div>
           </div>
-        </div>
+
+          <div class="product-details-page__actions">
+            <div
+              class="product-details-page__tabs"
+              role="group"
+              :aria-label="$t('Purchase mode')"
+            >
+              <button
+                v-if="showSellTab"
+                type="button"
+                class="product-details-page__tab"
+                :class="{
+                  'product-details-page__tab_active': purchaseMode === 'sell',
+                }"
+                :aria-pressed="purchaseMode === 'sell'"
+                @click="setPurchaseMode('sell')"
+              >
+                {{ $t('Sell card') }}
+              </button>
+              <button
+                type="button"
+                class="product-details-page__tab"
+                :class="{
+                  'product-details-page__tab_active': purchaseMode === 'buy',
+                }"
+                :aria-pressed="purchaseMode === 'buy'"
+                @click="setPurchaseMode('buy')"
+              >
+                {{ $t('Buy card') }}
+              </button>
+              <button
+                v-if="canRent"
+                type="button"
+                class="product-details-page__tab"
+                :class="{
+                  'product-details-page__tab_active': purchaseMode === 'rent',
+                }"
+                :aria-pressed="purchaseMode === 'rent'"
+                @click="setPurchaseMode('rent')"
+              >
+                {{ $t('Rent card') }}
+              </button>
+            </div>
+
+            <div class="product-details-page__purchase">
+              <div class="product-details-page__price">
+                <PriceFormatter
+                  v-if="hasOldPrice"
+                  class="product-details-page__old-price"
+                  :price="currentProduct.price"
+                  size="size-14"
+                />
+                <PriceFormatter
+                  v-if="hasValue(totalPrice)"
+                  class="product-details-page__price-value"
+                  :price="totalPrice"
+                  size="size-20"
+                />
+                <span v-else>—</span>
+              </div>
+
+              <div
+                v-if="purchaseMode !== 'rent'"
+                class="product-details-page__quantity"
+              >
+                <button
+                  type="button"
+                  :aria-label="$t('Decrease quantity')"
+                  :disabled="isSubmitting || Number(quantity) <= 1"
+                  @click="decreaseQuantity"
+                >
+                  −
+                </button>
+                <input
+                  v-model="quantity"
+                  type="text"
+                  inputmode="numeric"
+                  :aria-label="$t('Quantity')"
+                  :disabled="isSubmitting"
+                  @blur="normalizeQuantity"
+                  @keydown.enter="normalizeQuantity"
+                />
+                <button
+                  type="button"
+                  :aria-label="$t('Increase quantity')"
+                  :disabled="
+                    isSubmitting ||
+                    (purchaseMode === 'sell' &&
+                      Number(quantity) >= availableForSale)
+                  "
+                  @click="increaseQuantity"
+                >
+                  +
+                </button>
+              </div>
+
+              <BaseDropdown
+                v-else
+                class="product-details-page__rental"
+                :label="$t(selectedRentalPrice?.label || 'Select period')"
+                :placeholder="!selectedRentalPrice"
+                bordered
+                absolute
+              >
+                <template #default="{ close }">
+                  <button
+                    v-for="period in rentalOptions"
+                    :key="period.rental_period_id"
+                    type="button"
+                    class="dropdown-option"
+                    :class="{
+                      'dropdown-option_selected':
+                        String(period.rental_period_id) ===
+                        String(rentalPeriodId),
+                    }"
+                    @click="selectRentalPeriod(period.rental_period_id, close)"
+                  >
+                    {{ $t(period.label) }}
+                  </button>
+                </template>
+              </BaseDropdown>
+
+              <button
+                type="button"
+                class="product-details-page__action"
+                :class="{
+                  'product-details-page__action_buy': purchaseMode === 'buy',
+                }"
+                :disabled="actionDisabled"
+                @click="handleAction"
+              >
+                <span
+                  v-if="isSubmitting"
+                  class="product-details-page__spinner"
+                  aria-hidden="true"
+                />
+                <span v-else>{{ $t(actionLabel) }}</span>
+              </button>
+            </div>
+
+            <div
+              v-if="purchaseMode === 'sell'"
+              class="product-details-page__sale-note"
+            >
+              <template v-if="availabilityLoading">
+                {{ $t('Checking availability...') }}
+              </template>
+              <template v-else>
+                {{ $t('Available for sale') }}: {{ availableForSale }}
+              </template>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
-    <!-- <div class="relative mt-[64px]">
-      <ProductCarousel
-        v-if="carouselItems.length > 0"
-        title="Related Cards"
-        :products="carouselItems"
-      />
-    </div> -->
-  </div>
+  </main>
 </template>
 
 <script setup>
-import { useProductList } from '@/composables/useProductList'
-import { useToast } from '@/composables/useToast'
-import { useCartStore } from '@/stores/cart'
-import { useOfferFlowStore } from '@/stores/offerFlow'
-import { useProductStore } from '@/stores/product'
-import { useSettingsStore } from '@/stores/settings'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseDropdown from '@/components/base/BaseDropdown.vue'
+import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
+import { useToast } from '@/composables/useToast'
+import axios from '@/plugins/axios'
+import { useCartStore } from '@/stores/cart'
+import { useHeroesStore } from '@/stores/heroes'
+import { useProductStore } from '@/stores/product'
+import { useSettingsStore } from '@/stores/settings'
+import { useUserStore } from '@/stores/user'
 
-const { myProducts } = useProductList()
-
-const VITE_STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN
 const route = useRoute()
 const router = useRouter()
-const productStore = useProductStore()
-const cartStore = useCartStore()
 const toast = useToast()
-const offerFlowStore = useOfferFlowStore()
-const settingsStore = useSettingsStore()
 const { t } = useI18n()
-
-import { useUserStore } from '@/stores/user'
+const cartStore = useCartStore()
+const heroesStore = useHeroesStore()
+const productStore = useProductStore()
+const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
-const rentalPeriodId = ref(null)
-
-const rentalPrice = computed(() => {
-  const prices = currentProduct.value?.rental_prices
-  if (!prices?.length || !rentalPeriodId.value) {
-    return null
-  }
-  const match = prices.find(p => p.rental_period_id === rentalPeriodId.value)
-  return match ? parseFloat(match.price).toFixed(2) : null
-})
-
-const displayPrice = computed(() => {
-  if (route.query.rent && rentalPrice.value !== null) {
-    return rentalPrice.value
-  }
-  return currentProduct.value?.price
-})
-
 const loading = ref(true)
-const error = ref(null)
-const currentProduct = computed(() => productStore.currentProduct)
-const carouselItems = ref([])
+const error = ref('')
 const quantity = ref(1)
-const isLoading = ref(false)
-const pageType = ref('buy')
+const purchaseMode = ref('buy')
+const rentalPeriodId = ref(null)
+const isSubmitting = ref(false)
+const availabilityLoading = ref(false)
+const availableForSale = ref(0)
+let activeRequestId = 0
 
-watch(
-  () => cartStore.rentalPeriods,
-  periods => {
-    if (periods?.length && !rentalPeriodId.value) {
-      rentalPeriodId.value = periods[0].id
-    }
-  },
-  { immediate: true },
+const currentProduct = computed(() => productStore.currentProduct)
+const cardName = computed(
+  () =>
+    currentProduct.value?.name ??
+    currentProduct.value?.card_name ??
+    currentProduct.value?.title ??
+    '',
+)
+const isFromCollection = computed(() => route.query.from === 'collection')
+const isRentedCollection = computed(() => route.query.collection === 'rented')
+const sellEnabled = computed(
+  () => settingsStore.settings?.payouts?.offer_enabled === true,
+)
+const showSellTab = computed(
+  () =>
+    isFromCollection.value && !isRentedCollection.value && sellEnabled.value,
 )
 
-const fetchProductData = async () => {
-  try {
-    loading.value = true
-    const productId = route.params.productId
-    if (!productId) throw new Error('Product ID is missing')
-
-    await productStore.fetchProductDetails(productId)
-  } catch (err) {
-    error.value = err.message || 'Unable to load product details'
-  } finally {
-    loading.value = false
+const rentalOptions = computed(() =>
+  Array.isArray(currentProduct.value?.rental_prices)
+    ? currentProduct.value.rental_prices
+    : [],
+)
+const canRent = computed(() => rentalOptions.value.length > 0)
+const selectedRentalPrice = computed(() =>
+  rentalOptions.value.find(
+    period => String(period.rental_period_id) === String(rentalPeriodId.value),
+  ),
+)
+const buyPrice = computed(() => {
+  if (!hasValue(currentProduct.value?.price)) return null
+  const regular = Number(currentProduct.value.price)
+  const sale = Number(currentProduct.value?.sale_price)
+  if (
+    Number.isFinite(sale) &&
+    sale > 0 &&
+    Number.isFinite(regular) &&
+    sale < regular
+  ) {
+    return sale
   }
-}
-
-const increaseQty = async () => {
-  quantity.value = parseInt(quantity.value) + 1
-}
-const decreaseQty = async () => {
-  quantity.value = parseInt(quantity.value) - 1
-}
-
-async function handleSell() {
-  try {
-    isLoading.value = true
-    const { success, error: errorMsg } = await offerFlowStore.createOffer({
-      id: currentProduct.value.id,
-      quantity: quantity.value,
-    })
-    if (success) {
-      toast.success(t('We`ve received your sale offer!'))
-      await userStore.fetchProfile()
-    } else {
-      toast.error(errorMsg || t('Failed to create sale offer'))
-    }
-  } catch (err) {
-    toast.error(err.message || t('Failed to create sale offer'))
-  } finally {
-    isLoading.value = false
+  return Number.isFinite(regular) ? regular : null
+})
+const saleUnitPrice = computed(() => {
+  const sale = Number(currentProduct.value?.sale_price)
+  if (
+    Number.isFinite(sale) &&
+    sale >= 0 &&
+    currentProduct.value?.sale_price != null
+  ) {
+    return sale
   }
-  return
-}
-
-async function handleCartActionRent() {
-  try {
-    isLoading.value = true
-    const { success, isAlreadyInCart, message, isUnauthorized } =
-      await cartStore.rentCard(currentProduct.value.id, rentalPeriodId.value)
-
-    if (success) {
-      toast.success(message)
-      await userStore.fetchProfile()
-    } else {
-      if (isUnauthorized) {
-        toast.warning(t('Please login to rent a card'))
-        router.push({
-          name: 'Auth',
-          query: {
-            form: 'signin',
-            redirect: router.currentRoute.value.fullPath || '/',
-          },
-        })
-      } else if (isAlreadyInCart) {
-        toast.warning(message)
-      } else {
-        toast.error(message)
-      }
-    }
-  } catch (err) {
-    toast.error(err.message || t('Failed to add item to cart'))
-  } finally {
-    isLoading.value = false
+  const regular = Number(currentProduct.value?.price ?? 0)
+  const commission = Number(
+    settingsStore.settings?.payouts?.card_sale_commission_percent ?? 0,
+  )
+  return Number((regular * (1 - commission / 100)).toFixed(2))
+})
+const hasOldPrice = computed(
+  () =>
+    purchaseMode.value === 'buy' &&
+    Number.isFinite(Number(currentProduct.value?.price)) &&
+    Number.isFinite(Number(currentProduct.value?.sale_price)) &&
+    Number(currentProduct.value?.sale_price) > 0 &&
+    Number(currentProduct.value?.sale_price) <
+      Number(currentProduct.value?.price),
+)
+const totalPrice = computed(() => {
+  if (purchaseMode.value === 'rent')
+    return selectedRentalPrice.value?.price ?? null
+  const unitPrice =
+    purchaseMode.value === 'sell' ? saleUnitPrice.value : buyPrice.value
+  return unitPrice === null
+    ? null
+    : Number((unitPrice * Math.max(1, Number(quantity.value) || 1)).toFixed(2))
+})
+const isInCart = computed(() => {
+  if (!currentProduct.value?.id || purchaseMode.value === 'sell') return false
+  if (purchaseMode.value === 'rent') {
+    return rentalPeriodId.value
+      ? cartStore.isItemInCart(
+          currentProduct.value.id,
+          'card',
+          rentalPeriodId.value,
+        )
+      : false
   }
+  return cartStore.isItemInCart(currentProduct.value.id, 'card')
+})
+const hasValue = value => value !== null && value !== undefined && value !== ''
+const displayValue = value => (hasValue(value) ? value : '—')
+const formatValue = value => {
+  if (!hasValue(value)) return '—'
+  const text = String(value).replaceAll('_', ' ').trim()
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
+const productStats = computed(() => [
+  { label: 'Hero', value: currentProduct.value?.hero?.name || '—' },
+  { label: 'Type', value: formatValue(currentProduct.value?.type) },
+  { label: 'Rarity', value: formatValue(currentProduct.value?.rarity) },
+  { label: 'Mana', value: displayValue(currentProduct.value?.mana_cost) },
+  { label: 'Attack', value: displayValue(currentProduct.value?.attack) },
+  { label: 'Health', value: displayValue(currentProduct.value?.health) },
+])
+const actionLabel = computed(() => {
+  if (purchaseMode.value === 'sell') return 'Sell card'
+  if (isInCart.value) return 'Remove from cart'
+  return purchaseMode.value === 'rent' ? 'Rent card' : 'Buy card'
+})
+const actionDisabled = computed(
+  () =>
+    isSubmitting.value ||
+    !currentProduct.value?.id ||
+    (purchaseMode.value === 'sell' &&
+      (availabilityLoading.value || availableForSale.value < 1)) ||
+    (purchaseMode.value === 'rent' && !selectedRentalPrice.value) ||
+    !hasValue(totalPrice.value),
+)
 
-async function handleCartAction() {
-  if (cartStore.isItemInCart(currentProduct.value.id, 'card')) {
-    try {
-      isLoading.value = true
-      const { success, error: errorMsg } = await cartStore.removeFromCart(
-        currentProduct.value.id,
-        'card',
-        rentalPeriodId.value,
-      )
-
-      if (success) {
-        toast.success(t('Item removed from cart'))
-      } else {
-        toast.error(errorMsg || t('Failed to remove item'))
-      }
-    } catch (err) {
-      toast.error(err.message || t('Failed to remove item'))
-    } finally {
-      isLoading.value = false
-    }
+function normalizeQuantity() {
+  const parsed = Number.parseInt(String(quantity.value), 10)
+  const value = Math.max(1, Number.isFinite(parsed) ? parsed : 1)
+  quantity.value =
+    purchaseMode.value === 'sell'
+      ? Math.min(value, Math.max(1, availableForSale.value))
+      : value
+}
+function increaseQuantity() {
+  normalizeQuantity()
+  if (purchaseMode.value === 'sell' && quantity.value >= availableForSale.value)
+    return
+  quantity.value = Number(quantity.value) + 1
+}
+function decreaseQuantity() {
+  normalizeQuantity()
+  quantity.value = Math.max(1, Number(quantity.value) - 1)
+}
+function setInitialRentalPeriod() {
+  if (!canRent.value) {
+    rentalPeriodId.value = null
     return
   }
-
-  try {
-    isLoading.value = true
-    const { success, isAlreadyInCart, message, isUnauthorized } =
-      await cartStore.addToCart(
-        currentProduct.value.id,
-        quantity.value,
-        'card',
-        rentalPeriodId.value,
-      )
-
-    if (success) {
-      toast.success(message)
-    } else {
-      if (isUnauthorized) {
-        toast.warning(t('Please login to add items to cart'))
-        router.push({
-          name: 'Auth',
-          query: {
-            form: 'signin',
-            redirect: router.currentRoute.value.fullPath || '/',
-          },
-        })
-      } else if (isAlreadyInCart) {
-        toast.warning(message)
-      } else {
-        toast.error(message)
-      }
-    }
-  } catch (err) {
-    toast.error(err.message || t('Failed to add item to cart'))
-  } finally {
-    isLoading.value = false
+  if (!selectedRentalPrice.value)
+    rentalPeriodId.value = rentalOptions.value[0].rental_period_id
+}
+function setPurchaseMode(mode) {
+  if (mode === 'rent' && !canRent.value) return
+  if (mode === 'sell' && !showSellTab.value) return
+  purchaseMode.value = mode
+  quantity.value = 1
+  if (mode === 'rent') setInitialRentalPeriod()
+}
+function selectRentalPeriod(periodId, close) {
+  const period = rentalOptions.value.find(
+    item => String(item.rental_period_id) === String(periodId),
+  )
+  if (!period) return
+  rentalPeriodId.value = period.rental_period_id
+  close?.()
+}
+function setInitialMode() {
+  if (
+    isFromCollection.value &&
+    !isRentedCollection.value &&
+    showSellTab.value
+  ) {
+    setPurchaseMode('sell')
+  } else if (
+    (route.query.rent === '1' || isRentedCollection.value) &&
+    canRent.value
+  ) {
+    setPurchaseMode('rent')
+  } else {
+    setPurchaseMode('buy')
   }
 }
-
-const addToCart = async (navigate = false) => {
+async function fetchAvailability() {
+  if (!showSellTab.value || !currentProduct.value?.id) {
+    availableForSale.value = 0
+    return
+  }
+  availabilityLoading.value = true
   try {
-    const id = currentProduct.value.id
-    const { success, message, isUnauthorized } = await cartStore.addToCart(
-      id,
-      quantity.value,
+    const { data } = await axios.get(
+      `/players/me/cards/${currentProduct.value.id}/available-for-sale`,
     )
-    if (!success) {
-      if (isUnauthorized) {
-        toast.warning(t('Please login to add items to cart'))
-        router.push({
-          name: 'Auth',
-          query: {
-            form: 'signin',
-            redirect: router.currentRoute.value.fullPath || '/',
-          },
-        })
-        return
-      }
-      toast.error(message || 'Failed to add item to cart')
-    } else {
-      toast.success('Item added to cart!')
-      if (navigate) {
-        router.push({ name: 'CartPage' })
-      }
+    availableForSale.value = Math.max(
+      0,
+      Number(
+        data?.available_count ??
+          data?.data?.available_count ??
+          data?.payload?.available_count ??
+          0,
+      ),
+    )
+    if (purchaseMode.value === 'sell') normalizeQuantity()
+  } catch (availabilityError) {
+    availableForSale.value = 0
+    if (availabilityError?.response?.status !== 401) {
+      toast.error(
+        availabilityError?.response?.data?.message ||
+          availabilityError?.message ||
+          t('Unable to check card availability'),
+      )
     }
-  } catch (err) {
-    toast.error('Failed to add item to cart')
-    console.error('Add to cart error:', err)
+  } finally {
+    availabilityLoading.value = false
   }
 }
-
-const fetchProductsByCategory = async category => {
+async function fetchProductData() {
+  const productId = route.params.productId
+  const requestId = ++activeRequestId
+  loading.value = true
+  error.value = ''
+  availableForSale.value = 0
+  if (!productId) {
+    error.value = 'Product ID is missing'
+    loading.value = false
+    return
+  }
   try {
-    const safeCategory = category || 'cs2'
-    const params = {
-      category: safeCategory,
-      random: true,
-      limit: 20,
+    await Promise.all([
+      productStore.fetchProductDetails(productId),
+      heroesStore.ensureHeroes().catch(() => []),
+      settingsStore.settings
+        ? Promise.resolve()
+        : settingsStore.fetchSettings().catch(() => null),
+    ])
+    if (requestId !== activeRequestId) return
+    quantity.value = 1
+    rentalPeriodId.value = null
+    setInitialMode()
+    if (showSellTab.value) await fetchAvailability()
+  } catch (fetchError) {
+    if (requestId !== activeRequestId) return
+    error.value =
+      fetchError?.response?.data?.message ||
+      fetchError?.message ||
+      'Unable to load product details'
+  } finally {
+    if (requestId === activeRequestId) loading.value = false
+  }
+}
+function goBack() {
+  router.push(
+    isFromCollection.value
+      ? {
+          name: 'MyCardsPage',
+          query: { collection: isRentedCollection.value ? 'rented' : 'bought' },
+        }
+      : {
+          name: 'ProductListPage',
+          query: route.query.rent === '1' ? { mode: 'rent' } : {},
+        },
+  )
+}
+function redirectToLogin(message) {
+  toast.warning(t(message))
+  router.push({
+    name: 'Auth',
+    query: { form: 'signin', redirect: route.fullPath || '/' },
+  })
+}
+async function handleSell() {
+  normalizeQuantity()
+  if (!showSellTab.value || availableForSale.value < Number(quantity.value))
+    return
+  try {
+    const { data } = await axios.post('/offers/cards', {
+      id: currentProduct.value.id,
+      quantity: Number(quantity.value),
+    })
+    toast.success(data?.message || t('Sale offer created'))
+    quantity.value = 1
+    await Promise.all([
+      fetchAvailability(),
+      userStore.fetchProfile().catch(() => null),
+    ])
+  } catch (sellError) {
+    const response = sellError?.response?.data
+    if (response?.error_type === 'not_enough_cards') {
+      availableForSale.value = Math.max(0, Number(response.available || 0))
+      normalizeQuantity()
     }
-    await productStore.fetchRandomProducts(params)
-    carouselItems.value = productStore.randomProducts
-  } catch (error) {
-    console.error('Error fetching products by category:', error)
-    carouselItems.value = []
+    toast.error(
+      response?.message || sellError?.message || t('Unable to sell card'),
+    )
+  }
+}
+async function handleCartAction() {
+  if (isInCart.value) {
+    const result = await cartStore.removeFromCart(
+      currentProduct.value.id,
+      'card',
+      purchaseMode.value === 'rent' ? rentalPeriodId.value : null,
+    )
+    if (!result?.success)
+      throw new Error(
+        result?.error || result?.message || t('Failed to remove item'),
+      )
+    toast.success(result.message || t('Item removed from cart'))
+    return true
+  }
+  normalizeQuantity()
+  const result =
+    purchaseMode.value === 'rent'
+      ? await cartStore.rentCard(currentProduct.value.id, rentalPeriodId.value)
+      : await cartStore.addToCart(
+          currentProduct.value.id,
+          Number(quantity.value),
+          'card',
+        )
+  if (result?.isUnauthorized) {
+    redirectToLogin(
+      purchaseMode.value === 'rent'
+        ? 'Please login to rent a card'
+        : 'Please login to add items to cart',
+    )
+    return false
+  }
+  if (!result?.success) {
+    if (result?.isAlreadyInCart) {
+      toast.warning(result.message || t('Item is already in cart'))
+      return false
+    }
+    throw new Error(result?.message || t('Failed to add item to cart'))
+  }
+  toast.success(result.message || t('Item added to cart'))
+  return true
+}
+async function handleAction() {
+  if (actionDisabled.value) return
+  isSubmitting.value = true
+  try {
+    if (purchaseMode.value === 'sell') {
+      await handleSell()
+    } else {
+      const succeeded = await handleCartAction()
+      if (succeeded) await userStore.fetchProfile().catch(() => null)
+    }
+  } catch (actionError) {
+    toast.error(
+      actionError?.response?.data?.message ||
+        actionError?.message ||
+        t('Cart action failed'),
+    )
+  } finally {
+    isSubmitting.value = false
   }
 }
 
-watch(() => route.params.productId, fetchProductData)
-
-onMounted(async () => {
-  await fetchProductData()
-})
+watch(() => route.params.productId, fetchProductData, { immediate: true })
+watch(
+  () => [route.query.rent, route.query.from, route.query.collection],
+  () => {
+    if (!loading.value && currentProduct.value) setInitialMode()
+  },
+)
 </script>
 
-<style scoped>
-.loading-spinner {
-  @apply h-[20px] w-[20px] rounded-full border-2 border-b-transparent border-r-transparent border-t-accent;
-  animation: spin 1s linear infinite;
+<style lang="scss" scoped>
+.product-page {
+  @include adaptiveValue('padding-top', 92, 68);
+  @include adaptiveValue('padding-bottom', 100, 40);
+  position: relative;
+
+  min-height: 100dvh;
+
+  &__bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+
+    pointer-events: none;
+
+    img {
+      object-position: center top;
+    }
+  }
+
+  &__back-row {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+  }
+
+  &__back {
+    @include adaptiveValue('margin-bottom', 44, 24);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--seventh-color);
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: color 0.3s ease;
+
+    span {
+      color: var(--fourth-color);
+      font-size: 22px;
+    }
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--hint-primary-color);
+      }
+    }
+  }
+
+  &__inner {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 960px;
+  }
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+
+    min-height: 420px;
+
+    color: var(--fourth-color);
+    text-align: center;
+
+    .btn {
+      max-width: 180px;
+    }
+  }
 }
 
-@keyframes spin {
+.product-details-page {
+  @include adaptiveValue('gap', 24, 16);
+  display: grid;
+  align-items: stretch;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+
+  &__preview,
+  &__content {
+    position: relative;
+
+    min-width: 0;
+
+    border-radius: 18px;
+    background: linear-gradient(135deg, #111624, #101523);
+  }
+
+  &__preview {
+    @include adaptiveValue('padding-top', 36, 24);
+    @include adaptiveValue('padding-bottom', 36, 24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    isolation: isolate;
+  }
+
+  &__decor {
+    position: absolute;
+    z-index: 3;
+
+    width: 165px;
+    max-width: 46%;
+
+    pointer-events: none;
+
+    &_top {
+      top: -14px;
+      left: -17px;
+    }
+    &_bottom {
+      right: -17px;
+      bottom: -15px;
+
+      transform: rotate(180deg);
+    }
+  }
+
+  &__card {
+    position: relative;
+
+    width: min(80%, 270px);
+    aspect-ratio: 0.69;
+
+    container-type: inline-size;
+    filter: drop-shadow(0 12px 14px rgb(0 0 0 / 35%));
+  }
+
+  &__card-art {
+    position: absolute;
+    top: 14%;
+    left: 11%;
+    z-index: 1;
+
+    width: 78%;
+    height: 48%;
+
+    object-fit: cover;
+  }
+
+  &__card-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+  }
+
+  &__card-name {
+    position: absolute;
+    top: 58%;
+    left: 12%;
+    z-index: 3;
+
+    overflow: hidden;
+
+    width: 76%;
+
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-size: clamp(8px, 4.6cqi, 16px);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__card-description {
+    position: absolute;
+    top: 77%;
+    left: 50%;
+    z-index: 3;
+
+    display: -webkit-box;
+    overflow: hidden;
+
+    width: 64%;
+    max-height: 15%;
+
+    color: var(--secondary-color);
+    font-size: clamp(7px, 3.4cqi, 12px);
+    line-height: 1.2;
+    text-align: center;
+
+    transform: translateX(-50%);
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    :deep(p) {
+      margin: 0;
+    }
+  }
+
+  &__card-stat {
+    position: absolute;
+    z-index: 4;
+
+    display: grid;
+    place-items: center;
+
+    width: 11%;
+    aspect-ratio: 1;
+
+    border-radius: 50%;
+
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-size: clamp(10px, 7cqi, 22px);
+    text-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+
+    &_mana {
+      top: 4%;
+      left: 43%;
+    }
+    &_attack {
+      bottom: 3%;
+      left: 5%;
+    }
+    &_health {
+      right: 5%;
+      bottom: 3%;
+    }
+  }
+
+  &__content {
+    display: flex;
+    overflow: visible;
+    flex-direction: column;
+  }
+
+  &__main {
+    @include adaptiveValue('padding-top', 32, 22);
+    @include adaptiveValue('padding-left', 28, 16);
+    @include adaptiveValue('padding-right', 28, 16);
+    @include adaptiveValue('padding-bottom', 26, 20);
+    flex: 1 1 auto;
+  }
+
+  &__title {
+    @include adaptiveValue('font-size', 27, 22);
+    @include adaptiveValue('margin-bottom', 22, 15);
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-weight: 400;
+    line-height: 1.25;
+    text-transform: none;
+  }
+
+  &__label {
+    margin-bottom: 7px;
+
+    color: var(--seventh-color);
+    font-size: 12px;
+  }
+
+  &__description {
+    @include adaptiveValue('margin-bottom', 22, 16);
+  }
+
+  &__description-text {
+    color: var(--secondary-color);
+    font-size: 13px;
+    line-height: 1.5;
+    :deep(p) {
+      margin: 0;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  &__stat {
+    @include adaptiveValue('padding', 15, 10);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    min-width: 0;
+    min-height: 70px;
+
+    border-radius: 10px;
+    background: var(--bg-primary-color);
+
+    font-size: 13px;
+
+    span {
+      color: var(--seventh-color);
+    }
+    strong {
+      color: var(--fourth-color);
+      font-size: 14px;
+      font-weight: 700;
+
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__actions {
+    border-radius: 0 0 18px 18px;
+    background: var(--bg-primary-color);
+  }
+
+  &__tabs {
+    @include adaptiveValue('padding-left', 28, 16);
+    @include adaptiveValue('padding-right', 28, 16);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__tab {
+    position: relative;
+
+    min-height: 40px;
+
+    padding: 8px 18px;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--seventh-color);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition: color 0.3s ease;
+
+    &_active {
+      color: var(--hint-primary-color);
+      &::after {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        height: 2px;
+
+        background-color: var(--hint-primary-color);
+
+        content: '';
+      }
+    }
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--hint-primary-color);
+      }
+    }
+  }
+
+  &__purchase {
+    @include adaptiveValue('padding', 25, 16);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    min-height: 95px;
+
+    border-radius: 0 0 18px 18px;
+    background: var(--bg-fifth-color);
+  }
+
+  &__price {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+
+    min-width: 0;
+
+    color: var(--fourth-color);
+  }
+
+  &__price-value {
+    :deep(.price__number) {
+      @include adaptiveValue('font-size', 22, 17);
+    }
+    :deep(.price__image) {
+      order: -1;
+    }
+  }
+
+  &__old-price {
+    opacity: 0.6;
+
+    color: var(--seventh-color);
+    text-decoration: line-through;
+  }
+
+  &__quantity {
+    display: flex;
+    align-items: center;
+
+    min-width: 100px;
+    height: 40px;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 6px;
+    background: var(--bg-primary-color);
+
+    button {
+      flex: 0 0 32px;
+
+      height: 100%;
+
+      border: 0;
+      background: transparent;
+
+      color: var(--fourth-color);
+
+      cursor: pointer;
+      &:disabled {
+        opacity: 0.35;
+
+        cursor: not-allowed;
+      }
+    }
+    input {
+      width: 34px;
+      min-width: 0;
+      height: 100%;
+
+      padding: 0;
+
+      border: 0;
+      outline: none;
+      background: transparent;
+
+      color: var(--fourth-color);
+      text-align: center;
+    }
+  }
+
+  &__rental {
+    min-width: 155px;
+    max-width: 180px;
+  }
+
+  &__action {
+    position: relative;
+
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 190px;
+    height: 54px;
+
+    padding: 5px 20px;
+
+    border: 0;
+    background: url('@/assets/img/discover-button-bg.png') center / 100% 100%
+      no-repeat;
+
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-size: 13px;
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition: filter 0.3s ease;
+
+    &_buy {
+      background-image: url('@/assets/img/play-button-bg.png');
+    }
+    &:disabled {
+      opacity: 0.5;
+
+      cursor: not-allowed;
+    }
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        filter: brightness(1.25);
+      }
+    }
+  }
+
+  &__sale-note {
+    padding: 0 24px 16px;
+
+    color: var(--seventh-color);
+    font-size: 12px;
+  }
+
+  &__spinner {
+    width: 19px;
+    height: 19px;
+
+    border: 2px solid currentColor;
+    border-radius: 50%;
+
+    animation: product-page-spin 0.8s linear infinite;
+
+    border-right-color: transparent;
+  }
+
+  @media (max-width: $md3) {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    &__decor {
+      width: 120px;
+    }
+    &__card {
+      width: min(83%, 260px);
+    }
+    &__purchase {
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: $md4) {
+    grid-template-columns: minmax(0, 1fr);
+
+    max-width: 520px;
+
+    margin: 0 auto;
+    &__preview {
+      min-height: 470px;
+    }
+    &__card {
+      width: min(62%, 270px);
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__preview {
+      min-height: 390px;
+    }
+    &__card {
+      width: min(68%, 245px);
+    }
+    &__decor {
+      width: 100px;
+    }
+    &__stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    &__purchase {
+      gap: 12px;
+    }
+    &__rental {
+      flex: 1 1 140px;
+
+      min-width: 0;
+    }
+    &__action {
+      flex: 1 1 100%;
+
+      width: 100%;
+      max-width: 280px;
+
+      margin: 0 auto;
+    }
+    &__tab {
+      flex: 1 1 auto;
+
+      padding-right: 8px;
+      padding-left: 8px;
+    }
+  }
+}
+
+.dropdown-option {
+  width: 100%;
+
+  padding: 10px 14px;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--fourth-color);
+  text-align: left;
+
+  cursor: pointer;
+  &_selected {
+    color: var(--hint-primary-color);
+
+    pointer-events: none;
+  }
+  @media (any-hover: hover) {
+    &:not(&_selected):hover {
+      color: var(--hint-primary-color);
+    }
+  }
+}
+
+@keyframes product-page-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.skeleton-loader {
-  background: linear-gradient(90deg, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
-  background-size: 200% 100%;
-
-  transition: opacity 0.3s ease;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
   }
 }
 </style>

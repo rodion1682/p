@@ -537,6 +537,7 @@
   </main>
 
   <ProductDetailsModal
+    v-if="PRODUCT_DETAILS_MODAL_ACTIVE"
     v-model:show="isProductDetailsOpen"
     :product-id="selectedProductId"
     :rent="selectedProductRent"
@@ -565,6 +566,8 @@ import { useHeroesStore } from '@/stores/heroes'
 import { useNavigationStore } from '@/stores/navigation'
 
 import ProductDetailsModal from './modals/ProductDetailsModal.vue'
+
+const PRODUCT_DETAILS_MODAL_ACTIVE = false
 
 const heroesStore = useHeroesStore()
 const navigationStore = useNavigationStore()
@@ -735,7 +738,14 @@ const isProductDetailsOpen = ref(false)
 let searchTimer = null
 
 const openProductDetails = product => {
-  if (!product?.id) {
+  if (!product?.id) return
+
+  if (!PRODUCT_DETAILS_MODAL_ACTIVE) {
+    router.push({
+      name: 'ProductDetailsPage',
+      params: { productId: product.id },
+      query: marketMode.value === 'rent' ? { rent: '1' } : {},
+    })
     return
   }
 

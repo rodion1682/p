@@ -7,13 +7,14 @@ import CartPage from '@/pages/CartPage/CartPage.vue'
 import FaqPage from '@/pages/FaqPage/FaqPage.vue'
 import HomePage from '@/pages/HomePage/HomePage.vue'
 import MyCardsPage from '@/pages/MyProductsPage/MyCardsPage.vue'
-import ProductListPage from '@/pages/ProductPages/ProductListPage.vue'
 import PackListPage from '@/pages/PrdocutsPackPage/PackListPage.vue'
+import ProductListPage from '@/pages/ProductPages/ProductListPage.vue'
 import StaticPage from '@/pages/StaticPage/StaticPage.vue'
+import FailPaymentPage from '@/pages/StatusPages/FailPaymentPage.vue'
 import PendingPaymentPage from '@/pages/StatusPages/PendingPaymentPage.vue'
 import SuccessPaymentPage from '@/pages/StatusPages/SuccessPaymentPage.vue'
-import FailPaymentPage from '@/pages/StatusPages/FailPaymentPage.vue'
 
+import ProductDetailsPage from '@/pages/ProductPages/ProductDetailsPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useStaticStore } from '@/stores/static'
 
@@ -237,14 +238,14 @@ const router = createRouter({
       component: ProductListPage,
     },
 
-    // {
-    //   path: '/card/:productId',
-    //   name: 'ProductDetailsPage',
-    //   component: ProductDetailsPage,
-    //   props: route => ({
-    //     productId: route.params.productId,
-    //   }),
-    // },
+    {
+      path: '/card/:productId',
+      name: 'ProductDetailsPage',
+      component: ProductDetailsPage,
+      props: route => ({
+        productId: route.params.productId,
+      }),
+    },
 
     {
       path: '/buy-pack',

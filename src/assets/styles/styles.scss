@@ -5,6 +5,39 @@
 @use 'media';
 @use 'variables';
 
+html {
+  scrollbar-color: var(--hint-primary-color) var(--bg-fourth-color);
+  scrollbar-width: thin;
+}
+
+* {
+  scrollbar-color: var(--hint-primary-color) var(--bg-fourth-color);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--bg-fifth-color);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg-fifth-color);
+  border-radius: 10px;
+  background-color: var(--hint-primary-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hint-primary-color);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var((--bg-fifth-color));
+}
+
 body {
   overflow-x: hidden !important;
 
