@@ -17,6 +17,7 @@ import AboutPage from '@/pages/AboutPage/AboutPage.vue'
 import ProductDetailsPage from '@/pages/ProductPages/ProductDetailsPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useStaticStore } from '@/stores/static'
+import PackDetailsPage from '@/pages/PrdocutsPackPage/PackDetailsPage.vue'
 
 const AUTH_MODAL = import.meta.env.VITE_AUTH_MODAL_ACTIVE === 'true'
 
@@ -253,14 +254,14 @@ const router = createRouter({
       component: PackListPage,
     },
 
-    // {
-    //   path: '/pack/:productId',
-    //   name: 'PackDetailsPage',
-    //   component: PackDetailsPage,
-    //   props: route => ({
-    //     productId: route.params.productId,
-    //   }),
-    // },
+    {
+      path: '/pack/:productId',
+      name: 'PackDetailsPage',
+      component: PackDetailsPage,
+      props: route => ({
+        productId: route.params.productId,
+      }),
+    },
 
     {
       path: '/my-cards',

@@ -1,18 +1,94 @@
 <template>
   <main class="packs-page">
     <div class="packs-page__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
     <div class="packs-page__container _cnt">
-      <div class="packs-page__decoration" aria-hidden="true">
-        <img src="@/assets/img/product-list-decor.png" alt="" />
-      </div>
-
       <div class="packs-page__inner">
-        <div class="packs-page__catalog catalog">
+        <aside class="packs-page__aside my-packs">
+          <div class="my-packs__top">
+            <h2 class="my-packs__title _h6">
+              {{ $t('My Packs') }}
+            </h2>
+          </div>
+
+          <div class="my-packs__body">
+            <LoadingSpinner v-if="ownedLoading" class="owned-packs__loader" />
+
+            <div v-else-if="ownedError" class="owned-packs__state">
+              <h3 class="owned-packs__state-title">
+                {{ $t('Unable to load your packs') }}
+              </h3>
+
+              <p class="owned-packs__state-text">
+                {{ ownedError }}
+              </p>
+
+              <BaseButton
+                type="button"
+                variant="hint-bordered"
+                class="owned-packs__state-button"
+                @click="fetchOwnedPacks"
+              >
+                {{ $t('Try again') }}
+              </BaseButton>
+            </div>
+
+            <div v-else-if="ownedPacks.length" class="owned-packs__items">
+              <button
+                v-for="pack in ownedPacks"
+                :key="getOwnedPackKey(pack)"
+                type="button"
+                class="owned-packs__item"
+                :aria-label="`${$t('Open')} ${getPackName(pack)}`"
+                @click="openUnpackModal(pack)"
+              >
+                <span class="owned-packs__image">
+                  <img
+                    :src="getPackImage(pack)"
+                    :alt="getPackName(pack)"
+                    loading="lazy"
+                  />
+                </span>
+
+                <span class="owned-packs__info">
+                  <span class="owned-packs__name">
+                    {{ getPackName(pack) }}
+                  </span>
+
+                  <span
+                    v-if="getPackQuantity(pack) > 1"
+                    class="owned-packs__quantity"
+                  >
+                    ×{{ getPackQuantity(pack) }}
+                  </span>
+                </span>
+
+                <span class="owned-packs__arrow" aria-hidden="true"> → </span>
+              </button>
+            </div>
+
+            <div v-else class="owned-packs__state">
+              <p class="owned-packs__state-title">
+                {{ $t("You don't have any card packs yet.") }}
+              </p>
+
+              <p class="owned-packs__state-text">
+                {{
+                  $t(
+                    'Purchase a pack to open it and increase your chances of winning.',
+                  )
+                }}
+              </p>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Catalog: right content -->
+        <section class="packs-page__catalog catalog">
           <div class="catalog__top">
-            <h1 class="catalog__title _h3">
+            <h1 class="catalog__title _h4">
               {{ $t('Packs') }}
             </h1>
           </div>
@@ -42,7 +118,7 @@
             <div v-else-if="packs.length" class="catalog__items">
               <PackCard
                 v-for="pack in packs"
-                :key="pack.id"
+                :key="getPackId(pack)"
                 :product="pack"
                 class="catalog__card"
                 @open="openPackDetails"
@@ -84,96 +160,20 @@
               @update:current-page="onPageChange"
             />
           </div>
-        </div>
-
-        <aside class="packs-page__aside my-packs">
-          <div class="my-packs__top">
-            <h2 class="my-packs__title _h4">
-              {{ $t('My Packs') }}
-            </h2>
-          </div>
-
-          <div class="my-packs__frame">
-            <div class="my-packs__body">
-              <LoadingSpinner v-if="ownedLoading" class="owned-packs__loader" />
-
-              <div v-else-if="ownedError" class="owned-packs__state">
-                <h3 class="owned-packs__state-title">
-                  {{ $t('Unable to load your packs') }}
-                </h3>
-
-                <p class="owned-packs__state-text">
-                  {{ ownedError }}
-                </p>
-
-                <BaseButton
-                  type="button"
-                  variant="hint-bordered"
-                  class="owned-packs__state-button"
-                  @click="fetchOwnedPacks"
-                >
-                  {{ $t('Try again') }}
-                </BaseButton>
-              </div>
-
-              <div v-else-if="ownedPacks.length" class="owned-packs__items">
-                <button
-                  v-for="pack in ownedPacks"
-                  :key="getOwnedPackKey(pack)"
-                  type="button"
-                  class="owned-packs__item"
-                  :aria-label="`${$t('Open')} ${getPackName(pack)}`"
-                  @click="openUnpackModal(pack)"
-                >
-                  <span class="owned-packs__image">
-                    <img
-                      :src="getPackImage(pack)"
-                      :alt="getPackName(pack)"
-                      loading="lazy"
-                    />
-                  </span>
-
-                  <span class="owned-packs__info">
-                    <span class="owned-packs__name">
-                      {{ getPackName(pack) }}
-                    </span>
-
-                    <span
-                      v-if="getPackQuantity(pack) > 1"
-                      class="owned-packs__quantity"
-                    >
-                      ×{{ getPackQuantity(pack) }}
-                    </span>
-                  </span>
-                </button>
-              </div>
-
-              <div v-else class="owned-packs__state">
-                <p class="owned-packs__state-title">
-                  {{ $t("You don't have any card packs yet.") }}
-                </p>
-
-                <p class="owned-packs__state-text">
-                  {{
-                    $t(
-                      'Purchase a pack to open it and increase your chances of winning.',
-                    )
-                  }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </aside>
+        </section>
       </div>
     </div>
 
+    <!-- Catalog details modal (optional) -->
     <PackDetailsModal
+      v-if="IS_PACK_DETAILS_MODAL_ACTIVE"
       v-model:show="isPackDetailsOpen"
       :pack-id="selectedPackId"
       :initial-pack="selectedPack"
       @close="closePackDetails"
     />
 
+    <!-- Owned packs always use the unpack modal -->
     <UnpackPackModal
       v-model:show="isUnpackModalOpen"
       :pack-id="selectedOwnedPackId"
@@ -187,20 +187,31 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
+import { useRouter } from 'vue-router'
+
 import defaultImage from '@/assets/img/default-image.png'
+
 import BaseButton from '@/components/base/BaseButton.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
+
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProductList } from '@/composables/useProductList'
+
 import axios from '@/plugins/axios'
 
 import PackCard from './components/PackCard.vue'
 import PackDetailsModal from './modals/PackDetailsModal.vue'
 import UnpackPackModal from './modals/UnpackPackModal.vue'
 
+// false = navigate to PackDetailsPage
+// true  = open PackDetailsModal
+const IS_PACK_DETAILS_MODAL_ACTIVE = false
+
 const OWNED_PACKS_PER_PAGE = 200
 const STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
+
+const router = useRouter()
 
 const isMobileView = useMediaQuery('(max-width: 767.98px)')
 
@@ -228,6 +239,8 @@ const {
   resetFilters: originalResetFilters,
   fetchPacks,
 } = useProductList()
+
+// Pagination
 
 const totalPages = computed(() => {
   const total = Number(pagination.total) || 0
@@ -273,6 +286,8 @@ const reloadCatalog = () => {
 const resetFilters = () => {
   originalResetFilters()
 }
+
+// Pack helpers
 
 const getResponseItems = data => {
   const possibleItems = [
@@ -382,6 +397,8 @@ const getPackImage = pack => {
   return resolveImageUrl(image)
 }
 
+// Owned packs
+
 const groupOwnedPackInstances = instances => {
   const groupedPacks = new Map()
 
@@ -392,16 +409,16 @@ const groupOwnedPackInstances = instances => {
       return
     }
 
-    const groupKey = String(packId)
-    const existingGroup = groupedPacks.get(groupKey)
+    const key = String(packId)
+    const existing = groupedPacks.get(key)
 
-    if (existingGroup) {
-      existingGroup.quantity += 1
-      existingGroup.instances.push(instance)
+    if (existing) {
+      existing.quantity += 1
+      existing.instances.push(instance)
       return
     }
 
-    groupedPacks.set(groupKey, {
+    groupedPacks.set(key, {
       ...instance,
       pack_id: packId,
       pack: {
@@ -423,14 +440,15 @@ const enrichOwnedPack = async pack => {
     return pack
   }
 
-  const existingDetailsImage = pack?.image_details ?? pack?.pack?.image_details
+  const existingImage = pack?.image_details ?? pack?.pack?.image_details
 
-  if (existingDetailsImage) {
+  if (existingImage) {
     return pack
   }
 
   try {
     const response = await axios.get(`/catalog/packs/${packId}`)
+
     const details = getResponsePack(response)
 
     if (!details) {
@@ -475,6 +493,7 @@ const fetchOwnedPacks = async () => {
 
     const instances = getResponseItems(data)
     const groupedPacks = groupOwnedPackInstances(instances)
+
     const enrichedPacks = await Promise.all(groupedPacks.map(enrichOwnedPack))
 
     if (requestId !== ownedPacksRequestId) {
@@ -508,6 +527,8 @@ const fetchOwnedPacks = async () => {
   }
 }
 
+// Pack details navigation
+
 const openPackDetails = pack => {
   const packId = getPackId(pack)
 
@@ -516,6 +537,18 @@ const openPackDetails = pack => {
     return
   }
 
+  // Use dedicated page when the modal flag is disabled.
+  if (!IS_PACK_DETAILS_MODAL_ACTIVE) {
+    router.push({
+      name: 'PackDetailsPage',
+      params: {
+        productId: packId,
+      },
+    })
+    return
+  }
+
+  // Preserve the original modal behavior.
   selectedPack.value = {
     ...pack,
     ...(pack?.pack || {}),
@@ -535,6 +568,8 @@ const closePackDetails = () => {
   selectedPackId.value = null
   selectedPack.value = null
 }
+
+// Owned pack unpacking
 
 const openUnpackModal = pack => {
   const packId = getPackId(pack)
@@ -557,7 +592,6 @@ const closeUnpackModal = () => {
 
 const handlePackOpened = async ({ packId, cards }) => {
   console.info(`Pack ${packId} opened`, cards)
-
   await fetchOwnedPacks()
 }
 
@@ -572,33 +606,38 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .packs-page {
-  @include adaptiveValue('padding-top', 78, 60);
-  @include adaptiveValue('padding-bottom', 44, 28);
+  @include adaptiveValue('padding-top', 110, 80);
+  @include adaptiveValue('padding-bottom', 80, 30);
 
   position: relative;
 
   display: flex;
-  overflow: hidden;
   flex: 1 1 auto;
+  flex-direction: column;
 
   width: 100%;
   min-width: 0;
-  min-height: 550px;
+  min-height: 100%;
 
-  background-color: var(--bg-primary-color);
+  background: var(--bg-primary-color);
 
   &__bg {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
+    z-index: 0;
 
     width: 100%;
     height: 100%;
-    max-height: 915px;
 
     pointer-events: none;
 
     img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
       object-position: center top;
     }
   }
@@ -614,43 +653,15 @@ onBeforeUnmount(() => {
     min-width: 0;
   }
 
-  &__decoration {
-    position: relative;
-
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-
-    width: 100%;
-    height: 32px;
-
-    margin-bottom: 20px;
-
-    border-bottom: 1px solid var(--border-priamry-color);
-
-    img {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-
-      display: block;
-
-      width: min(250px, 55vw);
-      max-height: 50px;
-
-      object-fit: contain;
-      object-position: center bottom;
-
-      transform: translateX(-50%);
-    }
-  }
-
   &__inner {
-    @include adaptiveValue('gap', 45, 20);
+    @include adaptiveValue('column-gap', 36, 16);
+    @include adaptiveValue('row-gap', 28, 20);
 
     display: grid;
     align-items: start;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+    grid-template-columns:
+      minmax(240px, 0.28fr)
+      minmax(0, 0.72fr);
 
     width: 100%;
     min-width: 0;
@@ -667,22 +678,16 @@ onBeforeUnmount(() => {
     }
 
     &__aside {
-      width: 100%;
+      order: 1;
     }
-  }
 
-  @media (max-width: $md4) {
-    &__decoration {
-      height: 25px;
-
-      margin-bottom: 18px;
-
-      img {
-        max-height: 36px;
-      }
+    &__catalog {
+      order: 2;
     }
   }
 }
+
+// Catalog
 
 .catalog {
   display: flex;
@@ -691,41 +696,23 @@ onBeforeUnmount(() => {
   width: 100%;
   min-width: 0;
 
-  .catalog {
-    &__top {
-      position: relative;
-      left: calc((330px + 45px) / 2);
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 
-      width: 100%;
+    min-height: 72px;
 
-      text-align: center;
-
-      &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 34, 22);
-      }
-    }
-
-    @media (max-width: $md2) {
-      &__top {
-        left: calc((330px + 20px) / 2);
-      }
-    }
-
-    @media (max-width: $md3) {
-      &__top {
-        left: 0;
-      }
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 18, 12);
     }
   }
 
   &__title {
-    @include adaptiveValue('font-size', 32, 26);
-
     margin: 0;
 
-    color: var(--primary-color);
-    font-weight: 500;
-    line-height: 1.2;
+    color: var(--fourth-color);
+    text-align: left;
     text-transform: none;
   }
 
@@ -735,7 +722,8 @@ onBeforeUnmount(() => {
     flex-direction: column;
 
     width: 100%;
-    min-height: 340px;
+    min-width: 0;
+    min-height: 300px;
   }
 
   &__loader {
@@ -743,60 +731,19 @@ onBeforeUnmount(() => {
   }
 
   &__items {
-    @include adaptiveValue('column-gap', 60, 16);
-    @include adaptiveValue('row-gap', 30, 20);
-
-    position: relative;
-    left: 0;
+    @include adaptiveValue('column-gap', 40, 12);
+    @include adaptiveValue('row-gap', 28, 16);
 
     display: grid;
-    align-items: start;
-    justify-content: center;
-    grid-template-columns: repeat(2, minmax(0, 230px));
+    align-items: stretch;
+    justify-items: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     width: 100%;
-    max-width: 520px;
+    min-width: 0;
+    max-width: 760px;
 
     margin: 0 auto;
-  }
-
-  @media (min-width: 1600px) {
-    &__items {
-      left: calc((330px + 45px) / 2);
-    }
-  }
-
-  @media (max-width: $md2) {
-    &__items {
-      grid-template-columns: repeat(2, minmax(0, 205px));
-
-      max-width: 430px;
-    }
-  }
-
-  @media (max-width: $md3) {
-    &__items {
-      grid-template-columns: repeat(2, minmax(0, 230px));
-
-      max-width: 520px;
-    }
-  }
-
-  @media (max-width: $md6) {
-    &__items {
-      column-gap: 14px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-
-      max-width: 100%;
-    }
-  }
-
-  @media (max-width: 359.98px) {
-    &__items {
-      grid-template-columns: minmax(0, 220px);
-
-      max-width: 220px;
-    }
   }
 
   &__card {
@@ -809,52 +756,77 @@ onBeforeUnmount(() => {
   }
 
   &__pagination {
-    @include adaptiveValue('margin-top', 35, 22);
+    @include adaptiveValue('margin-top', 32, 20);
   }
 
-  :deep(.pack-card) {
-    width: 100%;
-    max-width: none;
+  // Pack cards: design based on the PNG reference
 
-    border: 0;
-    background: transparent;
+  :deep(.pack-card) {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 12px;
+    background: rgb(17 22 36 / 45%);
     box-shadow: none;
+
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--border-secondary-color);
+        background: rgb(17 22 36 / 65%);
+      }
+    }
   }
 
   :deep(.pack-card__body) {
+    @include adaptiveValue('padding', 20, 10);
+
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
 
     width: 100%;
-
-    padding: 0;
+    min-width: 0;
+    height: 100%;
 
     background: transparent;
   }
 
   :deep(.pack-card__title) {
-    order: 2;
-
     width: 100%;
 
     margin: 0;
-    margin-top: 14px;
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 15px;
-    font-weight: 500;
-    line-height: 1.4;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 150%;
     text-align: center;
     text-transform: none;
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 12, 8);
+    }
   }
 
   :deep(.pack-card__preview) {
-    display: block;
-    order: 1;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
 
     width: 100%;
+    min-width: 0;
 
     padding: 0;
 
@@ -864,13 +836,12 @@ onBeforeUnmount(() => {
 
   :deep(.pack-card__image) {
     display: flex;
-    overflow: visible;
     align-items: center;
     justify-content: center;
 
     width: 100%;
-    height: auto;
-    aspect-ratio: 0.75;
+    min-width: 0;
+    aspect-ratio: 0.72;
 
     background: transparent;
 
@@ -892,10 +863,10 @@ onBeforeUnmount(() => {
 
   :deep(.pack-card__footer) {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    order: 3;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 12px;
 
     width: 100%;
 
@@ -905,114 +876,144 @@ onBeforeUnmount(() => {
   :deep(.pack-card__price) {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 
-    width: 100%;
+    min-width: 0;
 
     margin: 0;
-  }
 
-  :deep(.pack-card__cart) {
-    width: 100%;
-    max-width: 180px;
-  }
-
-  @media (max-width: $md2) {
-    &__items {
-      grid-template-columns: repeat(2, minmax(0, 205px));
+    :deep(.price) {
+      gap: 6px;
     }
   }
 
+  :deep(.pack-card__cart) {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+
+    padding: 7px;
+
+    border-radius: 6px;
+  }
+
+  :deep(.pack-card__cart-icon) {
+    width: 20px;
+    height: 20px;
+  }
+
+  :deep(.pack-card__cart-text) {
+    display: none;
+  }
+
   @media (max-width: $md3) {
+    &__top {
+      min-height: 0;
+    }
+
     &__items {
-      grid-template-columns: repeat(2, minmax(0, 230px));
+      max-width: 650px;
     }
   }
 
   @media (max-width: $md6) {
     &__items {
-      column-gap: 14px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    :deep(.pack-card__body) {
+      padding: 10px;
+    }
+
     :deep(.pack-card__title) {
-      font-size: 13px;
+      font-size: 12px;
+    }
+
+    :deep(.pack-card__footer) {
+      gap: 6px;
+    }
+
+    :deep(.pack-card__cart) {
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
+      min-height: 34px;
+    }
+
+    :deep(.pack-card__price) {
+      :deep(.price__number) {
+        font-size: 15px;
+      }
     }
   }
 
-  @media (max-width: 359.98px) {
+  @media (max-width: $md8) {
     &__items {
-      grid-template-columns: minmax(0, 220px);
+      grid-template-columns: minmax(0, 1fr);
+
+      max-width: 300px;
     }
   }
 }
 
+// My Packs sidebar
+
 .my-packs {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 
   width: 100%;
   min-width: 0;
 
   &__top {
+    @include adaptiveValue('padding', 20, 14);
+
     display: flex;
     align-items: center;
-    justify-content: center;
 
-    min-height: 39px;
+    min-height: 72px;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 14);
-    }
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 10px;
+    background: #111624;
   }
 
   &__title {
-    @include adaptiveValue('font-size', 24, 21);
-
     margin: 0;
 
-    color: var(--primary-color);
-    font-weight: 500;
-    line-height: 1.2;
-    text-align: center;
+    color: var(--fourth-color);
+    text-align: left;
     text-transform: none;
   }
 
-  &__frame {
-    @include adaptiveValue('min-height', 385, 270);
-
-    overflow: hidden;
-
-    width: 100%;
-
-    border: 1px solid var(--border-priamry-color);
-    border-radius: 12px;
-    background: rgb(51 46 91 / 75%);
-  }
-
   &__body {
-    @include adaptiveValue('min-height', 383, 268);
-
     display: flex;
     flex-direction: column;
 
     width: 100%;
-
-    padding: 15px;
+    min-width: 0;
+    min-height: 110px;
   }
 
   @media (max-width: $md3) {
-    &__frame,
-    &__body {
-      min-height: 220px;
+    &__top {
+      min-height: 60px;
     }
   }
 }
 
+// Owned pack list
+
 .owned-packs {
   &__loader {
-    display: flex;
-
-    margin: auto;
+    margin: 24px auto;
   }
 
   &__items {
@@ -1021,44 +1022,54 @@ onBeforeUnmount(() => {
     gap: 4px;
 
     width: 100%;
+    min-width: 0;
   }
 
   &__item {
+    @include adaptiveValue('padding', 14, 10);
+
     display: grid;
     align-items: center;
-    gap: 15px;
-    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px;
+    grid-template-columns:
+      minmax(42px, 0.2fr)
+      minmax(0, 1fr)
+      auto;
 
     width: 100%;
-    min-height: 72px;
-
-    padding: 8px 10px;
+    min-width: 0;
+    min-height: 86px;
 
     border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
+    border-radius: 10px;
+    background: #111624;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
     text-align: left;
 
     cursor: pointer;
 
     transition:
-      background-color 0.3s ease,
-      border-color 0.3s ease;
+      border-color 0.3s ease,
+      background-color 0.3s ease;
 
     &:focus-visible {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
       outline: none;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--border-priamry-color);
-        background-color: rgb(255 255 255 / 5%);
+        border-color: var(--border-secondary-color);
 
         .owned-packs__image img {
           transform: translateY(-3px);
+        }
+
+        .owned-packs__arrow {
+          color: var(--hint-primary-color);
+
+          transform: translateX(3px);
         }
       }
     }
@@ -1069,8 +1080,9 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
 
-    width: 62px;
-    height: 60px;
+    width: 100%;
+    max-width: 60px;
+    aspect-ratio: 0.8;
 
     img {
       display: block;
@@ -1086,85 +1098,100 @@ onBeforeUnmount(() => {
 
   &__info {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
 
     min-width: 0;
   }
 
   &__name {
-    overflow: hidden;
+    min-width: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    text-overflow: ellipsis;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 150%;
+    text-align: left;
+
+    overflow-wrap: anywhere;
   }
 
   &__quantity {
-    flex-shrink: 0;
+    flex: 0 0 auto;
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 13px;
-    font-weight: 500;
+    color: var(--hint-primary-color);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+
+    color: var(--fifth-color);
+    font-size: 20px;
+    line-height: 1;
+
+    transition:
+      color 0.3s ease,
+      transform 0.3s ease;
   }
 
   &__state {
+    @include adaptiveValue('padding', 24, 16);
+
     display: flex;
-    flex: 1 1 auto;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
 
     width: 100%;
+    min-height: 120px;
 
-    padding: 28px 12px;
-
-    text-align: center;
+    border-radius: 10px;
+    background: #111624;
   }
 
   &__state-title {
-    max-width: 240px;
-
     margin: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.4;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 150%;
+    text-align: left;
   }
 
   &__state-text {
-    max-width: 240px;
-
     margin: 0;
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 13px;
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 160%;
+    text-align: left;
   }
 
   &__state-button {
-    width: 100%;
-    max-width: 180px;
+    width: fit-content;
+    min-width: 130px;
+
+    margin-top: 6px;
   }
 
   @media (max-width: $md3) {
     &__items {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    &__state {
-      justify-content: center;
     }
   }
 
@@ -1175,53 +1202,69 @@ onBeforeUnmount(() => {
   }
 }
 
+// Empty catalog
+
 .empty {
+  @include adaptiveValue('padding', 32, 18);
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
 
+  width: 100%;
   min-height: 280px;
 
-  padding: 25px;
+  border: 1px solid var(--border-priamry-color);
+  border-radius: 12px;
+  background: #111624;
 
   text-align: center;
 
   &__title {
-    margin: 0 0 14px;
+    margin: 0;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
+    text-transform: none;
   }
 
   &__text {
     max-width: 420px;
 
-    margin: 0 0 20px;
+    margin: 0;
 
-    color: var(--secondary-color);
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 150%;
   }
 
   &__button {
-    width: 100%;
+    width: fit-content;
+    min-width: 150px;
     max-width: 210px;
   }
 }
 
+// Pagination
+
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
 
   width: 100%;
+  min-width: 0;
 
   &__info {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
+    line-height: 150%;
   }
 
   &__component {
@@ -1231,6 +1274,7 @@ onBeforeUnmount(() => {
   @media (max-width: $md5) {
     flex-direction: column;
     align-items: center;
+    gap: 14px;
 
     &__info {
       text-align: center;
