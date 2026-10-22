@@ -79,7 +79,7 @@
 
         <div class="product-card__footer">
           <div class="product-card__price">
-            <PriceFormatter size="size-28" :price="getPrice" />
+            <PriceFormatter size="size-20" :price="getPrice" />
           </div>
 
           <BaseButton
@@ -92,16 +92,12 @@
             :disabled="isLoading"
             :aria-label="cartButtonLabel"
             @click.stop="handleCartAction"
+            :variant="!isInCart ? 'bordered' : 'clear'"
           >
-            <span
-              v-if="isLoading"
-              class="product-card__loader"
-              aria-hidden="true"
+            <SvgIcon
+              class="product-card__cart-button-icon"
+              :icon="!isInCart ? CartIcon : TrashIcon"
             />
-
-            <span v-else class="product-card__cart-text">
-              {{ cartButtonLabel }}
-            </span>
           </BaseButton>
         </div>
       </div>
@@ -119,7 +115,7 @@ import defaultImage from '@/assets/img/default-image.png'
 import BaseButton from '@/components/base/BaseButton.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
 
-import { EyeIcon } from '@/components/icons'
+import { CartIcon, EyeIcon, TrashIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 import { useToast } from '@/composables/useToast'
@@ -427,10 +423,6 @@ const handleCartAction = async () => {
 
     width: 100%;
 
-    border: 1px solid var(--border-secondary-color);
-    border-radius: 12px;
-    background-color: var(--bg-primary-color);
-
     transition: all 0.3s ease 0s;
   }
 
@@ -450,17 +442,17 @@ const handleCartAction = async () => {
 
     width: 100%;
 
-    color: var(--seventh-colo);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 600;
     line-height: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     transition: color 0.3s ease;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 31, 18);
+      margin-bottom: 12px;
     }
   }
 
@@ -716,7 +708,7 @@ const handleCartAction = async () => {
     );
     opacity: 0;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
 
     pointer-events: none;
 
@@ -734,7 +726,7 @@ const handleCartAction = async () => {
     width: 32px;
     height: 32px;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
 
     :deep(svg) {
       display: block;
@@ -745,8 +737,16 @@ const handleCartAction = async () => {
   }
 
   &__footer {
-    @include adaptiveValue('margin-top', 28, 18);
     position: relative;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    row-gap: 12px;
+    column-gap: 18px;
+
+    margin-top: 12px;
   }
 
   &__price {
@@ -754,8 +754,7 @@ const handleCartAction = async () => {
     align-items: center;
     justify-content: center;
 
-    width: 100%;
-
+    color: var(--fourth-color);
     white-space: nowrap;
     :deep(.price) {
       flex-direction: row-reverse;
@@ -763,29 +762,18 @@ const handleCartAction = async () => {
   }
 
   &__cart-button {
-    &_remove {
-      background-color: var(--error-color) !important;
-      @media (any-hover: hover) {
-        &:hover {
-          background-color: var(--third-color) !important;
-        }
-      }
-    }
-    @media (any-hover: hover) {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      z-index: 1;
+    width: fit-content;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
 
-      width: 100%;
+    padding: 0px;
 
-      opacity: 0;
-
-      transform: translate(-50%, 0px);
-    }
-    @media (any-hover: none) {
-      margin-top: 8px;
-    }
+    border-radius: 6px;
+  }
+  &__cart-button-icon {
+    min-width: 18px;
+    height: 18px;
   }
 
   &__cart-text {

@@ -36,7 +36,7 @@ const props = defineProps({
     required: false,
   },
   isCurrency: { type: Boolean, default: false },
-  size: { type: String, default: 'size-14' }, // size-14
+  size: { type: String, default: 'size-14' }, // size-14 | size-20
 })
 
 const settingsStore = useSettingsStore()
@@ -61,6 +61,18 @@ const settingsStore = useSettingsStore()
     .price__currency,
     .price__number {
       font-size: 14px;
+    }
+  }
+  &.size-20 {
+    @include adaptiveValue('gap', 7, 6);
+
+    .price__image {
+      @include adaptiveValue('min-width', 22, 18);
+      @include adaptiveValue('height', 22, 18);
+    }
+    .price__currency,
+    .price__number {
+      @include adaptiveValue('font-size', 20, 16);
     }
   }
   &__image {

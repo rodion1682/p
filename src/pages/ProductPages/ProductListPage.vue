@@ -32,330 +32,335 @@
     </Transition>
 
     <div class="products-page__inner _cnt">
-      <aside
-        id="product-filters"
-        class="products-page__aside aside"
-        :class="{ aside_open: isFiltersOpen }"
-        :aria-hidden="isFiltersMobile && !isFiltersOpen"
-      >
-        <div class="aside__header">
-          <div class="aside__title _h6">
-            {{ $t('Filters') }}
-          </div>
-
-          <button
-            type="button"
-            class="aside__close"
-            :aria-label="$t('Close filters')"
-            @click="closeFilters"
-          >
-            <SvgIcon :icon="CloseIcon" class="aside__close-icon" />
-          </button>
-        </div>
-
-        <div class="aside__wrapper">
-          <div class="aside__content">
-            <div class="aside__section filter-group">
-              <div class="filter-group__title">
-                {{ $t('Heroes') }}
-              </div>
-
-              <BaseDropdown
-                class="aside__dropdown"
-                :label="selectedHeroOption?.label || $t('All')"
-                :placeholder="!selectedHeroOption"
-                variant="relative"
-              >
-                <template #default="{ close }">
-                  <button
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': filters.hero === '',
-                    }"
-                    :aria-selected="filters.hero === ''"
-                    role="option"
-                    @click="selectHero('', close)"
-                  >
-                    {{ $t('All') }}
-                  </button>
-
-                  <button
-                    v-for="option in mappedHeroes"
-                    :key="option.value"
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': isSelected(
-                        option.value,
-                        filters.hero,
-                      ),
-                    }"
-                    :aria-selected="isSelected(option.value, filters.hero)"
-                    role="option"
-                    @click="selectHero(option.value, close)"
-                  >
-                    {{ option.label }}
-                  </button>
-                </template>
-              </BaseDropdown>
-            </div>
-            <div class="aside__section filter-group">
-              <div class="filter-group__title">
-                {{ $t('Price') }}
-              </div>
-
-              <BaseDropdown
-                class="aside__dropdown"
-                :label="$t('Price')"
-                :placeholder="!selectedHeroOption"
-                variant="relative"
-                default-open
-              >
-                <div v-if="false" class="filter-group__top">
-                  <div class="filter-group__title">
-                    {{ $t('Price Range') }}
-                  </div>
-
-                  <div v-if="false" class="filter-group__info">
-                    {{ $t('from') }}
-                    {{ minPrice }}
-                    {{ $t('to') }}
-                    {{ maxPrice }}
-                  </div>
-                </div>
-
-                <div v-if="false" class="filter-group__range price-slider">
-                  <div class="price-slider__track" />
-
-                  <div
-                    class="price-slider__progress"
-                    :style="priceRangeStyle"
-                  />
-
-                  <input
-                    v-model.number="minPrice"
-                    class="price-slider__input price-slider__input_min"
-                    type="range"
-                    :min="PRICE_MIN"
-                    :max="PRICE_MAX"
-                    :step="PRICE_STEP"
-                    :aria-label="$t('Minimum price')"
-                    @input="handleMinSliderChange"
-                  />
-
-                  <input
-                    v-model.number="maxPrice"
-                    class="price-slider__input price-slider__input_max"
-                    type="range"
-                    :min="PRICE_MIN"
-                    :max="PRICE_MAX"
-                    :step="PRICE_STEP"
-                    :aria-label="$t('Maximum price')"
-                    @input="handleMaxSliderChange"
-                  />
-                </div>
-
-                <div class="filter-group__price">
-                  <BaseInput
-                    v-model="minPrice"
-                    class="filter-group__price-input"
-                    inputmode="decimal"
-                    :placeholder="$t('Min')"
-                    @input="handleMinInputChange"
-                  >
-                    <template #prefix>
-                      <PriceFormatter size="size-16" />
-                    </template>
-                  </BaseInput>
-
-                  <span class="filter-group__separator">-</span>
-
-                  <BaseInput
-                    v-model="maxPrice"
-                    class="filter-group__price-input"
-                    inputmode="decimal"
-                    :placeholder="$t('Max')"
-                    @input="handleMaxInputChange"
-                  >
-                    <template #prefix>
-                      <PriceFormatter size="size-16" />
-                    </template>
-                  </BaseInput>
-                </div>
-              </BaseDropdown>
-            </div>
-            <div class="aside__section filter-group"></div>
-
-            <div class="aside__section filter-group">
-              <h2 class="filter-group__title">
-                {{ $t('Rarity') }}
-              </h2>
-
-              <BaseDropdown
-                class="filter-group__dropdown"
-                :label="selectedRarityOption?.label || $t('All')"
-                :placeholder="!selectedRarityOption"
-                variant="relative"
-              >
-                <template #default="{ close }">
-                  <button
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': filters.rarity === '',
-                    }"
-                    :aria-selected="filters.rarity === ''"
-                    role="option"
-                    @click="selectRarity('', close)"
-                  >
-                    {{ $t('All') }}
-                  </button>
-
-                  <button
-                    v-for="option in availableFilters.rarities || []"
-                    :key="option.value"
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': isSelected(
-                        option.value,
-                        filters.rarity,
-                      ),
-                    }"
-                    :aria-selected="isSelected(option.value, filters.rarity)"
-                    role="option"
-                    @click="selectRarity(option.value, close)"
-                  >
-                    {{ option.label }}
-                  </button>
-                </template>
-              </BaseDropdown>
-            </div>
-
-            <div class="aside__section filter-group">
-              <h2 class="filter-group__title">
-                {{ $t('Card Type') }}
-              </h2>
-
-              <BaseDropdown
-                class="filter-group__dropdown"
-                :label="selectedTypeOption?.label || $t('All')"
-                :placeholder="!selectedTypeOption"
-                variant="relative"
-              >
-                <template #default="{ close }">
-                  <button
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': filters.type === '',
-                    }"
-                    :aria-selected="filters.type === ''"
-                    role="option"
-                    @click="selectType('', close)"
-                  >
-                    {{ $t('All') }}
-                  </button>
-
-                  <button
-                    v-for="option in availableFilters.types || []"
-                    :key="option.value"
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': isSelected(
-                        option.value,
-                        filters.type,
-                      ),
-                    }"
-                    :aria-selected="isSelected(option.value, filters.type)"
-                    role="option"
-                    @click="selectType(option.value, close)"
-                  >
-                    {{ option.label }}
-                  </button>
-                </template>
-              </BaseDropdown>
-            </div>
-
-            <div class="aside__section filter-group">
-              <h2 class="filter-group__title">
-                {{ $t('Frame Type') }}
-              </h2>
-
-              <BaseDropdown
-                class="filter-group__dropdown"
-                :label="
-                  selectedFrameTypeOption
-                    ? formatOptionLabel(selectedFrameTypeOption.label)
-                    : $t('All')
-                "
-                :placeholder="!selectedFrameTypeOption"
-                variant="relative"
-              >
-                <template #default="{ close }">
-                  <button
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': filters.frameType === '',
-                    }"
-                    :aria-selected="filters.frameType === ''"
-                    role="option"
-                    @click="selectFrameType('', close)"
-                  >
-                    {{ $t('All') }}
-                  </button>
-
-                  <button
-                    v-for="option in availableFilters.frameTypes || []"
-                    :key="option.value"
-                    type="button"
-                    class="dropdown-option"
-                    :class="{
-                      'dropdown-option_selected': isSelected(
-                        option.value,
-                        filters.frameType,
-                      ),
-                    }"
-                    :aria-selected="isSelected(option.value, filters.frameType)"
-                    role="option"
-                    @click="selectFrameType(option.value, close)"
-                  >
-                    {{ formatOptionLabel(option.label) }}
-                  </button>
-                </template>
-              </BaseDropdown>
-            </div>
-            <div class="aside__bottom">
-              <BaseButton
-                type="button"
-                class="aside__submit"
-                variant="clear"
-                @click="resetFilters"
-              >
-                {{ $t('Clear') }}
-              </BaseButton>
-              <BaseButton
-                type="button"
-                class="aside__submit"
-                @click="submitFilters"
-              >
-                {{ $t('Apply') }}
-              </BaseButton>
-            </div>
-          </div>
-        </div>
-        <button
-          v-if="false"
-          type="button"
-          class="aside__clear _link"
-          @click="resetFilters"
+      <div ref="asideSlotRef" class="products-page__aside-slot">
+        <aside
+          id="product-filters"
+          class="products-page__aside aside"
+          :class="{ aside_open: isFiltersOpen, aside_fixed: isAsideFixed }"
+          :style="asideFixedStyle"
+          :aria-hidden="isFiltersMobile && !isFiltersOpen"
         >
-          {{ $t('Сlear all') }}
-        </button>
-      </aside>
+          <div class="aside__header">
+            <div class="aside__title _h6">
+              {{ $t('Filters') }}
+            </div>
+
+            <button
+              type="button"
+              class="aside__close"
+              :aria-label="$t('Close filters')"
+              @click="closeFilters"
+            >
+              <SvgIcon :icon="CloseIcon" class="aside__close-icon" />
+            </button>
+          </div>
+
+          <div class="aside__wrapper">
+            <div class="aside__content">
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Heroes') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="selectedHeroOption?.label || $t('All')"
+                  :placeholder="!selectedHeroOption"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': filters.hero === '',
+                      }"
+                      :aria-selected="filters.hero === ''"
+                      role="option"
+                      @click="selectHero('', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in mappedHeroes"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          filters.hero,
+                        ),
+                      }"
+                      :aria-selected="isSelected(option.value, filters.hero)"
+                      role="option"
+                      @click="selectHero(option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Price') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Price')"
+                  :placeholder="!selectedHeroOption"
+                  variant="relative"
+                  default-open
+                >
+                  <div v-if="false" class="filter-group__top">
+                    <div class="filter-group__title">
+                      {{ $t('Price Range') }}
+                    </div>
+
+                    <div v-if="false" class="filter-group__info">
+                      {{ $t('from') }}
+                      {{ minPrice }}
+                      {{ $t('to') }}
+                      {{ maxPrice }}
+                    </div>
+                  </div>
+
+                  <div v-if="false" class="filter-group__range price-slider">
+                    <div class="price-slider__track" />
+
+                    <div
+                      class="price-slider__progress"
+                      :style="priceRangeStyle"
+                    />
+
+                    <input
+                      v-model.number="minPrice"
+                      class="price-slider__input price-slider__input_min"
+                      type="range"
+                      :min="PRICE_MIN"
+                      :max="PRICE_MAX"
+                      :step="PRICE_STEP"
+                      :aria-label="$t('Minimum price')"
+                      @input="handleMinSliderChange"
+                    />
+
+                    <input
+                      v-model.number="maxPrice"
+                      class="price-slider__input price-slider__input_max"
+                      type="range"
+                      :min="PRICE_MIN"
+                      :max="PRICE_MAX"
+                      :step="PRICE_STEP"
+                      :aria-label="$t('Maximum price')"
+                      @input="handleMaxSliderChange"
+                    />
+                  </div>
+
+                  <div class="filter-group__price">
+                    <BaseInput
+                      v-model="minPrice"
+                      class="filter-group__price-input"
+                      inputmode="decimal"
+                      :placeholder="$t('Min')"
+                      @input="handleMinInputChange"
+                    >
+                      <template #prefix>
+                        <PriceFormatter size="size-16" />
+                      </template>
+                    </BaseInput>
+
+                    <span class="filter-group__separator">-</span>
+
+                    <BaseInput
+                      v-model="maxPrice"
+                      class="filter-group__price-input"
+                      inputmode="decimal"
+                      :placeholder="$t('Max')"
+                      @input="handleMaxInputChange"
+                    >
+                      <template #prefix>
+                        <PriceFormatter size="size-16" />
+                      </template>
+                    </BaseInput>
+                  </div>
+                </BaseDropdown>
+              </div>
+              <div class="aside__section filter-group"></div>
+
+              <div class="aside__section filter-group">
+                <h2 class="filter-group__title">
+                  {{ $t('Rarity') }}
+                </h2>
+
+                <BaseDropdown
+                  class="filter-group__dropdown"
+                  :label="selectedRarityOption?.label || $t('All')"
+                  :placeholder="!selectedRarityOption"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': filters.rarity === '',
+                      }"
+                      :aria-selected="filters.rarity === ''"
+                      role="option"
+                      @click="selectRarity('', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in availableFilters.rarities || []"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          filters.rarity,
+                        ),
+                      }"
+                      :aria-selected="isSelected(option.value, filters.rarity)"
+                      role="option"
+                      @click="selectRarity(option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__section filter-group">
+                <h2 class="filter-group__title">
+                  {{ $t('Card Type') }}
+                </h2>
+
+                <BaseDropdown
+                  class="filter-group__dropdown"
+                  :label="selectedTypeOption?.label || $t('All')"
+                  :placeholder="!selectedTypeOption"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': filters.type === '',
+                      }"
+                      :aria-selected="filters.type === ''"
+                      role="option"
+                      @click="selectType('', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in availableFilters.types || []"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          filters.type,
+                        ),
+                      }"
+                      :aria-selected="isSelected(option.value, filters.type)"
+                      role="option"
+                      @click="selectType(option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__section filter-group">
+                <h2 class="filter-group__title">
+                  {{ $t('Frame Type') }}
+                </h2>
+
+                <BaseDropdown
+                  class="filter-group__dropdown"
+                  :label="
+                    selectedFrameTypeOption
+                      ? formatOptionLabel(selectedFrameTypeOption.label)
+                      : $t('All')
+                  "
+                  :placeholder="!selectedFrameTypeOption"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': filters.frameType === '',
+                      }"
+                      :aria-selected="filters.frameType === ''"
+                      role="option"
+                      @click="selectFrameType('', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in availableFilters.frameTypes || []"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          filters.frameType,
+                        ),
+                      }"
+                      :aria-selected="
+                        isSelected(option.value, filters.frameType)
+                      "
+                      role="option"
+                      @click="selectFrameType(option.value, close)"
+                    >
+                      {{ formatOptionLabel(option.label) }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+              <div class="aside__bottom">
+                <BaseButton
+                  type="button"
+                  class="aside__submit"
+                  variant="clear"
+                  @click="resetFilters"
+                >
+                  {{ $t('Clear') }}
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  class="aside__submit"
+                  @click="submitFilters"
+                >
+                  {{ $t('Apply') }}
+                </BaseButton>
+              </div>
+            </div>
+          </div>
+          <button
+            v-if="false"
+            type="button"
+            class="aside__clear _link"
+            @click="resetFilters"
+          >
+            {{ $t('Сlear all') }}
+          </button>
+        </aside>
+      </div>
 
       <div class="products-page__content content">
         <div class="content__top top">
@@ -566,6 +571,80 @@ const navigationStore = useNavigationStore()
 
 const isMobileView = useMediaQuery('(max-width: 767.98px)')
 const isFiltersMobile = useMediaQuery('(max-width: 991.98px)')
+
+const asideSlotRef = ref(null)
+const isAsideFixed = ref(false)
+const asideFixedStyle = ref({})
+const asideSlotHeight = ref(0)
+const DESKTOP_BREAKPOINT = 992
+const HEADER_GAP = 12
+
+function updateAsidePosition() {
+  const slot = asideSlotRef.value
+  const aside = slot?.querySelector('.aside')
+  const contentTop = document.querySelector('.products-page .content__top')
+
+  if (!slot || !aside || !contentTop) return
+
+  if (window.innerWidth < DESKTOP_BREAKPOINT) {
+    isAsideFixed.value = false
+    asideFixedStyle.value = {}
+    slot.style.height = ''
+    return
+  }
+
+  const header = document.querySelector('.header')
+
+  const headerBottom = header
+    ? Math.max(0, header.getBoundingClientRect().bottom)
+    : 0
+
+  const top = headerBottom + HEADER_GAP
+
+  const slotRect = slot.getBoundingClientRect()
+  const contentTopRect = contentTop.getBoundingClientRect()
+
+  if (!isAsideFixed.value) {
+    asideSlotHeight.value = aside.offsetHeight
+  }
+
+  const shouldUnstick = contentTopRect.top > top
+
+  if (shouldUnstick) {
+    isAsideFixed.value = false
+    asideFixedStyle.value = {}
+    slot.style.height = ''
+    return
+  }
+
+  slot.style.height = `${asideSlotHeight.value}px`
+
+  const pageBottom = slot.parentElement.getBoundingClientRect().bottom
+
+  const availableHeight = Math.max(120, window.innerHeight - top - HEADER_GAP)
+
+  const renderedHeight = Math.min(asideSlotHeight.value, availableHeight)
+
+  const fixedTop = Math.min(top, pageBottom - renderedHeight)
+
+  asideFixedStyle.value = {
+    top: `${fixedTop}px`,
+    left: `${slotRect.left}px`,
+    width: `${slotRect.width}px`,
+    maxHeight: `${availableHeight}px`,
+  }
+
+  isAsideFixed.value = true
+}
+
+let asideFrame = null
+function scheduleAsidePosition() {
+  if (asideFrame !== null) return
+  asideFrame = window.requestAnimationFrame(() => {
+    asideFrame = null
+    updateAsidePosition()
+  })
+}
 
 const FilterIcon = `
   <svg
@@ -948,11 +1027,17 @@ onMounted(() => {
   maxPrice.value = filters.priceRange?.max ?? PRICE_MAX
 
   window.addEventListener('keydown', handleFiltersKeydown)
+  window.addEventListener('scroll', scheduleAsidePosition, { passive: true })
+  window.addEventListener('resize', scheduleAsidePosition)
+  scheduleAsidePosition()
 })
 
 onBeforeUnmount(() => {
   window.clearTimeout(searchTimer)
   window.removeEventListener('keydown', handleFiltersKeydown)
+  window.removeEventListener('scroll', scheduleAsidePosition)
+  window.removeEventListener('resize', scheduleAsidePosition)
+  if (asideFrame !== null) window.cancelAnimationFrame(asideFrame)
 })
 </script>
 
@@ -968,6 +1053,8 @@ onBeforeUnmount(() => {
 
     width: 100%;
     aspect-ratio: 1 / 0.54;
+
+    pointer-events: none;
   }
   &__filters-toggle {
     position: fixed;
@@ -1060,6 +1147,18 @@ onBeforeUnmount(() => {
     }
   }
 
+  &__aside-slot {
+    @include adaptiveValue('min-width', 353, 250, 1800, 1370, 1);
+    @include adaptiveValue('max-width', 353, 250, 1800, 1370, 1);
+    flex: 0 0 auto;
+
+    @media (max-width: $md3) {
+      width: 0;
+      min-width: 0;
+      max-width: 0;
+    }
+  }
+
   &__aside {
     @include adaptiveValue('min-width', 353, 250, 1800, 1370, 1);
     @include adaptiveValue('max-width', 353, 250, 1800, 1370, 1);
@@ -1097,25 +1196,30 @@ onBeforeUnmount(() => {
     gap: 18px;
 
     background: linear-gradient(180deg, #111624 0%, #111624 100%);
+    @media (max-width: $md4) {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
   }
 
   &__switcher {
     display: flex;
     gap: 6px;
+    @media (max-width: $md4) {
+      order: 1;
+    }
+    @media (max-width: $md6) {
+      flex: 1 1 100%;
+    }
   }
 
   &__switch {
-    min-width: 80px;
-
-    // &_first {
-    //   border-bottom-right-radius: 0;
-    //   border-top-right-radius: 0;
-    // }
-
-    // &_last {
-    //   border-bottom-left-radius: 0;
-    //   border-top-left-radius: 0;
-    // }
+    @media (min-width: $md6) {
+      min-width: 80px;
+    }
+    @media (min-width: $md6) {
+      width: 100%;
+    }
   }
 
   &__search {
@@ -1124,7 +1228,9 @@ onBeforeUnmount(() => {
     max-width: 539px;
 
     margin: 0 auto;
-
+    @media (max-width: $md4) {
+      order: 3;
+    }
     &-icon {
       min-width: 32px;
       height: 32px;
@@ -1134,6 +1240,13 @@ onBeforeUnmount(() => {
   }
 
   &__dropdown {
+    @media (max-width: $md4) {
+      order: 2;
+    }
+    @media (max-width: $md6) {
+      flex: 1 1 100%;
+      order: 4;
+    }
     &-label {
       @include hide-item;
     }
@@ -1143,7 +1256,12 @@ onBeforeUnmount(() => {
 
       width: 100%;
       min-width: 0;
-      max-width: 230px;
+      @media (min-width: $md6) {
+        max-width: 230px;
+      }
+      @media (max-width: $md6) {
+        flex: 1 1 100%;
+      }
     }
   }
 }
@@ -1156,17 +1274,55 @@ onBeforeUnmount(() => {
 .aside {
   height: fit-content;
   @media (min-width: $md3) {
-    position: sticky;
-    top: 71px;
-
-    overflow-x: clip;
     overflow-y: auto;
-    align-self: flex-start;
 
-    height: auto;
-    max-height: calc(100dvh - 81px);
+    width: 100%;
+
+    transition: all 0.3s ease 0s;
 
     overscroll-behavior-y: contain;
+    &.aside_fixed {
+      position: fixed;
+      z-index: 5;
+    }
+  }
+  @media (max-width: $md3) {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 110;
+
+    visibility: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    width: 320px;
+    min-width: 0;
+    max-width: none;
+    height: calc(100dvh - 51px);
+
+    padding: 30px 10px;
+
+    background-color: var(--bg-primary-color);
+    opacity: 0;
+
+    pointer-events: none;
+
+    transform: translateX(-105%);
+    transition: all 0.3s ease 0s;
+
+    overscroll-behavior: contain;
+
+    &_open {
+      visibility: visible;
+
+      opacity: 1;
+
+      pointer-events: auto;
+
+      transform: translateX(0);
+    }
   }
 
   &__header {
@@ -1175,6 +1331,9 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding-left', 24, 10);
     @include adaptiveValue('padding-right', 24, 10);
     @include adaptiveValue('border-radius', 12, 10);
+    position: relative;
+    z-index: 1;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1221,7 +1380,7 @@ onBeforeUnmount(() => {
     outline: none;
     background-color: var(--bg-primary-color);
 
-    color: var(--fourth-color);
+    color: var(--hint-primary-color);
 
     cursor: pointer;
 
@@ -1231,7 +1390,7 @@ onBeforeUnmount(() => {
       &:hover {
         border-color: inherit;
 
-        color: var(--hint-primary-color);
+        color: var(--fourth-color);
       }
     }
     @media (max-width: $md3) {
@@ -1264,6 +1423,9 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding-left', 24, 10);
     @include adaptiveValue('padding-right', 24, 10);
     @include adaptiveValue('border-radius', 12, 10);
+    position: relative;
+    z-index: 1;
+
     display: flex;
     align-items: center;
     justify-content: space-between;

@@ -9,7 +9,7 @@
     >
       <SvgIcon
         class="pagination__control-icon pagination__control-icon_previous"
-        :icon="PaginationArrowIcon"
+        :icon="ChevronDownIcon"
       />
     </button>
 
@@ -49,7 +49,7 @@
     >
       <SvgIcon
         class="pagination__control-icon pagination__control-icon_next"
-        :icon="PaginationArrowIcon"
+        :icon="ChevronDownIcon"
       />
     </button>
   </nav>
@@ -58,7 +58,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import { PaginationArrowIcon } from '@/components/icons'
+import { ChevronDownIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 const props = defineProps({
@@ -195,12 +195,14 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .pagination {
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
   gap: 6px;
 
   width: fit-content;
-
   &__pages {
     display: flex;
     flex-wrap: wrap;
@@ -210,19 +212,17 @@ onBeforeUnmount(() => {
   }
 
   &__control {
+    @include adaptiveValue('min-width', 32, 40);
+    @include adaptiveValue('height', 32, 40);
     display: flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
 
-    min-width: 40px;
-    height: 40px;
-
     padding: 0;
 
     outline: none;
     background-color: transparent;
-    opacity: 0.7;
 
     color: var(--secondary-color);
 
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
     }
 
     &:focus-visible {
-      opacity: 1;
+      color: var(--hint-primary-color);
     }
 
     @media (any-hover: hover) {
@@ -252,42 +252,41 @@ onBeforeUnmount(() => {
   }
 
   &__control-icon {
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 10px;
 
     color: inherit;
 
     transition: transform 0.3s ease;
 
     &_previous {
-      transform: rotate(0deg);
+      transform: rotate(90deg);
     }
 
     &_next {
-      transform: rotate(-180deg);
+      transform: rotate(-90deg);
     }
   }
 
   &__page {
+    @include adaptiveValue('min-width', 32, 40);
+    @include adaptiveValue('height', 32, 40);
     display: flex;
     align-items: center;
     justify-content: center;
 
-    min-width: 40px;
-    height: 40px;
-
     padding: 0px;
 
-    border: 1.5px solid transparent;
+    border: 1px solid transparent;
     border-radius: 6px;
     outline: none;
     background-color: transparent;
-    opacity: 0.7;
+    opacity: 1;
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-family: 16px;
-    font-weight: 500;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-family: 14px;
+    font-weight: 600;
     line-height: 1;
 
     cursor: pointer;
@@ -295,27 +294,22 @@ onBeforeUnmount(() => {
     transition: all 0.3s ease 0s;
 
     &_active {
-      border-color: var(--border-priamry-color);
-      opacity: 1;
+      background-color: var(--hint-primary-color);
 
-      color: var(--primary-color);
+      color: var(--bg-primary-color);
+      font-weight: 700;
 
       cursor: default;
       pointer-events: none;
     }
 
     &:focus-visible {
-      border-color: var(--border-priamry-color);
-      opacity: 1;
-
-      color: var(--primary-color);
+      color: var(--hint-primary-color) !important;
     }
 
     @media (any-hover: hover) {
       &:hover {
-        opacity: 1;
-
-        color: var(--primary-color);
+        color: var(--hint-primary-color) !important;
       }
     }
   }
@@ -336,7 +330,7 @@ onBeforeUnmount(() => {
 
     border-radius: 50%;
     background-color: var(--secondary-color);
-    opacity: 0.7;
+    opacity: 1;
   }
 }
 </style>
