@@ -334,17 +334,14 @@ defineExpose({
   width: 100%;
   min-width: 0;
 
-  color: var(--primary-color);
+  color: var(--fourth-color);
 
   &_open {
     .base-dropdown__wrapper {
-      border-color: var(--border-secondary-color);
     }
 
     .base-dropdown__caret {
-      opacity: 1;
-
-      color: var(--secondary-color);
+      color: var(--hint-primary-color);
     }
 
     .base-dropdown__caret-icon {
@@ -353,15 +350,6 @@ defineExpose({
   }
 
   &_bordered {
-    .base-dropdown__wrapper {
-      border-color: var(--border-priamry-color);
-    }
-
-    &.base-dropdown_open {
-      .base-dropdown__wrapper {
-        border-color: var(--border-secondary-color);
-      }
-    }
   }
 
   &_disabled {
@@ -371,34 +359,31 @@ defineExpose({
   }
 
   &__wrapper {
+    @include adaptiveValue('min-height', 44, 40);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
 
     width: 100%;
-    min-height: 40px;
 
     margin: 0;
-    padding: 5px 12px;
+    padding: 5px 14px;
 
-    border: 1.5px solid var(--border-priamry-color);
+    border: 1px solid var(--border-priamry-color);
     border-radius: 6px;
     outline: none;
-    background-color: var(--bg-secondary-color);
+    background-color: var(--bg-primary-color);
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
 
     cursor: pointer;
 
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transition: all 0.3s ease 0s;
 
     &:focus-visible {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
     }
 
     &:disabled {
@@ -407,12 +392,10 @@ defineExpose({
 
     @media (any-hover: hover) {
       &:not(:disabled):hover {
-        border-color: var(--border-secondary-color);
+        border-color: var(--hint-primary-color);
 
         .base-dropdown__caret {
-          opacity: 1;
-
-          color: var(--secondary-color);
+          color: var(--hint-primary-color);
         }
       }
     }
@@ -455,15 +438,12 @@ defineExpose({
 
     border: 0;
     background: transparent;
-    opacity: 0.5;
 
-    color: var(--secondary-color);
+    color: var(--fourth-color);
 
     pointer-events: none;
 
-    transition:
-      color 0.3s ease,
-      opacity 0.3s ease;
+    transition: color 0.3s ease 0s;
   }
 
   &__caret-icon {

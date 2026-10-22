@@ -31,78 +31,6 @@
       />
     </Transition>
 
-    <div class="products-page__top top _cnt">
-      <div class="top__title _h4">
-        {{ $t('Card Store') }}
-      </div>
-      <div class="top__content">
-        <div class="top__switcher">
-          <BaseButton
-            type="button"
-            class="top__switch top__switch_first"
-            :variant="isBuyMode ? 'primary' : 'hint-bordered'"
-            :aria-pressed="isBuyMode"
-            @click="setMarketMode('buy')"
-          >
-            {{ $t('Buy') }}
-          </BaseButton>
-
-          <BaseButton
-            type="button"
-            class="top__switch top__switch_last"
-            :variant="isRentMode ? 'primary' : 'hint-bordered'"
-            :aria-pressed="isRentMode"
-            @click="setMarketMode('rent')"
-          >
-            {{ $t('Rent') }}
-          </BaseButton>
-        </div>
-        <BaseInput
-          v-model="filters.search"
-          class="top__search"
-          :class="{
-            content__search_filled: filters.search.trim().length > 0,
-          }"
-          :placeholder="$t('Search')"
-        >
-          <template #suffix>
-            <SvgIcon :icon="SearchIcon" class="top__search-icon" />
-          </template>
-        </BaseInput>
-        <div class="top__dropdown">
-          <div class="top__dropdown-label">
-            {{ $t('Sort') }}
-          </div>
-
-          <BaseDropdown
-            class="top__dropdown-box"
-            :label="$t(selectedSortOption?.label || 'Sort by')"
-            :placeholder="!selectedSortOption"
-            variant="aside"
-            bordered
-            absolute
-          >
-            <template #default="{ close }">
-              <button
-                v-for="option in CATALOG_SORT_OPTIONS"
-                :key="option.value"
-                type="button"
-                class="dropdown-option"
-                :class="{
-                  'dropdown-option_selected': option.value === filters.sort,
-                }"
-                :aria-selected="option.value === filters.sort"
-                role="option"
-                @click="selectSort(option.value, close)"
-              >
-                {{ $t(option.label) }}
-              </button>
-            </template>
-          </BaseDropdown>
-        </div>
-      </div>
-    </div>
-
     <div class="products-page__inner _cnt">
       <aside
         id="product-filters"
@@ -434,6 +362,77 @@
       </aside>
 
       <div class="products-page__content content">
+        <div class="products-page__top top">
+          <div class="top__title _h4">
+            {{ $t('Card Store') }}
+          </div>
+          <div class="top__content">
+            <div class="top__switcher">
+              <BaseButton
+                type="button"
+                class="top__switch top__switch_first"
+                :variant="isBuyMode ? 'switch-active' : 'switch-inactive'"
+                :aria-pressed="isBuyMode"
+                @click="setMarketMode('buy')"
+              >
+                {{ $t('Buy') }}
+              </BaseButton>
+
+              <BaseButton
+                type="button"
+                class="top__switch top__switch_last"
+                :variant="isRentMode ? 'switch-active' : 'switch-inactive'"
+                :aria-pressed="isRentMode"
+                @click="setMarketMode('rent')"
+              >
+                {{ $t('Rent') }}
+              </BaseButton>
+            </div>
+            <BaseInput
+              v-model="filters.search"
+              class="top__search"
+              :class="{
+                content__search_filled: filters.search.trim().length > 0,
+              }"
+              :placeholder="$t('Search')"
+            >
+              <template #suffix>
+                <SvgIcon :icon="SearchIcon" class="top__search-icon" />
+              </template>
+            </BaseInput>
+            <div class="top__dropdown">
+              <div class="top__dropdown-label">
+                {{ $t('Sort') }}
+              </div>
+
+              <BaseDropdown
+                class="top__dropdown-box"
+                :label="$t(selectedSortOption?.label || 'Sort by')"
+                :placeholder="!selectedSortOption"
+                variant="aside"
+                bordered
+                absolute
+              >
+                <template #default="{ close }">
+                  <button
+                    v-for="option in CATALOG_SORT_OPTIONS"
+                    :key="option.value"
+                    type="button"
+                    class="dropdown-option"
+                    :class="{
+                      'dropdown-option_selected': option.value === filters.sort,
+                    }"
+                    :aria-selected="option.value === filters.sort"
+                    role="option"
+                    @click="selectSort(option.value, close)"
+                  >
+                    {{ $t(option.label) }}
+                  </button>
+                </template>
+              </BaseDropdown>
+            </div>
+          </div>
+        </div>
         <div class="content__body">
           <LoadingSpinner
             v-if="loading || !initialized"
@@ -441,14 +440,14 @@
           />
 
           <div v-else-if="error" class="content__empty empty">
-            <p class="empty__title _h3">
+            <p class="empty__title _h4">
               {{ $t(error) }}
             </p>
 
             <BaseButton
               type="button"
               class="empty__reset"
-              variant="bordered"
+              variant="clear"
               @click="submitFilters"
             >
               {{ $t('Try again') }}
@@ -471,7 +470,7 @@
           </div>
 
           <div v-else class="content__empty empty">
-            <p class="empty__title _h5">
+            <p class="empty__title _h4">
               {{
                 marketMode === 'rent'
                   ? $t('No rental cards found')
@@ -482,7 +481,7 @@
             <BaseButton
               type="button"
               class="empty__reset"
-              variant="bordered"
+              variant="clear"
               @click="resetFilters"
             >
               {{ $t('Clear all') }}
@@ -494,7 +493,7 @@
           v-if="showPaginationControls"
           class="content__pagination pagination"
         >
-          <div class="pagination__dropdown">
+          <div v-if="false" class="pagination__dropdown">
             <div class="pagination__dropdown-label">
               {{ $t('Items per page:') }}
             </div>
@@ -554,7 +553,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
-import { CloseIcon } from '@/components/icons'
+import { CloseIcon, SearchIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
@@ -984,356 +983,6 @@ onBeforeUnmount(() => {
   }
 }
 
-.products-page {
-  @include adaptiveValue('padding-top', 120, 80);
-  @include adaptiveValue('padding-bottom', 46, 30);
-  position: relative;
-  &__bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    aspect-ratio: 1 / 0.315;
-  }
-
-  &__filters-toggle {
-    position: fixed;
-    top: 45%;
-    right: 10px;
-    z-index: 2;
-
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    width: 40px;
-    height: 40px;
-
-    padding: 0;
-
-    border: 1px solid var(--border-secondary-color);
-    border-radius: 6px;
-    outline: none;
-    background-color: var(--bg-eight-color);
-
-    color: var(--secondary-color);
-
-    cursor: pointer;
-
-    transition: all 0.3s ease 0s;
-
-    &_open {
-      border-color: var(--border-priamry-color);
-      background: var(--third-color);
-
-      color: var(--primary-color);
-    }
-
-    @media (any-hover: hover) {
-      &:hover {
-        border-color: var(--border-priamry-color);
-        background: var(--third-color);
-
-        color: var(--primary-color);
-      }
-
-      &_open:hover {
-        color: var(--primary-color);
-      }
-    }
-
-    @media (max-width: $md3) {
-      display: flex;
-    }
-    &-icon {
-      display: flex;
-
-      width: 20px;
-      height: 20px;
-
-      color: inherit;
-
-      :deep(svg) {
-        display: block;
-
-        width: 100%;
-        height: 100%;
-      }
-    }
-  }
-
-  &__filters-overlay {
-    position: fixed;
-    inset: 51px 0 0;
-    z-index: 3;
-
-    display: none;
-
-    width: 100%;
-    height: calc(100dvh - 51px);
-
-    padding: 0;
-
-    border: 0;
-    outline: none;
-    background-color: rgb(0, 0, 0, 0.5);
-
-    -webkit-backdrop-filter: blur(64px);
-    backdrop-filter: blur(64px);
-
-    @media (max-width: $md3) {
-    }
-  }
-
-  &__top {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
-  }
-
-  &__inner {
-    @include adaptiveValue('gap', 16, 10, 1870, 1370, 1);
-    display: flex;
-
-    width: 100%;
-    @media (max-width: $md3) {
-      display: block;
-    }
-  }
-
-  &__aside {
-    min-width: 220px;
-    max-width: 220px;
-  }
-
-  &__content {
-    flex: 1 1 auto;
-
-    min-width: 0;
-  }
-}
-
-.top {
-  @include adaptiveValue('padding', 24, 10);
-  @include adaptiveValue('gap', 30, 10);
-
-  position: relative;
-
-  display: grid;
-  align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-
-  width: 100%;
-
-  border: 1px solid var(--border-fourth-color);
-  border-radius: 12px;
-  background-color: var(--bg-nineth-color);
-
-  &__decor {
-    @include adaptiveValue('width', 338, 138);
-
-    position: absolute;
-    top: 0;
-    left: 50%;
-
-    aspect-ratio: 1 / 0.11;
-
-    transform: translate(-50%, -100%);
-  }
-
-  &__controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    grid-column: 1;
-    grid-row: 1;
-
-    min-width: 0;
-  }
-
-  &__switcher {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-  }
-
-  &__switch {
-    min-width: 88px;
-
-    &_first {
-      border-bottom-right-radius: 0;
-      border-top-right-radius: 0;
-    }
-
-    &_last {
-      border-bottom-left-radius: 0;
-      border-top-left-radius: 0;
-    }
-  }
-
-  &__dropdown {
-    @include adaptiveValue('gap', 16, 10);
-
-    display: flex;
-    flex: 0 1 auto;
-    align-items: center;
-
-    min-width: 0;
-
-    &-label {
-      flex: 0 0 auto;
-
-      color: var(--seventh-color);
-      font-size: 16px;
-      font-weight: 500;
-      line-height: 100%;
-      letter-spacing: 0;
-      white-space: nowrap;
-    }
-
-    &-box {
-      flex: 1 1 auto;
-
-      width: 100%;
-      min-width: 0;
-      max-width: 258px;
-    }
-  }
-
-  &__title {
-    align-self: center;
-    justify-self: center;
-    grid-column: 2;
-    grid-row: 1;
-
-    margin: 0;
-
-    color: var(--secondary-color);
-    font-weight: 500;
-    line-height: 120%;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  &__search {
-    justify-self: end;
-    grid-column: 3;
-    grid-row: 1;
-
-    width: 100%;
-    min-width: 0;
-    max-width: 659px;
-
-    margin: 0;
-
-    &-icon {
-      min-width: 20px;
-      height: 20px;
-
-      opacity: 0.5;
-
-      color: var(--secondary-color);
-    }
-  }
-
-  @media (max-width: 1199.98px) {
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1 / -1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      gap: 12px;
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    &__dropdown {
-      flex: 1 1 auto;
-    }
-
-    &__search {
-      grid-column: 2;
-      grid-row: 2;
-    }
-  }
-
-  @media (max-width: $md3) {
-    grid-template-columns: minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      grid-column: 1;
-      grid-row: 2;
-
-      width: 100%;
-    }
-
-    &__search {
-      grid-column: 1;
-      grid-row: 3;
-
-      width: 100%;
-      max-width: none;
-    }
-  }
-
-  @media (max-width: $md4) {
-    gap: 15px;
-    grid-template-columns: minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      gap: 12px;
-      grid-column: 1;
-      grid-row: 2;
-
-      width: 100%;
-    }
-
-    &__dropdown {
-      flex: 1 1 100%;
-
-      &-box {
-        max-width: none;
-      }
-    }
-
-    &__search {
-      grid-column: 1;
-      grid-row: 3;
-
-      max-width: none;
-    }
-  }
-
-  @media (max-width: $md7) {
-    &__controls {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    &__switcher {
-      justify-content: center;
-    }
-
-    &__dropdown {
-      width: 100%;
-    }
-  }
-}
 
 .aside {
   position: relative;
@@ -1780,6 +1429,291 @@ onBeforeUnmount(() => {
       min-width: 80px;
       max-width: 100px;
     }
+  }
+}
+
+//========================================================================================================================================================
+
+.products-page {
+  @include adaptiveValue('padding-top', 130, 80);
+  @include adaptiveValue('padding-bottom', 54, 30);
+  position: relative;
+  &__bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    aspect-ratio: 1 / 0.54;
+  }
+  &__filters-toggle {
+    position: fixed;
+    top: 45%;
+    right: 10px;
+    z-index: 2;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 1px solid inherit;
+    border-radius: 6px;
+    outline: none;
+    background-color: var(--bg-primary-color);
+
+    color: var(--fifth-color);
+
+    cursor: pointer;
+
+    transition: all 0.3s ease 0s;
+
+    &_open {
+      color: var(--hint-primary-color);
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--hint-primary-color);
+      }
+
+      &_open:hover {
+        color: var(--hint-primary-color);
+      }
+    }
+
+    @media (max-width: $md3) {
+      display: flex;
+    }
+    &-icon {
+      display: flex;
+
+      width: 20px;
+      height: 20px;
+
+      color: inherit;
+
+      :deep(svg) {
+        display: block;
+
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  &__filters-overlay {
+    position: fixed;
+    inset: 51px 0 0;
+    z-index: 3;
+
+    display: none;
+
+    width: 100%;
+    height: calc(100dvh - 51px);
+
+    padding: 0;
+
+    border: 0;
+    outline: none;
+    background-color: rgb(0, 0, 0, 0.5);
+
+    -webkit-backdrop-filter: blur(64px);
+    backdrop-filter: blur(64px);
+  }
+
+  &__top {
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 13, 18);
+    }
+  }
+
+  &__inner {
+    @include adaptiveValue('gap', 42, 10, 1800, 1370, 1);
+    display: flex;
+
+    width: 100%;
+    @media (max-width: $md3) {
+      display: block;
+    }
+  }
+
+  &__aside {
+    @include adaptiveValue('min-width', 353, 250, 1800, 1370, 1);
+    @include adaptiveValue('max-width', 353, 250, 1800, 1370, 1);
+  }
+
+  &__content {
+    flex: 1 1 auto;
+
+    min-width: 0;
+  }
+}
+
+.top {
+  position: relative;
+  z-index: 1;
+  &__title {
+    width: fit-content;
+
+    margin-right: auto;
+
+    color: var(--fourth-color);
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 34, 18);
+    }
+  }
+
+  &__content {
+    @include adaptiveValue('padding', 18, 10);
+    @include adaptiveValue('border-radius', 12, 10);
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
+  }
+
+  &__switcher {
+    display: flex;
+    gap: 6px;
+  }
+
+  &__switch {
+    min-width: 80px;
+
+    // &_first {
+    //   border-bottom-right-radius: 0;
+    //   border-top-right-radius: 0;
+    // }
+
+    // &_last {
+    //   border-bottom-left-radius: 0;
+    //   border-top-left-radius: 0;
+    // }
+  }
+
+  &__search {
+    width: 100%;
+    min-width: 0;
+    max-width: 539px;
+
+    margin: 0 auto;
+
+    &-icon {
+      min-width: 32px;
+      height: 32px;
+
+      color: var(--fourth-color);
+    }
+  }
+
+  &__dropdown {
+    &-label {
+      @include hide-item;
+    }
+
+    &-box {
+      flex: 1 1 auto;
+
+      width: 100%;
+      min-width: 0;
+      max-width: 230px;
+    }
+  }
+}
+
+.dropdown-option {
+  &_selected {
+  }
+}
+
+.aside {
+  &_open {
+  }
+
+  &__header {
+  }
+
+  &__title {
+  }
+
+  &__close {
+    &-icon {
+    }
+  }
+
+  &__wrapper {
+  }
+
+  &__content {
+  }
+
+  &__section {
+  }
+
+  &__dropdown {
+  }
+
+  &__bottom {
+  }
+
+  &__submit {
+  }
+}
+
+.filter-group {
+  &__title {
+  }
+
+  &__price {
+    &-input {
+    }
+  }
+
+  &__separator {
+  }
+
+  &__dropdown {
+  }
+}
+
+.content {
+  &__body {
+  }
+
+  &__loader {
+  }
+
+  &__empty {
+  }
+
+  &__items {
+  }
+
+  &__item {
+  }
+
+  &__pagination {
+  }
+}
+
+.empty {
+  &__title {
+  }
+
+  &__reset {
+  }
+}
+
+.pagination {
+  &__pagination {
   }
 }
 </style>
