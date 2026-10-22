@@ -31,10 +31,6 @@ const goBack = () => {
       <div class="not-found">
         <div class="not-found__code" aria-hidden="true">404</div>
 
-        <div class="not-found__divider" aria-hidden="true">
-          <span />
-        </div>
-
         <p class="not-found__hint">
           {{
             $t(
@@ -49,7 +45,7 @@ const goBack = () => {
           {{ $t('Go Back Home') }}
         </BaseButton>
 
-        <BaseButton type="button" variant="hint-bordered" @click="goBack">
+        <BaseButton type="button" icon="arrow" variant="back" @click="goBack">
           {{ $t('Previous Page') }}
         </BaseButton>
       </template>
@@ -62,6 +58,7 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 
   width: 100%;
   min-width: 0;
@@ -69,49 +66,16 @@ const goBack = () => {
   &__code {
     @include adaptiveValue('font-size', 100, 64);
 
-    color: #f4c6b3;
-    font-family: var(--font-spectral);
-    font-weight: 500;
+    color: var(--hint-primary-color);
+    font-family: var(--font-audiowide);
+    font-weight: 400;
     line-height: 1;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-align: center;
-    text-shadow: 0 4px 22px rgb(244 198 179 / 15%);
+    text-shadow: 0 4px 24px rgb(0 0 0 / 15%);
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 14);
-    }
-  }
-
-  &__divider {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    max-width: 220px;
-    height: 1px;
-
-    margin: 0 auto;
-
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--border-secondary-color),
-      transparent
-    );
-
-    span {
-      width: 5px;
-      height: 5px;
-
-      border: 1px solid var(--border-secondary-color);
-      background: var(--bg-primary-color);
-
-      transform: rotate(45deg);
-    }
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
+      @include adaptiveValue('margin-bottom', 24, 16);
     }
   }
 
@@ -121,11 +85,11 @@ const goBack = () => {
 
     margin: 0 auto;
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 160%;
     text-align: center;
 
     overflow-wrap: anywhere;
@@ -133,7 +97,7 @@ const goBack = () => {
 
   @media (max-width: $md6) {
     &__code {
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
     }
 
     &__divider {

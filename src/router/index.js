@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import AboutPage from '@/pages/AboutPage/AboutPage.vue'
 import AccountPage from '@/pages/AccountPage/AccountPage.vue'
 import AuthPage from '@/pages/AuthPage/AuthPage.vue'
 import CartPage from '@/pages/CartPage/CartPage.vue'
@@ -14,6 +13,7 @@ import FailPaymentPage from '@/pages/StatusPages/FailPaymentPage.vue'
 import PendingPaymentPage from '@/pages/StatusPages/PendingPaymentPage.vue'
 import SuccessPaymentPage from '@/pages/StatusPages/SuccessPaymentPage.vue'
 
+import AboutPage from '@/pages/AboutPage/AboutPage.vue'
 import ProductDetailsPage from '@/pages/ProductPages/ProductDetailsPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useStaticStore } from '@/stores/static'

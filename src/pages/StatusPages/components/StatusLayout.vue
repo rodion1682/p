@@ -53,10 +53,6 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     :aria-busy="showLoader"
   >
     <div class="status-layout__box">
-      <div class="status-layout__decoration" aria-hidden="true">
-        <img src="@/assets/img/product-list-decor.png" alt="" />
-      </div>
-
       <div class="status-layout__inner">
         <div
           v-if="showLoader"
@@ -72,7 +68,7 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
           </div>
         </div>
 
-        <h1 v-if="title" class="status-layout__title _h3">
+        <h1 v-if="title" class="status-layout__title _h4">
           {{ title }}
         </h1>
 
@@ -100,13 +96,14 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
 
 <style lang="scss" scoped>
 .status-layout {
-  --status-color: var(--hint-secondary-color);
+  --status-color: var(--hint-primary-color);
+
+  position: relative;
 
   width: 100%;
   max-width: 620px;
 
   margin: 0 auto;
-  padding-top: 25px;
 
   &_success {
     --status-color: var(--success-color);
@@ -121,76 +118,50 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
   }
 
   &__box {
+    @include adaptiveValue('border-radius', 22, 10);
+
     position: relative;
 
+    overflow: hidden;
+
     width: 100%;
+    min-width: 0;
 
     border: 1px solid var(--border-priamry-color);
-    border-radius: 12px;
-    background: rgb(48 43 91 / 90%);
-    box-shadow: 0 16px 50px rgb(8 6 28 / 12%);
-  }
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
+    box-shadow: 0 12px 36px rgb(0 0 0 / 12%);
 
-  &__decoration {
-    position: absolute;
-    bottom: calc(100% + 1px);
-    left: 0;
-    z-index: 2;
-
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-
-    width: 100%;
-    height: 25px;
-
-    pointer-events: none;
-
-    &::after {
+    &::before {
       position: absolute;
-      right: 0;
-      bottom: 0;
+      top: 0;
       left: 0;
 
-      height: 1px;
+      width: 100%;
+      height: 2px;
 
-      background: var(--border-priamry-color);
+      background: var(--status-color);
 
       content: '';
-    }
-
-    img {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      z-index: 1;
-
-      display: block;
-
-      width: min(230px, 55vw);
-      max-height: 45px;
-
-      object-fit: contain;
-      object-position: center bottom;
-
-      transform: translateX(-50%);
     }
   }
 
   &__inner {
-    @include adaptiveValue('padding-top', 48, 30);
-    @include adaptiveValue('padding-right', 48, 20);
+    @include adaptiveValue('padding-top', 48, 28);
+    @include adaptiveValue('padding-right', 40, 16);
     @include adaptiveValue('padding-bottom', 44, 28);
-    @include adaptiveValue('padding-left', 48, 20);
+    @include adaptiveValue('padding-left', 40, 16);
 
     position: relative;
+    z-index: 1;
 
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 
     width: 100%;
     min-width: 0;
+    min-height: 260px;
 
     text-align: center;
   }
@@ -211,7 +182,7 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     justify-content: center;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 26, 18);
+      @include adaptiveValue('margin-bottom', 28, 20);
     }
   }
 
@@ -220,8 +191,9 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     @include adaptiveValue('height', 60, 46);
 
     display: block;
+    flex: 0 0 auto;
 
-    border: 3px solid var(--border-fourth-color);
+    border: 3px solid var(--border-priamry-color);
     border-radius: 50%;
 
     animation: status-layout-spin 0.9s linear infinite;
@@ -235,23 +207,24 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     justify-content: center;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
+      @include adaptiveValue('margin-bottom', 26, 18);
     }
   }
 
   &__icon-inner {
-    @include adaptiveValue('width', 78, 60);
-    @include adaptiveValue('height', 78, 60);
+    @include adaptiveValue('width', 84, 64);
+    @include adaptiveValue('height', 84, 64);
 
     position: relative;
 
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
 
     border: 1px solid var(--border-priamry-color);
     border-radius: 50%;
-    background: rgb(25 22 60 / 65%);
+    background: var(--bg-primary-color);
 
     color: var(--status-color);
 
@@ -259,39 +232,41 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
       position: absolute;
       inset: 6px;
 
-      border: 1px solid var(--border-fourth-color);
+      border: 1px solid var(--border-priamry-color);
       border-radius: 50%;
 
       content: '';
     }
 
     :deep(svg) {
-      @include adaptiveValue('width', 36, 28);
-      @include adaptiveValue('height', 36, 28);
+      @include adaptiveValue('width', 38, 28);
+      @include adaptiveValue('height', 38, 28);
 
       position: relative;
       z-index: 1;
 
       display: block;
 
+      max-width: 100%;
+
       color: inherit;
     }
   }
 
   &__title {
-    @include adaptiveValue('font-size', 32, 24);
-
     margin: 0;
 
-    color: #f4d8c5;
-    font-family: var(--font-spectral);
-    font-weight: 500;
-    line-height: 1.2;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-weight: 600;
+    line-height: 130%;
     text-align: center;
     text-transform: none;
 
+    overflow-wrap: anywhere;
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 14);
+      @include adaptiveValue('margin-bottom', 18, 12);
     }
   }
 
@@ -303,7 +278,7 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     margin-left: auto;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 22);
+      @include adaptiveValue('margin-bottom', 28, 20);
     }
   }
 
@@ -311,7 +286,7 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
   &__subtext {
     margin: 0;
 
-    font-family: var(--font-inter);
+    font-family: var(--font-open-sans);
     font-weight: 400;
     text-align: center;
 
@@ -321,31 +296,63 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
   &__text {
     @include adaptiveValue('font-size', 15, 14);
 
-    color: var(--primary-color);
-    line-height: 1.6;
+    color: var(--fourth-color);
+    line-height: 160%;
 
     &:not(:last-child) {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
   }
 
   &__subtext {
-    color: var(--secondary-color);
+    color: var(--fifth-color);
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 165%;
   }
 
   &__body {
     width: 100%;
     min-width: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    line-height: 1.6;
+    font-weight: 400;
+    line-height: 160%;
+
+    overflow-wrap: anywhere;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 22);
+      @include adaptiveValue('margin-bottom', 28, 20);
+    }
+
+    :deep(p) {
+      margin: 0;
+
+      &:not(:last-child) {
+        margin-bottom: 12px;
+      }
+    }
+
+    :deep(strong),
+    :deep(b) {
+      color: var(--fourth-color);
+      font-weight: 600;
+    }
+
+    :deep(a) {
+      color: var(--hint-primary-color);
+      text-decoration: underline;
+
+      transition: color 0.3s ease;
+
+      text-underline-offset: 3px;
+
+      @media (any-hover: hover) {
+        &:hover {
+          color: var(--fourth-color);
+        }
+      }
     }
   }
 
@@ -357,9 +364,11 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
     gap: 12px;
 
     width: 100%;
+    min-width: 0;
 
-    :deep(.base-button) {
-      flex: 0 1 180px;
+    :deep(.base-button),
+    :deep(.btn) {
+      flex: 0 1 auto;
 
       min-width: 150px;
     }
@@ -368,26 +377,44 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
   &_success {
     .status-layout__icon-inner {
       border-color: var(--success-color);
+      background: var(--bg-primary-color);
     }
   }
 
   &_error {
     .status-layout__icon-inner {
       border-color: var(--error-color);
+      background: var(--bg-primary-color);
     }
   }
 
   &_pending {
     .status-layout__icon-inner {
       border-color: var(--pending-color);
+      background: var(--bg-primary-color);
+    }
+  }
+
+  &_loading {
+    .status-layout__box::before {
+      opacity: 0.7;
     }
   }
 
   @media (max-width: $md6) {
+    width: 100%;
+    max-width: 100%;
+
+    &__inner {
+      min-height: 240px;
+    }
+
     &__actions {
       flex-direction: column;
+      gap: 10px;
 
-      :deep(.base-button) {
+      :deep(.base-button),
+      :deep(.btn) {
         flex: 0 0 auto;
 
         width: 100%;
@@ -416,7 +443,7 @@ const statusRole = computed(() => (props.tone === 'error' ? 'alert' : 'status'))
 
 @media (prefers-reduced-motion: reduce) {
   .status-layout__spinner {
-    animation-duration: 1.8s;
+    animation: none;
   }
 }
 </style>

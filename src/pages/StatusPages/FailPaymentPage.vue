@@ -5,6 +5,9 @@ import { useRoute, useRouter } from 'vue-router'
 import BaseButton from '@/components/base/BaseButton.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import StatusLayout from '@/pages/StatusPages/components/StatusLayout.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -14,7 +17,7 @@ const isTopUp = computed(() => {
 })
 
 const statusTitle = computed(() => {
-  return isTopUp.value ? 'Payment Failed' : 'Order Payment Failed'
+  return isTopUp.value ? t('Payment Failed') : t('Order Payment Failed')
 })
 
 const errorMessage = computed(() => {
@@ -40,7 +43,7 @@ const goHome = () => {
       tone="error"
     >
       <template #actions>
-        <BaseButton type="button" variant="bordered" @click="goHome">
+        <BaseButton type="button" icon="arrow" variant="back" @click="goHome">
           {{ $t('Return to Home') }}
         </BaseButton>
       </template>

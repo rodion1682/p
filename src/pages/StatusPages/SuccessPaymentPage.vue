@@ -7,6 +7,9 @@ import AuthLayout from '@/layouts/AuthLayout.vue'
 import StatusLayout from '@/pages/StatusPages/components/StatusLayout.vue'
 import { useCartStore } from '@/stores/cart'
 import { useTopUpStore } from '@/stores/topup'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -19,19 +22,19 @@ const isTopUp = computed(() => {
 })
 
 const statusTitle = computed(() => {
-  return isTopUp.value ? 'Payment Successful!' : 'Purchase Successful!'
+  return isTopUp.value ? t('Payment Successful!') : t('Purchase Successful!')
 })
 
 const statusText = computed(() => {
   return isTopUp.value
-    ? 'Thank you for your payment. Your account has been topped up.'
-    : 'Thank you for your purchase. Your payment was successful.'
+    ? t('Thank you for your payment. Your account has been topped up.')
+    : t('Thank you for your purchase. Your payment was successful.')
 })
 
 const statusSubtext = computed(() => {
   return isTopUp.value
-    ? 'You can view your transaction in your account.'
-    : 'You can view your purchased items in your order history.'
+    ? t('You can view your transaction in your account.')
+    : t('You can view your purchased items in your order history.')
 })
 
 const goHome = () => {
@@ -92,7 +95,8 @@ onMounted(() => {
 
           <BaseButton
             type="button"
-            variant="bordered"
+            variant="back"
+            icon="arrow"
             @click="continueShopping"
           >
             {{ $t('Continue Shopping') }}

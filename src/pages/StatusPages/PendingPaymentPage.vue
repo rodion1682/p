@@ -6,6 +6,9 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import StatusLayout from '@/pages/StatusPages/components/StatusLayout.vue'
 import { useTopUpStore } from '@/stores/topup'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -26,10 +29,10 @@ const depositId = computed(() => {
 
 const statusMessage = computed(() => {
   if (!paymentStatus.value) {
-    return 'Your payment is being processed. Please wait...'
+    return t('Your payment is being processed. Please wait...')
   }
 
-  return `Payment is being processed. Status: ${paymentStatus.value}`
+  return t(`Payment is being processed. Status: ${paymentStatus.value}`)
 })
 
 const redirectToFailure = error => {
@@ -144,7 +147,7 @@ onUnmounted(() => {
           {{ $t('View Transaction History') }}
         </BaseButton>
 
-        <BaseButton type="button" variant="bordered" @click="goHome">
+        <BaseButton type="button" icon="arrow" variant="back" @click="goHome">
           {{ $t('Return to Home') }}
         </BaseButton>
       </template>
