@@ -85,7 +85,7 @@
           </div>
         </aside>
 
-        <!-- Catalog: right content -->
+        <!-- Pack catalog -->
         <section class="packs-page__catalog catalog">
           <div class="catalog__top">
             <h1 class="catalog__title _h4">
@@ -166,15 +166,16 @@
 
     <!-- Catalog details modal (optional) -->
     <PackDetailsModal
-      v-if="IS_PACK_DETAILS_MODAL_ACTIVE"
+      v-if="props.isPackDetailsModalActive"
       v-model:show="isPackDetailsOpen"
       :pack-id="selectedPackId"
       :initial-pack="selectedPack"
       @close="closePackDetails"
     />
 
-    <!-- Owned packs always use the unpack modal -->
+    <!-- Optional in-place owned pack opening -->
     <UnpackPackModal
+      v-if="props.isUnpackModalActive"
       v-model:show="isUnpackModalOpen"
       :pack-id="selectedOwnedPackId"
       :pack="selectedOwnedPack"
@@ -204,9 +205,11 @@ import PackCard from './components/PackCard.vue'
 import PackDetailsModal from './modals/PackDetailsModal.vue'
 import UnpackPackModal from './modals/UnpackPackModal.vue'
 
-// false = navigate to PackDetailsPage
-// true  = open PackDetailsModal
-const IS_PACK_DETAILS_MODAL_ACTIVE = false
+// Both modes are independent; defaults navigate to dedicated pages.
+const props = defineProps({
+  isPackDetailsModalActive: { type: Boolean, default: false },
+  isUnpackModalActive: { type: Boolean, default: false },
+})
 
 const OWNED_PACKS_PER_PAGE = 200
 const STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
@@ -538,7 +541,7 @@ const openPackDetails = pack => {
   }
 
   // Use dedicated page when the modal flag is disabled.
-  if (!IS_PACK_DETAILS_MODAL_ACTIVE) {
+  if (!props.isPackDetailsModalActive) {
     router.push({
       name: 'PackDetailsPage',
       params: {
@@ -579,6 +582,14 @@ const openUnpackModal = pack => {
     return
   }
 
+  if (!props.isUnpackModalActive) {
+    router.push({
+      name: 'UnpackPackPage',
+      params: { packId },
+    })
+    return
+  }
+
   selectedOwnedPackId.value = packId
   selectedOwnedPack.value = pack
   isUnpackModalOpen.value = true
@@ -610,33 +621,23 @@ onBeforeUnmount(() => {
   @include adaptiveValue('padding-bottom', 80, 30);
 
   position: relative;
-
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-
   width: 100%;
   min-width: 0;
   min-height: 100%;
-
   background: var(--bg-primary-color);
 
   &__bg {
     position: absolute;
     inset: 0;
-    z-index: 0;
-
-    width: 100%;
-    height: 100%;
-
     pointer-events: none;
 
     img {
       display: block;
-
       width: 100%;
       height: 100%;
-
       object-fit: cover;
       object-position: center top;
     }
@@ -645,30 +646,25 @@ onBeforeUnmount(() => {
   &__container {
     position: relative;
     z-index: 1;
-
     display: flex;
     flex-direction: column;
-
     width: 100%;
     min-width: 0;
   }
 
   &__inner {
-    @include adaptiveValue('column-gap', 36, 16);
-    @include adaptiveValue('row-gap', 28, 20);
+    @include adaptiveValue('column-gap', 48, 18);
+    @include adaptiveValue('row-gap', 30, 20);
 
     display: grid;
+    grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
     align-items: start;
-    grid-template-columns:
-      minmax(240px, 0.28fr)
-      minmax(0, 0.72fr);
-
     width: 100%;
     min-width: 0;
   }
 
-  &__catalog,
-  &__aside {
+  &__aside,
+  &__catalog {
     min-width: 0;
   }
 
@@ -677,299 +673,15 @@ onBeforeUnmount(() => {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    &__aside {
-      order: 1;
-    }
-
-    &__catalog {
-      order: 2;
-    }
+    &__aside { order: 1; }
+    &__catalog { order: 2; }
   }
 }
-
-// Catalog
-
-.catalog {
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  min-width: 0;
-
-  &__top {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    min-height: 72px;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 12);
-    }
-  }
-
-  &__title {
-    margin: 0;
-
-    color: var(--fourth-color);
-    text-align: left;
-    text-transform: none;
-  }
-
-  &__body {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-
-    width: 100%;
-    min-width: 0;
-    min-height: 300px;
-  }
-
-  &__loader {
-    margin: auto;
-  }
-
-  &__items {
-    @include adaptiveValue('column-gap', 40, 12);
-    @include adaptiveValue('row-gap', 28, 16);
-
-    display: grid;
-    align-items: stretch;
-    justify-items: center;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    width: 100%;
-    min-width: 0;
-    max-width: 760px;
-
-    margin: 0 auto;
-  }
-
-  &__card {
-    width: 100%;
-    min-width: 0;
-  }
-
-  &__empty {
-    margin: auto;
-  }
-
-  &__pagination {
-    @include adaptiveValue('margin-top', 32, 20);
-  }
-
-  // Pack cards: design based on the PNG reference
-
-  :deep(.pack-card) {
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-    min-width: 0;
-    height: 100%;
-
-    border: 1px solid var(--border-priamry-color);
-    border-radius: 12px;
-    background: rgb(17 22 36 / 45%);
-    box-shadow: none;
-
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease;
-
-    @media (any-hover: hover) {
-      &:hover {
-        border-color: var(--border-secondary-color);
-        background: rgb(17 22 36 / 65%);
-      }
-    }
-  }
-
-  :deep(.pack-card__body) {
-    @include adaptiveValue('padding', 20, 10);
-
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    align-items: center;
-
-    width: 100%;
-    min-width: 0;
-    height: 100%;
-
-    background: transparent;
-  }
-
-  :deep(.pack-card__title) {
-    width: 100%;
-
-    margin: 0;
-
-    color: var(--fourth-color);
-    font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 150%;
-    text-align: center;
-    text-transform: none;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 12, 8);
-    }
-  }
-
-  :deep(.pack-card__preview) {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    min-width: 0;
-
-    padding: 0;
-
-    border: 0;
-    background: transparent;
-  }
-
-  :deep(.pack-card__image) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    min-width: 0;
-    aspect-ratio: 0.72;
-
-    background: transparent;
-
-    img {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-
-      object-fit: contain;
-
-      transition: transform 0.3s ease;
-    }
-  }
-
-  :deep(.pack-card__preview:hover .pack-card__image img) {
-    transform: translateY(-5px);
-  }
-
-  :deep(.pack-card__footer) {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-
-    width: 100%;
-
-    margin-top: 12px;
-  }
-
-  :deep(.pack-card__price) {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    min-width: 0;
-
-    margin: 0;
-
-    :deep(.price) {
-      gap: 6px;
-    }
-  }
-
-  :deep(.pack-card__cart) {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
-    min-height: 38px;
-
-    padding: 7px;
-
-    border-radius: 6px;
-  }
-
-  :deep(.pack-card__cart-icon) {
-    width: 20px;
-    height: 20px;
-  }
-
-  :deep(.pack-card__cart-text) {
-    display: none;
-  }
-
-  @media (max-width: $md3) {
-    &__top {
-      min-height: 0;
-    }
-
-    &__items {
-      max-width: 650px;
-    }
-  }
-
-  @media (max-width: $md6) {
-    &__items {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    :deep(.pack-card__body) {
-      padding: 10px;
-    }
-
-    :deep(.pack-card__title) {
-      font-size: 12px;
-    }
-
-    :deep(.pack-card__footer) {
-      gap: 6px;
-    }
-
-    :deep(.pack-card__cart) {
-      width: 34px;
-      min-width: 34px;
-      height: 34px;
-      min-height: 34px;
-    }
-
-    :deep(.pack-card__price) {
-      :deep(.price__number) {
-        font-size: 15px;
-      }
-    }
-  }
-
-  @media (max-width: $md8) {
-    &__items {
-      grid-template-columns: minmax(0, 1fr);
-
-      max-width: 300px;
-    }
-  }
-}
-
-// My Packs sidebar
 
 .my-packs {
   display: flex;
   flex-direction: column;
   gap: 4px;
-
-  width: 100%;
   min-width: 0;
 
   &__top {
@@ -977,17 +689,13 @@ onBeforeUnmount(() => {
 
     display: flex;
     align-items: center;
-
     min-height: 72px;
-
-    border: 1px solid var(--border-priamry-color);
     border-radius: 10px;
     background: #111624;
   }
 
   &__title {
     margin: 0;
-
     color: var(--fourth-color);
     text-align: left;
     text-transform: none;
@@ -996,32 +704,22 @@ onBeforeUnmount(() => {
   &__body {
     display: flex;
     flex-direction: column;
-
-    width: 100%;
     min-width: 0;
     min-height: 110px;
   }
 
   @media (max-width: $md3) {
-    &__top {
-      min-height: 60px;
-    }
+    &__top { min-height: 60px; }
   }
 }
 
-// Owned pack list
-
 .owned-packs {
-  &__loader {
-    margin: 24px auto;
-  }
+  &__loader { margin: 24px auto; }
 
   &__items {
     display: flex;
     flex-direction: column;
     gap: 4px;
-
-    width: 100%;
     min-width: 0;
   }
 
@@ -1029,29 +727,19 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding', 14, 10);
 
     display: grid;
+    grid-template-columns: minmax(42px, 0.2fr) minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    grid-template-columns:
-      minmax(42px, 0.2fr)
-      minmax(0, 1fr)
-      auto;
-
     width: 100%;
     min-width: 0;
     min-height: 86px;
-
     border: 1px solid transparent;
     border-radius: 10px;
     background: #111624;
-
     color: var(--fourth-color);
     text-align: left;
-
     cursor: pointer;
-
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 
     &:focus-visible {
       border-color: var(--hint-primary-color);
@@ -1062,13 +750,9 @@ onBeforeUnmount(() => {
       &:hover {
         border-color: var(--border-secondary-color);
 
-        .owned-packs__image img {
-          transform: translateY(-3px);
-        }
-
+        .owned-packs__image img { transform: translateY(-3px); }
         .owned-packs__arrow {
           color: var(--hint-primary-color);
-
           transform: translateX(3px);
         }
       }
@@ -1079,19 +763,15 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 100%;
     max-width: 60px;
     aspect-ratio: 0.8;
 
     img {
       display: block;
-
       width: 100%;
       height: 100%;
-
       object-fit: contain;
-
       transition: transform 0.3s ease;
     }
   }
@@ -1100,27 +780,22 @@ onBeforeUnmount(() => {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-
+    gap: 6px;
     min-width: 0;
   }
 
   &__name {
     min-width: 0;
-
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
     font-size: 13px;
     font-weight: 600;
     line-height: 150%;
-    text-align: left;
-
     overflow-wrap: anywhere;
   }
 
   &__quantity {
     flex: 0 0 auto;
-
     color: var(--hint-primary-color);
     font-family: var(--font-open-sans);
     font-size: 12px;
@@ -1128,19 +803,11 @@ onBeforeUnmount(() => {
   }
 
   &__arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
     width: 22px;
-
     color: var(--fifth-color);
     font-size: 20px;
     line-height: 1;
-
-    transition:
-      color 0.3s ease,
-      transform 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
   }
 
   &__state {
@@ -1151,42 +818,29 @@ onBeforeUnmount(() => {
     align-items: flex-start;
     justify-content: center;
     gap: 12px;
-
-    width: 100%;
     min-height: 120px;
-
     border-radius: 10px;
     background: #111624;
   }
 
   &__state-title {
     margin: 0;
-
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
     font-size: 13px;
     font-weight: 600;
     line-height: 150%;
-    text-align: left;
   }
 
   &__state-text {
     margin: 0;
-
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 12px;
-    font-weight: 400;
     line-height: 160%;
-    text-align: left;
   }
 
-  &__state-button {
-    width: fit-content;
-    min-width: 130px;
-
-    margin-top: 6px;
-  }
+  &__state-button { width: fit-content; min-width: 130px; }
 
   @media (max-width: $md3) {
     &__items {
@@ -1196,13 +850,78 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: $md6) {
-    &__items {
-      grid-template-columns: minmax(0, 1fr);
-    }
+    &__items { grid-template-columns: minmax(0, 1fr); }
   }
 }
 
-// Empty catalog
+.catalog {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  &__top {
+    display: flex;
+    align-items: center;
+    min-height: 72px;
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 18, 12);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--fourth-color);
+    text-align: left;
+    text-transform: none;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 340px;
+  }
+
+  &__loader { margin: auto; }
+
+  &__items {
+    @include adaptiveValue('column-gap', 50, 14);
+    @include adaptiveValue('row-gap', 30, 16);
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 250px));
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+  }
+
+  &__card {
+    min-width: 0;
+    width: 100%;
+  }
+
+  &__empty { margin: auto; }
+
+  &__pagination {
+    @include adaptiveValue('margin-top', 32, 20);
+  }
+
+  @media (max-width: $md3) {
+    &__top { min-height: 0; }
+    &__items { max-width: 650px; }
+  }
+
+  @media (max-width: $md6) {
+    &__items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: $md8) {
+    &__items { grid-template-columns: minmax(0, 280px); }
+  }
+}
 
 .empty {
   @include adaptiveValue('padding', 32, 18);
@@ -1212,42 +931,30 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-
   width: 100%;
   min-height: 280px;
-
   border: 1px solid var(--border-priamry-color);
   border-radius: 12px;
   background: #111624;
-
   text-align: center;
 
   &__title {
     margin: 0;
-
     color: var(--fourth-color);
     text-transform: none;
   }
 
   &__text {
     max-width: 420px;
-
     margin: 0;
-
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
     line-height: 150%;
   }
 
-  &__button {
-    width: fit-content;
-    min-width: 150px;
-    max-width: 210px;
-  }
+  &__button { width: fit-content; min-width: 150px; }
 }
-
-// Pagination
 
 .pagination {
   display: flex;
@@ -1255,7 +962,6 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-
   width: 100%;
   min-width: 0;
 
@@ -1263,26 +969,18 @@ onBeforeUnmount(() => {
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 13px;
-    font-weight: 400;
     line-height: 150%;
   }
 
-  &__component {
-    margin-left: auto;
-  }
+  &__component { margin-left: auto; }
 
   @media (max-width: $md5) {
     flex-direction: column;
     align-items: center;
     gap: 14px;
 
-    &__info {
-      text-align: center;
-    }
-
-    &__component {
-      margin-left: 0;
-    }
+    &__info { text-align: center; }
+    &__component { margin-left: 0; }
   }
 }
 </style>

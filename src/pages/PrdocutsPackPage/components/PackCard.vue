@@ -15,9 +15,9 @@
     @mouseleave="isCardHovered = false"
   >
     <div class="pack-card__body">
-      <div class="pack-card__title _h4" :title="packName">
+      <h3 class="pack-card__title" :title="packName">
         {{ packName }}
-      </div>
+      </h3>
 
       <button
         type="button"
@@ -37,12 +37,12 @@
 
       <div v-if="!props.my" class="pack-card__footer">
         <div class="pack-card__price">
-          <PriceFormatter :price="packPrice" size="size-32" />
+          <PriceFormatter :price="packPrice" size="size-20" />
         </div>
 
         <BaseButton
           type="button"
-          variant="hint-bordered"
+          :variant="isInCart ? 'clear' : 'bordered'"
           class="pack-card__cart"
           :class="{
             'pack-card__cart_remove': isInCart,
@@ -55,13 +55,9 @@
 
           <template v-else>
             <SvgIcon
-              :icon="isInCart ? CloseIcon : CartIcon"
+              :icon="isInCart ? TrashIcon : CartIcon"
               class="pack-card__cart-icon"
             />
-
-            <span class="pack-card__cart-text">
-              {{ cartButtonLabel }}
-            </span>
           </template>
         </BaseButton>
       </div>
@@ -87,7 +83,7 @@ import { useRouter } from 'vue-router'
 import defaultImage from '@/assets/img/default-image.png'
 
 import BaseButton from '@/components/base/BaseButton.vue'
-import { CartIcon, CloseIcon, EyeIcon } from '@/components/icons'
+import { CartIcon, EyeIcon, TrashIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
 
@@ -471,6 +467,8 @@ watch(packId, (newPackId, previousPackId) => {
   container-type: inline-size;
 
   &__body {
+    @include adaptiveValue('padding', 18, 10);
+
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -478,6 +476,15 @@ watch(packId, (newPackId, previousPackId) => {
 
     width: 100%;
     min-width: 0;
+    height: 100%;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 10px;
+    background: rgb(17 22 36 / 40%);
+
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
   }
 
   &__title {
@@ -485,39 +492,36 @@ watch(packId, (newPackId, previousPackId) => {
 
     width: 100%;
 
-    color: var(--primary-color);
-    font-family: var(--font-spectral);
+    margin: 0;
+
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
     font-weight: 600;
-    line-height: 120%;
+    line-height: 150%;
     text-align: center;
     text-overflow: ellipsis;
-    text-transform: none;
     white-space: nowrap;
-
-    transition: color 0.3s ease;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
-    }
   }
 
   &__preview {
     position: relative;
 
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: center;
 
     width: 100%;
-    max-width: 310px;
-    aspect-ratio: 0.68;
+    min-width: 0;
+    max-width: 100%;
+    aspect-ratio: 0.72;
 
     margin: 0;
     padding: 0;
 
     border: 0;
-    outline: none;
-    background-color: transparent;
+    background: transparent;
 
     cursor: pointer;
 
@@ -528,15 +532,18 @@ watch(packId, (newPackId, previousPackId) => {
     }
 
     &:focus-visible {
-      outline: 1px solid var(--hint-secondary-color);
-      outline-offset: 5px;
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: 3px;
     }
   }
 
   &__image {
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     width: 100%;
+    min-width: 0;
     height: 100%;
 
     img {
@@ -565,118 +572,100 @@ watch(packId, (newPackId, previousPackId) => {
     justify-content: center;
 
     width: 45%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1;
 
     border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      rgb(0 0 0 / 48%) 0%,
-      rgb(0 0 0 / 15%) 45%,
-      rgb(0 0 0 / 0%) 72%
-    );
+    background: radial-gradient(circle, rgb(0 0 0 / 45%), transparent 70%);
     opacity: 0;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
 
     pointer-events: none;
 
-    transform: translate(-50%, -50%) scale(0.7);
+    transform: translate(-50%, -50%) scale(0.8);
     transition:
-      visibility 0.3s ease,
       opacity 0.3s ease,
+      visibility 0.3s ease,
       transform 0.3s ease;
   }
 
   &__view-icon {
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
 
     filter: drop-shadow(0 2px 5px rgb(0 0 0 / 50%));
   }
 
   &__footer {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 
     width: 100%;
-    min-height: 92px;
+    min-width: 0;
 
-    margin-top: 15px;
+    margin-top: 10px;
   }
 
   &__price {
-    position: relative;
-    z-index: 2;
-
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 
-    width: 100%;
+    min-width: 0;
 
-    transition:
-      color 0.3s ease,
-      transform 0.3s ease;
+    color: var(--fourth-color);
 
     :deep(.price) {
-      justify-content: center;
+      flex-direction: row-reverse;
+      gap: 6px;
     }
-
     :deep(.price__number) {
-      font-family: var(--font-spectral);
-      font-weight: 700;
+      color: inherit;
     }
   }
 
   &__cart {
-    @include adaptiveValue('min-height', 40, 36);
+    display: flex;
+    visibility: visible;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
 
-    visibility: hidden;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
 
-    width: 100%;
-    max-width: 200px;
+    margin: 0;
+    padding: 6px;
 
-    margin-top: 12px;
+    border-radius: 6px;
+    opacity: 1;
 
-    opacity: 0;
+    pointer-events: auto;
 
-    pointer-events: none;
-
-    transform: translateY(-6px);
+    transform: none;
     transition:
-      visibility 0.3s ease,
-      opacity 0.3s ease,
-      transform 0.3s ease,
       border-color 0.3s ease,
       background-color 0.3s ease,
       color 0.3s ease;
 
     &_remove {
-      border-color: var(--error-color);
-
       color: var(--error-color);
     }
-
     &:disabled {
+      opacity: 0.5;
+
       cursor: wait;
     }
   }
 
   &__cart-icon {
-    width: 18px;
-    min-width: 18px;
-    height: 18px;
-  }
-
-  &__cart-text {
-    overflow: hidden;
-
-    min-width: 0;
-
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    width: 20px;
+    height: 20px;
   }
 
   &__loader {
@@ -688,7 +677,6 @@ watch(packId, (newPackId, previousPackId) => {
 
     animation: pack-card-spin 0.8s linear infinite;
 
-    border-bottom-color: transparent;
     border-right-color: transparent;
   }
 
@@ -700,40 +688,36 @@ watch(packId, (newPackId, previousPackId) => {
 
     width: 100%;
 
-    margin-top: 15px;
+    margin-top: 10px;
   }
 
   &__owned-label {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
   }
 
   &__owned-value {
-    color: var(--primary-color);
-    font-family: var(--font-spectral);
-    font-size: 18px;
-    font-weight: 700;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 600;
   }
 
   &_hovered {
-    .pack-card__title {
-      color: var(--hint-secondary-color);
+    .pack-card__body {
+      border-color: var(--border-secondary-color);
+      background: rgb(17 22 36 / 55%);
     }
 
     .pack-card__preview {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
     }
+    .pack-card__image img {
+      transform: scale(1.025);
 
-    .pack-card__image {
-      img {
-        transform: scale(1.025);
-
-        filter: brightness(0.8);
-      }
+      filter: brightness(0.8);
     }
-
     .pack-card__view {
       visibility: visible;
 
@@ -741,111 +725,46 @@ watch(packId, (newPackId, previousPackId) => {
 
       transform: translate(-50%, -50%) scale(1);
     }
-
-    .pack-card__price {
-      color: var(--hint-secondary-color);
-
-      transform: translateY(-2px);
-    }
-
-    .pack-card__cart {
-      visibility: visible;
-
-      opacity: 1;
-
-      pointer-events: auto;
-
-      transform: translateY(0);
-    }
-  }
-
-  &_in-cart {
-    .pack-card__price {
-      color: var(--hint-secondary-color);
-    }
-  }
-
-  &_carousel {
-    width: 100%;
-  }
-
-  @media (any-hover: hover) {
-    &__cart {
-      &:hover {
-        border-color: var(--hint-secondary-color);
-        background-color: var(--hint-primary-color);
-
-        color: var(--bg-primary-color);
-      }
-
-      &_remove {
-        &:hover {
-          border-color: var(--error-color);
-          background-color: var(--error-color);
-
-          color: var(--primary-color);
-        }
-      }
-    }
-  }
-
-  @media (max-width: $md4) {
-    &__preview {
-      max-width: 280px;
-    }
   }
 
   @media (max-width: $md6) {
-    max-width: 328px;
-
-    margin-right: auto;
-    margin-left: auto;
+    &__title {
+      font-size: 12px;
+    }
+    &__cart {
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
+      min-height: 34px;
+    }
+    &__cart-icon {
+      width: 18px;
+      height: 18px;
+    }
   }
 }
 
 @media (any-hover: none) {
-  .pack-card {
-    &__footer {
-      min-height: 0;
-    }
-
-    &__cart {
-      visibility: visible;
-
-      max-width: 200px;
-
-      opacity: 1;
-
-      pointer-events: auto;
-
-      transform: none;
-    }
-
-    &__view {
-      top: 15px;
-      right: 15px;
-      left: auto;
-
-      visibility: visible;
-
-      width: 42px;
-
-      opacity: 1;
-
-      transform: none;
-    }
-
-    &__view-icon {
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-    }
+  .pack-card__view {
+    display: none;
   }
 }
 
 @keyframes pack-card-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-card__body,
+  .pack-card__image img,
+  .pack-card__view,
+  .pack-card__preview {
+    transition: none;
+  }
+  .pack-card__loader {
+    animation: none;
   }
 }
 </style>
