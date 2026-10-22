@@ -1,20 +1,21 @@
 <template>
   <main class="pack-page">
     <div class="pack-page__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
     <div class="pack-page__container _cnt">
       <BaseButton
+        type="button"
         variant="back"
         icon="arrow"
         class="pack-page__back"
         @click="goBack"
       >
-        {{ $t('Back') }}
+        {{ $t('Back to packs') }}
       </BaseButton>
 
-      <div v-if="loading" class="pack-page__state">
+      <div v-if="loading" class="pack-page__state" role="status">
         <LoadingSpinner class="pack-page__loader" />
       </div>
 
@@ -22,14 +23,11 @@
         <h1 class="pack-page__state-title _h4">
           {{ $t('Unable to load pack') }}
         </h1>
-
-        <p class="pack-page__state-text">
-          {{ error }}
-        </p>
-
+        <p v-if="error" class="pack-page__state-text">{{ error }}</p>
         <BaseButton
           type="button"
           variant="hint-bordered"
+          class="pack-page__retry"
           @click="fetchPackDetails"
         >
           {{ $t('Try again') }}
@@ -38,180 +36,156 @@
 
       <div v-else class="pack-page__layout">
         <div class="pack-page__preview">
-          <div class="pack-page__preview-inner">
-            <div class="pack-page__stack">
-              <img
-                v-for="index in PACK_STACK_COUNT"
-                :key="index"
-                :src="packImage"
-                :alt="index === 1 ? packName : ''"
-                :aria-hidden="index !== 1"
-                class="pack-page__image"
-                :class="`pack-page__image_${index}`"
-                draggable="false"
-                @error="imageHasFailed = true"
-              />
-            </div>
+          <div
+            class="pack-page__corner pack-page__corner_top"
+            aria-hidden="true"
+          >
+            <img :src="leftDecoration" alt="" />
+          </div>
+
+          <img
+            v-if="packImage"
+            :src="packImage"
+            :alt="currentPack.name"
+            class="pack-page__image"
+            draggable="false"
+            @error="handleImageError"
+          />
+
+          <div
+            class="pack-page__corner pack-page__corner_bottom"
+            aria-hidden="true"
+          >
+            <img :src="rightDecoration" alt="" />
           </div>
         </div>
 
-        <div class="pack-page__details">
-          <div class="pack-page__header">
-            <h1 class="pack-page__title _h4">
-              {{ packName }}
-            </h1>
-          </div>
-
-          <div
-            v-if="cardCount || rarityProbabilities.length"
-            class="pack-page__section"
-          >
-            <h2 class="pack-page__section-title">
-              {{ $t('Pack contents') }}
-            </h2>
-
-            <div class="pack-page__stats">
-              <div v-if="cardCount" class="pack-page__stat">
-                <span class="pack-page__stat-label">
-                  {{ $t('Cards') }}
-                </span>
-
-                <span class="pack-page__stat-value">
-                  {{ cardCount }}
-                </span>
-              </div>
-
-              <div
-                v-for="item in rarityProbabilities"
-                :key="item.rarity"
-                class="pack-page__stat"
-              >
-                <span class="pack-page__stat-label">
-                  {{ formatRarity(item.rarity) }}
-                </span>
-
-                <span class="pack-page__stat-value">
-                  {{ formatProbability(item.probability) }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="guaranteedRarities.length" class="pack-page__section">
-            <h2 class="pack-page__section-title">
-              {{ $t('Guaranteed cards') }}
-            </h2>
-
-            <div class="pack-page__stats">
-              <div
-                v-for="item in guaranteedRarities"
-                :key="item.rarity"
-                class="pack-page__stat"
-              >
-                <span class="pack-page__stat-label">
-                  {{ formatRarity(item.rarity) }}
-                </span>
-
-                <span class="pack-page__stat-value">
-                  {{ item.quantity }}
-                  {{ $t('guaranteed') }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="currentPack.description" class="pack-page__section">
-            <h2 class="pack-page__section-title">
-              {{ $t('Description') }}
-            </h2>
+        <div class="pack-page__details" :aria-label="currentPack.name">
+          <div class="pack-page__main">
+            <h1 class="pack-page__title _h4">{{ currentPack.name }}</h1>
 
             <div
-              class="pack-page__description"
-              v-html="currentPack.description"
-            />
+              v-if="currentPack.description"
+              class="pack-page__description-section"
+            >
+              <h2 class="pack-page__label">{{ $t('Description') }}:</h2>
+              <p class="pack-page__description">
+                {{ currentPack.description }}
+              </p>
+            </div>
+
+            <div v-if="hasContents" class="pack-page__section">
+              <h2 class="pack-page__section-title">
+                {{ $t('Pack contents') }}
+              </h2>
+
+              <div class="pack-page__stats">
+                <div v-if="hasCardCount" class="pack-page__stat">
+                  <span class="pack-page__stat-label">{{ $t('Cards') }}</span>
+                  <strong class="pack-page__stat-value">{{
+                    currentPack.card_count
+                  }}</strong>
+                </div>
+
+                <div
+                  v-for="item in rarityProbabilities"
+                  :key="item.rarity"
+                  class="pack-page__stat"
+                >
+                  <span class="pack-page__stat-label">{{
+                    formatRarity(item.rarity)
+                  }}</span>
+                  <strong class="pack-page__stat-value">
+                    {{ formatProbability(item.probability) }}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="guaranteedRarities.length" class="pack-page__section">
+              <h2 class="pack-page__section-title">
+                {{ $t('Guaranteed cards') }}
+              </h2>
+              <div class="pack-page__guarantees">
+                <div
+                  v-for="item in guaranteedRarities"
+                  :key="item.rarity"
+                  class="pack-page__stat"
+                >
+                  <span class="pack-page__stat-label">{{
+                    formatRarity(item.rarity)
+                  }}</span>
+                  <strong class="pack-page__stat-value">
+                    {{ item.quantity }} {{ $t('guaranteed') }}
+                  </strong>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="pack-page__purchase">
-            <div class="pack-page__purchase-top">
-              <div class="pack-page__price">
-                <span class="pack-page__control-label">
-                  {{ $t('Price') }}
-                </span>
+          <div v-if="hasPrice" class="pack-page__purchase">
+            <div class="pack-page__price">
+              <span class="pack-page__control-label">{{ $t('Price') }}</span>
+              <PriceFormatter
+                :price="currentPack.price"
+                size="size-20"
+                class="pack-page__price-value"
+              />
+            </div>
 
-                <PriceFormatter
-                  v-if="hasDiscount"
-                  :price="oldPrice"
-                  size="size-14"
-                  class="pack-page__old-price"
+            <div class="pack-page__quantity">
+              <label for="pack-page-quantity" class="pack-page__control-label">
+                {{ $t('Quantity') }}
+              </label>
+              <div class="pack-page__quantity-controls">
+                <button
+                  type="button"
+                  class="pack-page__quantity-button"
+                  :disabled="isInCart || isSubmitting || Number(quantity) <= 1"
+                  :aria-label="$t('Decrease quantity')"
+                  @click="decreaseQuantity"
+                >
+                  −
+                </button>
+
+                <input
+                  id="pack-page-quantity"
+                  v-model="quantity"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  class="pack-page__quantity-input"
+                  :disabled="isInCart || isSubmitting"
+                  @input="onQuantityInput"
+                  @blur="normalizeQuantity"
                 />
 
-                <PriceFormatter
-                  :price="packPrice"
-                  size="size-28"
-                  class="pack-page__price-value"
-                />
-              </div>
-
-              <div class="pack-page__quantity">
-                <span class="pack-page__control-label">
-                  {{ $t('Quantity') }}
-                </span>
-
-                <div class="pack-page__quantity-controls">
-                  <button
-                    type="button"
-                    class="pack-page__quantity-button"
-                    :disabled="
-                      isInCart || isSubmitting || Number(quantity) <= 1
-                    "
-                    :aria-label="$t('Decrease quantity')"
-                    @click="decreaseQuantity"
-                  >
-                    −
-                  </button>
-
-                  <input
-                    v-model="quantity"
-                    type="text"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    class="pack-page__quantity-input"
-                    :disabled="isInCart || isSubmitting"
-                    :aria-label="$t('Quantity')"
-                    @input="onQuantityInput"
-                    @blur="normalizeQuantity"
-                    @keydown.enter="normalizeQuantity"
-                  />
-
-                  <button
-                    type="button"
-                    class="pack-page__quantity-button"
-                    :disabled="
-                      isInCart ||
-                      isSubmitting ||
-                      Number(quantity) >= MAX_QUANTITY
-                    "
-                    :aria-label="$t('Increase quantity')"
-                    @click="increaseQuantity"
-                  >
-                    +
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  class="pack-page__quantity-button"
+                  :disabled="
+                    isInCart || isSubmitting || Number(quantity) >= MAX_QUANTITY
+                  "
+                  :aria-label="$t('Increase quantity')"
+                  @click="increaseQuantity"
+                >
+                  +
+                </button>
               </div>
             </div>
 
             <BaseButton
               type="button"
-              class="pack-page__action"
-              :variant="isInCart ? 'hint-bordered' : 'primary'"
-              :disabled="isSubmitting || !currentPack.id"
+              :variant="isInCart ? 'play' : 'play'"
+              class="pack-page__buy"
+              :disabled="isSubmitting"
               @click="handleCartAction"
             >
               {{
                 isSubmitting
                   ? $t('Processing...')
                   : isInCart
-                    ? $t('Remove from cart')
+                    ? $t('Remove')
                     : $t('Buy pack')
               }}
             </BaseButton>
@@ -223,28 +197,27 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-import defaultImage from '@/assets/img/default-image.png'
+import blueLeftDecor from '@/assets/img/blue-left-decor.png'
+import blueRightDecor from '@/assets/img/blue-right-decor.png'
+import redLeftDecor from '@/assets/img/red-left-decor.png'
+import redRightDecor from '@/assets/img/red-right-decor.png'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
-
 import { useToast } from '@/composables/useToast'
-
 import axios from '@/plugins/axios'
 import { useCartStore } from '@/stores/cart'
 
 const MAX_QUANTITY = 99
-const PACK_STACK_COUNT = 6
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
-
+const { t, locale } = useI18n()
 const toast = useToast()
 const cartStore = useCartStore()
 
@@ -252,169 +225,146 @@ const currentPack = ref(null)
 const loading = ref(true)
 const error = ref('')
 const isSubmitting = ref(false)
-const imageHasFailed = ref(false)
 const quantity = ref(1)
-
+const imageState = ref('details')
 let requestId = 0
 
 const packId = computed(() => route.params.productId)
 
-const packName = computed(() => {
-  return currentPack.value?.name || currentPack.value?.title || t('Card Pack')
-})
+// All product information comes from GET /catalog/packs/:productId.
+// The pack name only chooses the decorative PNG color, never product data.
+const useRedDecor = computed(() => /elite/i.test(currentPack.value?.name || ''))
+const leftDecoration = computed(() =>
+  useRedDecor.value ? redLeftDecor : blueLeftDecor,
+)
+const rightDecoration = computed(() =>
+  useRedDecor.value ? redRightDecor : blueRightDecor,
+)
 
 const packImage = computed(() => {
-  if (imageHasFailed.value) {
-    return defaultImage
-  }
-
-  return (
-    currentPack.value?.image_details || currentPack.value?.image || defaultImage
-  )
+  if (imageState.value === 'none') return ''
+  if (imageState.value === 'base') return currentPack.value?.image || ''
+  return currentPack.value?.image_details || currentPack.value?.image || ''
 })
 
-const packPrice = computed(() => {
-  const price = Number(
-    currentPack.value?.price ?? currentPack.value?.base_price ?? 0,
-  )
-
-  return Number.isFinite(price) ? price : 0
-})
-
-const oldPrice = computed(() => {
-  return Number(currentPack.value?.old_price || 0)
-})
-
-const hasDiscount = computed(() => {
-  return oldPrice.value > packPrice.value
-})
-
-const cardCount = computed(() => {
-  return Number(currentPack.value?.card_count || 0)
-})
+const hasPrice = computed(
+  () =>
+    currentPack.value?.price != null &&
+    Number.isFinite(Number(currentPack.value.price)),
+)
+const hasCardCount = computed(() => currentPack.value?.card_count != null)
 
 const rarityProbabilities = computed(() => {
-  const items = currentPack.value?.rarity_probabilities
-
-  return Array.isArray(items) ? items : []
+  const rarities = currentPack.value?.rarity_probabilities
+  return Array.isArray(rarities)
+    ? [...rarities].sort(
+        (a, b) => Number(b.probability) - Number(a.probability),
+      )
+    : []
 })
-
-const guaranteedRarities = computed(() => {
-  const items = currentPack.value?.guaranteed_rarities
-
-  return Array.isArray(items) ? items : []
-})
-
-const isInCart = computed(() => {
-  if (!currentPack.value?.id) return false
-
-  return cartStore.isItemInCart(currentPack.value.id, 'pack')
-})
+const guaranteedRarities = computed(() =>
+  Array.isArray(currentPack.value?.guaranteed_rarities)
+    ? currentPack.value.guaranteed_rarities
+    : [],
+)
+const hasContents = computed(
+  () => hasCardCount.value || rarityProbabilities.value.length > 0,
+)
+const isInCart = computed(
+  () =>
+    currentPack.value?.id != null &&
+    cartStore.isItemInCart(currentPack.value.id, 'pack'),
+)
 
 function formatRarity(value) {
-  if (!value) return ''
-
-  const text = String(value).replaceAll('_', ' ').trim()
-
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+  const text = String(value ?? '')
+    .replaceAll('_', ' ')
+    .trim()
+  return text ? text[0].toUpperCase() + text.slice(1).toLowerCase() : ''
 }
 
-function formatProbability(probability) {
-  const number = Number(probability)
+function formatProbability(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return '—'
 
-  if (!Number.isFinite(number)) {
-    return '0%'
-  }
-
-  const percentage = number <= 1 ? number * 100 : number
-
-  return `${percentage.toLocaleString(undefined, {
+  // API probabilities are fractions: 0.85 -> 85.00%.
+  return `${new Intl.NumberFormat(locale.value || 'en', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}%`
+  }).format(number * 100)}%`
+}
+
+function handleImageError() {
+  if (
+    imageState.value === 'details' &&
+    currentPack.value?.image &&
+    currentPack.value.image !== currentPack.value.image_details
+  ) {
+    imageState.value = 'base'
+  } else {
+    imageState.value = 'none'
+  }
 }
 
 function normalizeQuantity() {
-  const value = Number.parseInt(quantity.value, 10)
-
-  quantity.value = Number.isFinite(value)
-    ? Math.min(MAX_QUANTITY, Math.max(1, value))
+  const number = Number.parseInt(quantity.value, 10)
+  quantity.value = Number.isFinite(number)
+    ? Math.min(MAX_QUANTITY, Math.max(1, number))
     : 1
 }
 
 function onQuantityInput(event) {
-  const value = String(event.target.value).replace(/\D/g, '').slice(0, 2)
-
-  quantity.value = value
-
-  if (Number(value) > MAX_QUANTITY) {
-    quantity.value = MAX_QUANTITY
-  }
+  quantity.value = event.target.value.replace(/\D/g, '').slice(0, 2)
 }
 
 function increaseQuantity() {
-  if (isSubmitting.value || isInCart.value) return
-
+  if (isInCart.value || isSubmitting.value) return
   normalizeQuantity()
-
   quantity.value = Math.min(MAX_QUANTITY, Number(quantity.value) + 1)
 }
 
 function decreaseQuantity() {
-  if (isSubmitting.value || isInCart.value) return
-
+  if (isInCart.value || isSubmitting.value) return
   normalizeQuantity()
-
   quantity.value = Math.max(1, Number(quantity.value) - 1)
 }
 
 async function fetchPackDetails() {
-  const currentRequestId = ++requestId
-
-  currentPack.value = null
-  error.value = ''
+  const activeRequest = ++requestId
   loading.value = true
-  imageHasFailed.value = false
+  error.value = ''
+  currentPack.value = null
+  imageState.value = 'details'
   quantity.value = 1
 
   try {
-    if (!packId.value) {
-      throw new Error('Pack ID is missing')
-    }
+    if (!packId.value) throw new Error(t('Pack ID is missing'))
 
     const response = await axios.get(`/catalog/packs/${packId.value}`)
+    if (activeRequest !== requestId) return
 
-    if (currentRequestId !== requestId) return
-
-    const data =
-      response?.data?.data ?? response?.data?.payload ?? response?.data
-
-    if (!data?.id) {
-      throw new Error('Unable to load pack details')
+    // Actual response shape supplied by the API: { data: { ...pack } }.
+    const pack = response?.data?.data
+    if (!pack || pack.id == null) {
+      throw new Error(t('Unable to load pack'))
     }
 
-    currentPack.value = data
+    currentPack.value = pack
   } catch (requestError) {
-    if (currentRequestId !== requestId) return
+    if (activeRequest !== requestId) return
 
     console.error('Failed to load pack:', requestError)
-
     error.value =
       requestError?.response?.data?.message ||
       requestError?.message ||
       t('Unable to load pack')
   } finally {
-    if (currentRequestId === requestId) {
-      loading.value = false
-    }
+    if (activeRequest === requestId) loading.value = false
   }
 }
 
 async function handleCartAction() {
-  if (isSubmitting.value || !currentPack.value?.id) {
-    return
-  }
-
+  if (isSubmitting.value || currentPack.value?.id == null) return
   isSubmitting.value = true
 
   try {
@@ -423,19 +373,16 @@ async function handleCartAction() {
         currentPack.value.id,
         'pack',
       )
-
       if (!result?.success) {
         throw new Error(
           result?.error || result?.message || t('Failed to remove item'),
         )
       }
-
-      toast.success(t('Item removed from cart'))
+      toast.success(result.message || t('Item removed from cart'))
       return
     }
 
     normalizeQuantity()
-
     const result = await cartStore.addToCart(
       currentPack.value.id,
       Number(quantity.value),
@@ -444,31 +391,24 @@ async function handleCartAction() {
 
     if (result?.isUnauthorized) {
       toast.warning(t('Please login to add items to cart'))
-
       await router.push({
         name: 'Auth',
-        query: {
-          form: 'signin',
-          redirect: route.fullPath,
-        },
+        query: { form: 'signin', redirect: route.fullPath },
       })
-
       return
     }
 
     if (!result?.success) {
       if (result?.isAlreadyInCart) {
-        toast.warning(result.message)
+        toast.warning(result.message || t('Item is already in cart'))
         return
       }
-
       throw new Error(result?.message || t('Failed to add item to cart'))
     }
 
-    toast.success(result?.message || t('Item added to cart'))
+    toast.success(result.message || t('Item added to cart'))
   } catch (cartError) {
     console.error('Pack cart action failed:', cartError)
-
     toast.error(
       cartError?.response?.data?.message ||
         cartError?.message ||
@@ -480,20 +420,18 @@ async function handleCartAction() {
 }
 
 function goBack() {
-  if (window.history.length > 1) {
-    router.back()
-    return
-  }
-
   router.push({ name: 'PackListPage' })
 }
 
 watch(() => route.params.productId, fetchPackDetails, { immediate: true })
+onBeforeUnmount(() => {
+  requestId += 1
+})
 </script>
 
 <style lang="scss" scoped>
 .pack-page {
-  @include adaptiveValue('padding-top', 120, 80);
+  @include adaptiveValue('padding-top', 105, 75);
   @include adaptiveValue('padding-bottom', 90, 35);
 
   position: relative;
@@ -506,9 +444,12 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
   min-width: 0;
   min-height: 100%;
 
+  background: var(--bg-primary-color);
+
   &__bg {
     position: absolute;
     inset: 0;
+    z-index: 0;
 
     width: 100%;
     height: 100%;
@@ -538,166 +479,186 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
   }
 
   &__back {
+    align-self: flex-start;
+
     width: fit-content;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 20);
+      @include adaptiveValue('margin-bottom', 36, 20);
     }
   }
 
   &__layout {
-    @include adaptiveValue('gap', 48, 20);
-    @include adaptiveValue('padding', 36, 16);
-    @include adaptiveValue('border-radius', 18, 10);
+    @include adaptiveValue('column-gap', 20, 12);
+    @include adaptiveValue('row-gap', 26, 16);
 
     display: grid;
-    align-items: center;
-    grid-template-columns:
-      minmax(0, 0.85fr)
-      minmax(0, 1.15fr);
+    align-items: stretch;
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
 
     width: 100%;
     min-width: 0;
-    max-width: 1192px;
+    max-width: 1100px;
 
     margin: 0 auto;
+  }
 
-    border: 1px solid var(--border-priamry-color);
+  &__preview,
+  &__details {
+    @include adaptiveValue('border-radius', 20, 12);
+    position: relative;
+
+    min-width: 0;
+
     background: #111624;
   }
 
   &__preview {
+    @include adaptiveValue('min-height', 515, 330);
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 100%;
-    min-width: 0;
-  }
-
-  &__preview-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    max-width: 420px;
-    min-height: 440px;
-  }
-
-  &__stack {
-    position: relative;
-
-    width: min(75%, 280px);
-    aspect-ratio: 0.65;
+    isolation: isolate;
   }
 
   &__image {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    z-index: 1;
 
     display: block;
 
-    width: 100%;
-    height: 100%;
+    width: min(82%, 340px);
+    height: auto;
+    max-height: 82%;
 
     object-fit: contain;
 
-    filter: drop-shadow(0 12px 24px rgb(0 0 0 / 30%));
+    filter: drop-shadow(0 12px 24px rgb(0 0 0 / 32%));
+  }
 
-    &_1 {
-      z-index: 6;
+  &__corner {
+    position: absolute;
+    z-index: 2;
+
+    width: clamp(90px, 12vw, 165px);
+
+    pointer-events: none;
+
+    img {
+      display: block;
+
+      width: 100%;
+      height: auto;
+
+      object-fit: contain;
     }
 
-    &_2 {
-      z-index: 5;
-
-      transform: translate(5px, -4px);
+    &_top {
+      top: -12px;
+      left: -15px;
     }
 
-    &_3 {
-      z-index: 4;
+    &_bottom {
+      right: -14px;
+      bottom: -12px;
 
-      transform: translate(10px, -8px);
-    }
-
-    &_4 {
-      z-index: 3;
-
-      transform: translate(15px, -12px);
-    }
-
-    &_5 {
-      z-index: 2;
-
-      transform: translate(20px, -16px);
-    }
-
-    &_6 {
-      z-index: 1;
-
-      transform: translate(25px, -20px);
+      transform: scaleY(-1);
     }
   }
 
   &__details {
+    @include adaptiveValue('padding-top', 36, 22);
+    @include adaptiveValue('padding-bottom', 32, 18);
+    @include adaptiveValue('padding-left', 34, 16);
+    @include adaptiveValue('padding-right', 34, 16);
+
     display: flex;
     flex-direction: column;
-    gap: 24px;
+
+    min-height: 0;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 
     width: 100%;
     min-width: 0;
-  }
-
-  &__header {
-    padding-bottom: 20px;
-
-    border-bottom: 1px solid var(--border-priamry-color);
   }
 
   &__title {
     margin: 0;
 
     color: var(--fourth-color);
+    text-align: left;
     text-transform: none;
   }
 
+  &__description-section,
   &__section {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
 
     min-width: 0;
   }
 
+  &__label,
   &__section-title {
+    margin: 0;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 150%;
+    text-align: left;
+  }
+
+  &__description {
     margin: 0;
 
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 165%;
+    text-align: left;
+    white-space: pre-line;
+
+    overflow-wrap: anywhere;
+  }
+
+  &__section-title {
+    color: var(--fourth-color);
     font-weight: 600;
-    line-height: 150%;
   }
 
   &__stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  &__guarantees {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   }
 
   &__stat {
     display: flex;
-    flex: 1 1 100px;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 
     min-width: 0;
 
-    padding: 12px 14px;
+    padding: 12px;
 
     border: 1px solid var(--border-priamry-color);
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--bg-primary-color);
   }
 
@@ -705,63 +666,33 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 12px;
-    line-height: 145%;
+    font-weight: 400;
+    line-height: 140%;
+
+    overflow-wrap: anywhere;
   }
 
   &__stat-value {
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     line-height: 145%;
-  }
-
-  &__description {
-    color: var(--fifth-color);
-    font-family: var(--font-open-sans);
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 170%;
 
     overflow-wrap: anywhere;
-
-    :deep(p) {
-      margin: 0;
-
-      &:not(:last-child) {
-        margin-bottom: 12px;
-      }
-    }
-
-    :deep(strong),
-    :deep(b) {
-      color: var(--fourth-color);
-      font-weight: 600;
-    }
-
-    :deep(a) {
-      color: var(--hint-primary-color);
-    }
   }
 
   &__purchase {
-    @include adaptiveValue('padding', 22, 14);
-
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-
-    border: 1px solid var(--border-priamry-color);
-    border-radius: 10px;
-    background: var(--bg-primary-color);
-  }
-
-  &__purchase-top {
-    display: flex;
-    flex-wrap: wrap;
+    @include adaptiveValue('gap', 16, 10);
+    display: grid;
     align-items: end;
-    justify-content: space-between;
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(130px, 0.85fr);
+
+    width: 100%;
+    min-width: 0;
+
+    margin-top: auto;
+    padding-top: 26px;
   }
 
   &__price,
@@ -770,6 +701,8 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+
+    min-width: 0;
   }
 
   &__control-label {
@@ -779,17 +712,11 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     line-height: 140%;
   }
 
-  &__old-price {
-    opacity: 0.55;
-
-    text-decoration: line-through;
-  }
-
   &__price-value {
-    :deep(.price) {
-      flex-direction: row-reverse;
-      gap: 8px;
-    }
+    flex-direction: row-reverse;
+
+    color: var(--fourth-color);
+    white-space: nowrap;
   }
 
   &__quantity-controls {
@@ -800,15 +727,15 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
 
     border: 1px solid var(--border-priamry-color);
     border-radius: 6px;
-    background: #111624;
+    background: var(--bg-primary-color);
   }
 
   &__quantity-button {
     display: flex;
+    flex: 0 0 32px;
     align-items: center;
     justify-content: center;
 
-    width: 38px;
     height: 40px;
 
     padding: 0;
@@ -817,7 +744,7 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     background: transparent;
 
     color: var(--fourth-color);
-    font-size: 20px;
+    font-size: 18px;
 
     cursor: pointer;
 
@@ -835,7 +762,7 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
   }
 
   &__quantity-input {
-    width: 36px;
+    width: 34px;
     min-width: 0;
 
     padding: 0;
@@ -846,18 +773,20 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
 
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
-    font-size: 14px;
+    font-size: 13px;
     text-align: center;
   }
 
-  &__action {
+  &__buy {
     width: 100%;
-    min-height: 44px;
+    min-width: 209px;
+    min-height: 56px;
+
+    white-space: normal;
   }
 
   &__state {
     @include adaptiveValue('padding', 40, 20);
-
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -865,8 +794,8 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     gap: 18px;
 
     width: 100%;
-    max-width: 600px;
-    min-height: 320px;
+    max-width: 640px;
+    min-height: 300px;
 
     margin: auto;
 
@@ -892,47 +821,61 @@ watch(() => route.params.productId, fetchPackDetails, { immediate: true })
     line-height: 150%;
   }
 
+  &__retry {
+    width: fit-content;
+    min-width: 150px;
+  }
+
   &__loader {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
   }
 
   @media (max-width: $md3) {
     &__layout {
       grid-template-columns: minmax(0, 1fr);
 
-      max-width: 680px;
+      max-width: 650px;
     }
 
-    &__preview-inner {
-      min-height: 320px;
+    &__preview {
+      min-height: 380px;
     }
 
-    &__stack {
-      width: min(56%, 220px);
+    &__image {
+      width: min(65%, 280px);
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    &__details {
-      gap: 20px;
+    &__purchase {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    &__buy {
+      grid-column: 1 / -1;
     }
   }
 
   @media (max-width: $md6) {
-    &__preview-inner {
-      min-height: 260px;
+    &__preview {
+      min-height: 300px;
     }
 
-    &__stack {
-      width: min(58%, 180px);
+    &__image {
+      width: min(63%, 215px);
     }
 
-    &__stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    &__corner {
+      width: 100px;
     }
 
-    &__purchase-top {
-      align-items: flex-start;
+    &__description {
+      font-size: 13px;
     }
   }
 }

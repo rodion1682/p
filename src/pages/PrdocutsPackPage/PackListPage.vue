@@ -86,7 +86,7 @@
         </aside>
 
         <!-- Pack catalog -->
-        <section class="packs-page__catalog catalog">
+        <div class="packs-page__catalog catalog">
           <div class="catalog__top">
             <h1 class="catalog__title _h4">
               {{ $t('Packs') }}
@@ -160,7 +160,7 @@
               @update:current-page="onPageChange"
             />
           </div>
-        </section>
+        </div>
       </div>
     </div>
 
@@ -617,27 +617,33 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .packs-page {
-  @include adaptiveValue('padding-top', 110, 80);
-  @include adaptiveValue('padding-bottom', 80, 30);
+  @include adaptiveValue('padding-top', 130, 80);
+  @include adaptiveValue('padding-bottom', 100, 30);
 
   position: relative;
+
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+
   width: 100%;
   min-width: 0;
   min-height: 100%;
+
   background: var(--bg-primary-color);
 
   &__bg {
     position: absolute;
     inset: 0;
+
     pointer-events: none;
 
     img {
       display: block;
+
       width: 100%;
       height: 100%;
+
       object-fit: cover;
       object-position: center top;
     }
@@ -646,8 +652,11 @@ onBeforeUnmount(() => {
   &__container {
     position: relative;
     z-index: 1;
+
     display: flex;
+    flex: 1 1 100%;
     flex-direction: column;
+
     width: 100%;
     min-width: 0;
   }
@@ -657,10 +666,13 @@ onBeforeUnmount(() => {
     @include adaptiveValue('row-gap', 30, 20);
 
     display: grid;
-    grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
     align-items: start;
+    grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+
     width: 100%;
     min-width: 0;
+
+    margin: auto;
   }
 
   &__aside,
@@ -673,8 +685,12 @@ onBeforeUnmount(() => {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    &__aside { order: 1; }
-    &__catalog { order: 2; }
+    &__aside {
+      order: 1;
+    }
+    &__catalog {
+      order: 2;
+    }
   }
 }
 
@@ -682,6 +698,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+
   min-width: 0;
 
   &__top {
@@ -689,13 +706,16 @@ onBeforeUnmount(() => {
 
     display: flex;
     align-items: center;
+
     min-height: 72px;
+
     border-radius: 10px;
     background: #111624;
   }
 
   &__title {
     margin: 0;
+
     color: var(--fourth-color);
     text-align: left;
     text-transform: none;
@@ -704,22 +724,28 @@ onBeforeUnmount(() => {
   &__body {
     display: flex;
     flex-direction: column;
+
     min-width: 0;
     min-height: 110px;
   }
 
   @media (max-width: $md3) {
-    &__top { min-height: 60px; }
+    &__top {
+      min-height: 60px;
+    }
   }
 }
 
 .owned-packs {
-  &__loader { margin: 24px auto; }
+  &__loader {
+    margin: 24px auto;
+  }
 
   &__items {
     display: flex;
     flex-direction: column;
     gap: 4px;
+
     min-width: 0;
   }
 
@@ -727,19 +753,26 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding', 14, 10);
 
     display: grid;
-    grid-template-columns: minmax(42px, 0.2fr) minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
+    grid-template-columns: minmax(42px, 0.2fr) minmax(0, 1fr) auto;
+
     width: 100%;
     min-width: 0;
     min-height: 86px;
+
     border: 1px solid transparent;
     border-radius: 10px;
     background: #111624;
+
     color: var(--fourth-color);
     text-align: left;
+
     cursor: pointer;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
+
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
 
     &:focus-visible {
       border-color: var(--hint-primary-color);
@@ -750,9 +783,12 @@ onBeforeUnmount(() => {
       &:hover {
         border-color: var(--border-secondary-color);
 
-        .owned-packs__image img { transform: translateY(-3px); }
+        .owned-packs__image img {
+          transform: translateY(-3px);
+        }
         .owned-packs__arrow {
           color: var(--hint-primary-color);
+
           transform: translateX(3px);
         }
       }
@@ -763,15 +799,19 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 100%;
     max-width: 60px;
     aspect-ratio: 0.8;
 
     img {
       display: block;
+
       width: 100%;
       height: 100%;
+
       object-fit: contain;
+
       transition: transform 0.3s ease;
     }
   }
@@ -781,21 +821,25 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+
     min-width: 0;
   }
 
   &__name {
     min-width: 0;
+
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
     font-size: 13px;
     font-weight: 600;
     line-height: 150%;
+
     overflow-wrap: anywhere;
   }
 
   &__quantity {
     flex: 0 0 auto;
+
     color: var(--hint-primary-color);
     font-family: var(--font-open-sans);
     font-size: 12px;
@@ -804,10 +848,14 @@ onBeforeUnmount(() => {
 
   &__arrow {
     width: 22px;
+
     color: var(--fifth-color);
     font-size: 20px;
     line-height: 1;
-    transition: color 0.3s ease, transform 0.3s ease;
+
+    transition:
+      color 0.3s ease,
+      transform 0.3s ease;
   }
 
   &__state {
@@ -818,13 +866,16 @@ onBeforeUnmount(() => {
     align-items: flex-start;
     justify-content: center;
     gap: 12px;
+
     min-height: 120px;
+
     border-radius: 10px;
     background: #111624;
   }
 
   &__state-title {
     margin: 0;
+
     color: var(--fourth-color);
     font-family: var(--font-open-sans);
     font-size: 13px;
@@ -834,13 +885,17 @@ onBeforeUnmount(() => {
 
   &__state-text {
     margin: 0;
+
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 12px;
     line-height: 160%;
   }
 
-  &__state-button { width: fit-content; min-width: 130px; }
+  &__state-button {
+    width: fit-content;
+    min-width: 130px;
+  }
 
   @media (max-width: $md3) {
     &__items {
@@ -850,18 +905,22 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: $md6) {
-    &__items { grid-template-columns: minmax(0, 1fr); }
+    &__items {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 }
 
 .catalog {
   display: flex;
   flex-direction: column;
+
   min-width: 0;
 
   &__top {
     display: flex;
     align-items: center;
+
     min-height: 72px;
 
     &:not(:last-child) {
@@ -871,6 +930,7 @@ onBeforeUnmount(() => {
 
   &__title {
     margin: 0;
+
     color: var(--fourth-color);
     text-align: left;
     text-transform: none;
@@ -879,47 +939,62 @@ onBeforeUnmount(() => {
   &__body {
     display: flex;
     flex-direction: column;
+
     min-width: 0;
     min-height: 340px;
   }
 
-  &__loader { margin: auto; }
+  &__loader {
+    margin: auto;
+  }
 
   &__items {
     @include adaptiveValue('column-gap', 50, 14);
     @include adaptiveValue('row-gap', 30, 16);
 
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 250px));
-    justify-content: center;
     align-items: stretch;
+    justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 250px));
+
     width: 100%;
     min-width: 0;
+
     margin: 0 auto;
   }
 
   &__card {
-    min-width: 0;
     width: 100%;
+    min-width: 0;
   }
 
-  &__empty { margin: auto; }
+  &__empty {
+    margin: auto;
+  }
 
   &__pagination {
     @include adaptiveValue('margin-top', 32, 20);
   }
 
   @media (max-width: $md3) {
-    &__top { min-height: 0; }
-    &__items { max-width: 650px; }
+    &__top {
+      min-height: 0;
+    }
+    &__items {
+      max-width: 650px;
+    }
   }
 
   @media (max-width: $md6) {
-    &__items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    &__items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: $md8) {
-    &__items { grid-template-columns: minmax(0, 280px); }
+    &__items {
+      grid-template-columns: minmax(0, 280px);
+    }
   }
 }
 
@@ -931,29 +1006,38 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
+
   width: 100%;
   min-height: 280px;
+
   border: 1px solid var(--border-priamry-color);
   border-radius: 12px;
   background: #111624;
+
   text-align: center;
 
   &__title {
     margin: 0;
+
     color: var(--fourth-color);
     text-transform: none;
   }
 
   &__text {
     max-width: 420px;
+
     margin: 0;
+
     color: var(--fifth-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
     line-height: 150%;
   }
 
-  &__button { width: fit-content; min-width: 150px; }
+  &__button {
+    width: fit-content;
+    min-width: 150px;
+  }
 }
 
 .pagination {
@@ -962,6 +1046,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+
   width: 100%;
   min-width: 0;
 
@@ -972,15 +1057,21 @@ onBeforeUnmount(() => {
     line-height: 150%;
   }
 
-  &__component { margin-left: auto; }
+  &__component {
+    margin-left: auto;
+  }
 
   @media (max-width: $md5) {
     flex-direction: column;
     align-items: center;
     gap: 14px;
 
-    &__info { text-align: center; }
-    &__component { margin-left: 0; }
+    &__info {
+      text-align: center;
+    }
+    &__component {
+      margin-left: 0;
+    }
   }
 }
 </style>
