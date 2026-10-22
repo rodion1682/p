@@ -784,7 +784,8 @@ defineExpose({
 
   min-width: 0;
 
-  color: var(--primary-color);
+  color: var(--fourth-color);
+  font-family: var(--font-open-sans);
 
   &_full-width {
     width: 100%;
@@ -797,13 +798,13 @@ defineExpose({
   &_open,
   &_focused {
     .base-select__control:not(.base-select__control_error) {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
     }
 
     .base-select__caret {
       opacity: 1;
 
-      color: var(--secondary-color);
+      color: var(--hint-primary-color);
     }
   }
 
@@ -813,15 +814,16 @@ defineExpose({
     }
   }
 
+  // Label
+
   &__label {
     display: block;
 
     color: var(--seventh-color);
-    font-family: var(--font-inter);
+    font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 500;
     line-height: 100%;
-    letter-spacing: 0;
     text-align: left;
 
     &:not(:last-child) {
@@ -835,6 +837,8 @@ defineExpose({
     color: var(--error-color);
   }
 
+  // Field
+
   &__field {
     position: relative;
 
@@ -843,6 +847,8 @@ defineExpose({
   }
 
   &__control {
+    @include adaptiveValue('min-height', 44, 40);
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -850,21 +856,20 @@ defineExpose({
 
     width: 100%;
     min-width: 0;
-    min-height: 40px;
 
     margin: 0;
-    padding: 5px 12px;
+    padding: 5px 16px;
 
-    border: 1.5px solid var(--border-priamry-color);
+    border: 1px solid var(--bg-third-color);
     border-radius: 6px;
     outline: none;
-    background-color: var(--bg-secondary-color);
+    background-color: var(--bg-primary-color);
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 16px;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 140%;
     text-align: left;
 
     cursor: pointer;
@@ -875,7 +880,7 @@ defineExpose({
       color 0.3s ease;
 
     &:focus-visible {
-      border-color: var(--border-secondary-color);
+      border-color: var(--hint-primary-color);
     }
 
     &:disabled {
@@ -897,14 +902,12 @@ defineExpose({
 
     @media (any-hover: hover) {
       &:not(:disabled):not(.base-select__control_error):hover {
-        border-color: var(--border-secondary-color);
-
-        .base-select__caret {
-          opacity: 1;
-        }
+        border-color: var(--hint-primary-color);
       }
     }
   }
+
+  // Selected value
 
   &__value {
     display: flex;
@@ -914,14 +917,14 @@ defineExpose({
 
     min-width: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 16px;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 140%;
 
     &_placeholder {
-      color: var(--secondary-color);
+      color: var(--eight-color);
     }
   }
 
@@ -938,28 +941,35 @@ defineExpose({
   }
 
   &__placeholder {
-    opacity: 0.6;
+    opacity: 1;
 
-    color: var(--secondary-color);
+    color: var(--eight-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
 
-    transition: opacity 0.3s ease;
+    transition:
+      color 0.3s ease,
+      opacity 0.3s ease;
   }
+
+  // Dropdown arrow - similar to CurrencyDropdown
 
   &__caret {
     display: flex;
-    flex: 0 0 12px;
+    flex: 0 0 14px;
     align-items: center;
     justify-content: center;
 
-    width: 12px;
-    min-width: 12px;
-    height: 8px;
+    width: 14px;
+    min-width: 14px;
+    height: 14px;
 
     margin-left: auto;
 
-    opacity: 0.5;
+    opacity: 0.7;
 
-    color: var(--secondary-color);
+    color: var(--fourth-color);
 
     pointer-events: none;
 
@@ -987,6 +997,8 @@ defineExpose({
     }
   }
 
+  // Loading spinner
+
   &__loader {
     flex: 0 0 17px;
 
@@ -1000,12 +1012,14 @@ defineExpose({
 
     animation: base-select-loader 0.7s linear infinite;
 
-    border-top-color: var(--accent-color, #eec98e);
+    border-top-color: var(--hint-primary-color);
   }
+
+  // Dropdown list
 
   &__list {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 6px);
     right: 0;
     left: 0;
     z-index: var(--header-z-index, 20);
@@ -1015,21 +1029,22 @@ defineExpose({
 
     width: 100%;
     min-width: 100%;
-    max-height: min(220px, calc(100dvh - 100px));
+    max-height: min(240px, calc(100dvh - 100px));
 
-    padding: 8px 0;
+    padding: 6px 0;
 
-    border: 1px solid var(--border-sixth-color);
+    border: 1px solid var(--hint-primary-color);
     border-radius: 8px;
-    background-color: var(--bg-fourth-color);
-    box-shadow: 0 4px 16px rgb(0 0 0 / 32%);
+    background-color: var(--bg-fifth-color);
+    box-shadow: 0 4px 16px var(--shadow-primary-color);
 
     touch-action: pan-y;
 
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
 
-    scrollbar-color: var(--hint-primary-color) var(--bg-third-color);
+    scrollbar-color: var(--hint-primary-color) var(--bg-primary-color);
+
     scrollbar-width: thin;
 
     &::-webkit-scrollbar {
@@ -1040,7 +1055,7 @@ defineExpose({
       margin: 5px 0;
 
       border-radius: 4px;
-      background-color: var(--bg-third-color);
+      background-color: var(--bg-primary-color);
     }
 
     &::-webkit-scrollbar-thumb {
@@ -1048,6 +1063,8 @@ defineExpose({
       background-color: var(--hint-primary-color);
     }
   }
+
+  // Dropdown options
 
   &__option {
     display: flex;
@@ -1060,18 +1077,18 @@ defineExpose({
     min-height: 38px;
 
     margin: 0;
-    padding: 8px 12px;
+    padding: 10px 16px;
 
     border: 0;
     border-radius: 0;
     outline: none;
     background-color: transparent;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    font-weight: 500;
-    line-height: 100%;
+    font-weight: 400;
+    line-height: 140%;
     text-align: left;
 
     cursor: pointer;
@@ -1082,13 +1099,16 @@ defineExpose({
       opacity 0.3s ease;
 
     &_active:not(&_selected):not(&_disabled) {
-      background-color: var(--sixth-color);
+      background-color: var(--bg-fourth-color);
+
+      color: var(--hint-primary-color);
     }
 
     &_selected {
-      background-color: var(--third-color);
+      background-color: var(--bg-fourth-color);
 
-      color: var(--primary-color);
+      color: var(--hint-primary-color);
+      font-weight: 600;
     }
 
     &_disabled {
@@ -1099,26 +1119,34 @@ defineExpose({
     }
 
     &:focus-visible:not(:disabled) {
-      background-color: var(--sixth-color);
+      background-color: var(--bg-fourth-color);
+
+      color: var(--hint-primary-color);
     }
 
     @media (any-hover: hover) {
       &:not(.base-select__option_selected):not(:disabled):hover {
-        background-color: var(--sixth-color);
+        background-color: var(--bg-fourth-color);
+
+        color: var(--hint-primary-color);
       }
     }
   }
 
-  &__empty {
-    padding: 12px;
+  // Empty state
 
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
+  &__empty {
+    padding: 14px 16px;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 150%;
     text-align: center;
   }
+
+  // Validation error
 
   &__error {
     width: 100%;
@@ -1126,31 +1154,43 @@ defineExpose({
     margin-top: 8px;
 
     color: var(--error-color);
-    font-family: var(--font-inter);
+    font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 500;
-    line-height: 14px;
-    letter-spacing: 0;
+    line-height: 140%;
     text-align: left;
   }
+
+  // Responsive
 
   @media (max-width: $md4) {
     &__control {
       min-height: 40px;
+
+      padding-right: 12px;
+      padding-left: 12px;
     }
 
     &__option {
       min-height: 40px;
+
+      padding: 10px 12px;
+    }
+
+    &__list {
+      max-height: min(220px, calc(100dvh - 80px));
     }
   }
 }
 
+// Dropdown opening and closing transition
+
 .base-select-list-enter-active,
 .base-select-list-leave-active {
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease,
-    visibility 0.3s ease;
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0.25s ease;
 }
 
 .base-select-list-enter-from,
@@ -1176,6 +1216,21 @@ defineExpose({
 @keyframes base-select-loader {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-select-list-enter-active,
+  .base-select-list-leave-active,
+  .base-select__control,
+  .base-select__caret,
+  .base-select__caret-icon,
+  .base-select__option {
+    transition: none;
+  }
+
+  .base-select__loader {
+    animation: none;
   }
 }
 </style>

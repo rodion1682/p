@@ -13,6 +13,7 @@
       >
         {{ $t('Back') }}
       </BaseButton>
+
       <div v-if="cartStore.isLoading" class="cart-state">
         <LoadingSpinner class="cart-state__loader" />
       </div>
@@ -61,9 +62,9 @@
       <div v-else class="cart-page__content">
         <div class="cart-page__cart cart">
           <div class="cart-page__heading">
-            <div class="cart-page__title _h6">
+            <h1 class="cart-page__title _h6">
               {{ $t('My Cart') }}
-            </div>
+            </h1>
           </div>
 
           <div class="cart__frame">
@@ -216,9 +217,9 @@
         </div>
 
         <aside class="cart-page__payment payment">
-          <div class="payment__title _h6">
+          <h2 class="payment__title _h6">
             {{ $t('Checkout') }}
-          </div>
+          </h2>
 
           <div class="payment__summary">
             <div class="payment__total">
@@ -236,7 +237,7 @@
 
                 <PriceFormatter
                   :price="cartTotalInternalCurrency"
-                  size="size-20"
+                  size="size-28"
                 />
               </div>
             </div>
@@ -259,7 +260,7 @@
             <div class="payment__rate">
               <span>{{ $t('Rate') }}:</span>
 
-              <PriceFormatter :price="1" size="size-12" />
+              <PriceFormatter :price="1" size="size-14" />
 
               <span>
                 = {{ currentCurrencyRate }}
@@ -299,7 +300,7 @@
               :disabled="isSubmitting || isClearingCart"
               @click="handleSubmit(cardPaymentMethod.code)"
             >
-              <span>{{ $t('Pay with') }}</span>
+              <span>{{ $t('Continue with') }}</span>
 
               <img
                 v-if="cardPaymentMethod.image"
@@ -338,14 +339,10 @@
 
           <div v-if="isSubmitting" class="payment__processing">
             <LoadingSpinner class="payment__loader" />
+            {{ $t('Processing payment') }}
           </div>
 
-          <button
-            v-if="false"
-            type="button"
-            class="payment__continue"
-            @click="goToStore"
-          >
+          <button type="button" class="payment__continue" @click="goToStore">
             {{ $t('Continue shopping') }}
           </button>
         </aside>
@@ -360,6 +357,7 @@
     />
 
     <ProductDetailsModal
+      v-if="IS_DETAILS_MODAL_ACTIVE"
       v-model:show="isProductModalActive"
       :product-id="selectedProductId"
       @close="closeProductModal"
@@ -376,6 +374,9 @@ import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
 import CheckoutCartModal from '@/components/modals/CheckoutCartModal.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
 
+import { TrashIcon } from '@/components/icons/index.js'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
+
 import { useToast } from '@/composables/useToast'
 
 import { useCartStore } from '@/stores/cart'
@@ -386,9 +387,9 @@ import { useSettingsStore } from '@/stores/settings'
 import { useTopUpStore } from '@/stores/topup'
 import { useUserStore } from '@/stores/user'
 
-import { TrashIcon } from '@/components/icons/index.js'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
 import ProductDetailsModal from '../ProductPages/modals/ProductDetailsModal.vue'
+
+const IS_DETAILS_MODAL_ACTIVE = false
 
 const router = useRouter()
 const toast = useToast()
@@ -418,9 +419,9 @@ const cardPaymentMethod = computed(() => {
 })
 
 const otherPaymentMethods = computed(() => {
-  return (settingsStore.paymentMethods || []).filter(method => {
-    return method.code !== 'card' && method.code !== 'balance'
-  })
+  return (settingsStore.paymentMethods || []).filter(
+    method => method.code !== 'card' && method.code !== 'balance',
+  )
 })
 
 const priceDetails = item => {
@@ -511,6 +512,7 @@ const formatType = value => {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
 
+// Both cards and packs have their own details pages.
 const productLink = item => {
   return {
     name:
@@ -523,14 +525,25 @@ const productLink = item => {
   }
 }
 
+// Controls whether a card opens its details page or modal.
 const openProduct = item => {
-  if (item.purchasable_type === 'card') {
-    selectedProductId.value = item.purchasable_id
-    isProductModalActive.value = true
+  if (!item?.purchasable_id) return
+
+  // When the modal is disabled, always navigate to the details page.
+  if (!IS_DETAILS_MODAL_ACTIVE) {
+    router.push(productLink(item))
     return
   }
 
-  router.push(productLink(item))
+  // Packs still use their own details page.
+  if (item.purchasable_type !== 'card') {
+    router.push(productLink(item))
+    return
+  }
+
+  // When enabled, cards open the details modal.
+  selectedProductId.value = item.purchasable_id
+  isProductModalActive.value = true
 }
 
 const closeProductModal = () => {
@@ -539,7 +552,9 @@ const closeProductModal = () => {
 }
 
 const goToStore = () => {
-  router.push({ name: 'ProductListPage' })
+  router.push({
+    name: 'ProductListPage',
+  })
 }
 
 const goBack = () => {
@@ -588,7 +603,9 @@ const removeItem = async (id, type, rentalPeriodId) => {
 }
 
 const clearCart = async () => {
-  if (isClearingCart.value || isSubmitting.value) return
+  if (isClearingCart.value || isSubmitting.value) {
+    return
+  }
 
   isClearingCart.value = true
   errorMessage.value = ''
@@ -1562,7 +1579,7 @@ onMounted(async () => {
   }
 
   &__continue {
-    display: block;
+    @include hide-item;
 
     width: fit-content;
 

@@ -48,7 +48,7 @@
 
           <BaseButton
             type="button"
-            variant="hint-bordered"
+            variant="back"
             class="cookie-modal__button"
             @click="declineCookies"
           >
@@ -145,6 +145,7 @@ const declineCookies = () => {
   left: 0;
   z-index: var(--modal-z-index);
 
+  overflow-x: hidden;
   overflow-y: auto;
 
   width: 100%;
@@ -152,62 +153,111 @@ const declineCookies = () => {
 
   padding: 16px;
 
-  background-color: rgb(10 8 24 / 72%);
+  background: rgb(5 9 18 / 72%);
 
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(12px);
+
+  backdrop-filter: blur(12px);
 
   &__container {
     width: 100%;
+    min-width: 0;
     max-width: 1440px;
 
     margin: 0 auto;
   }
 
   &__frame {
-    @include adaptiveValue('padding-top', 28, 20);
-    @include adaptiveValue('padding-bottom', 28, 20);
-    @include adaptiveValue('padding-left', 36, 18);
-    @include adaptiveValue('padding-right', 36, 18);
-    @include adaptiveValue('gap', 48, 24);
+    @include adaptiveValue('padding-top', 28, 18);
+    @include adaptiveValue('padding-bottom', 28, 18);
+    @include adaptiveValue('padding-left', 32, 16);
+    @include adaptiveValue('padding-right', 32, 16);
+    @include adaptiveValue('gap', 36, 20);
+
+    position: relative;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
     width: 100%;
+    min-width: 0;
 
-    border: 1px solid var(--border-fourth-color);
+    border: 1px solid var(--border-priamry-color);
     border-radius: 12px;
-    background-color: #37335f;
-    box-shadow: 0 12px 40px rgb(0 0 0 / 25%);
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
+    box-shadow: 0 12px 36px rgb(0 0 0 / 20%);
   }
 
   &__information {
     flex: 1 1 auto;
 
     min-width: 0;
-    max-width: 920px;
+    max-width: 900px;
+  }
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 0;
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 14, 10);
+    }
+  }
+
+  &__icon {
+    display: flex;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 8px;
+    background: var(--bg-primary-color);
+
+    color: var(--hint-primary-color);
+
+    svg {
+      display: block;
+
+      width: 24px;
+      height: 24px;
+    }
   }
 
   &__title {
-    @include adaptiveValue('font-size', 28, 22);
-    @include adaptiveValue('margin-bottom', 14, 10);
+    @include adaptiveValue('font-size', 22, 18);
 
-    color: var(--secondary-color);
-    font-family: var(--font-texturina);
-    font-weight: 500;
-    line-height: 1.2;
+    color: var(--fourth-color);
+    font-family: var(--font-audiowide);
+    font-weight: 400;
+    line-height: 135%;
+    text-align: left;
     text-transform: none;
+
+    overflow-wrap: anywhere;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 18, 12);
+    }
   }
 
   &__description {
     margin: 0;
 
-    color: var(--primary-color);
-    font-family: var(--font-inter);
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 13px;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 170%;
+    text-align: left;
+
+    overflow-wrap: anywhere;
   }
 
   &__link {
@@ -216,7 +266,8 @@ const declineCookies = () => {
     color: var(--hint-primary-color);
     font-family: inherit;
     font-size: inherit;
-    font-weight: 500;
+    font-weight: 600;
+    line-height: inherit;
     text-decoration: underline;
 
     transition: color 0.3s ease;
@@ -225,14 +276,20 @@ const declineCookies = () => {
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        color: var(--fourth-color);
       }
+    }
+
+    &:focus-visible {
+      border-radius: 2px;
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: 3px;
     }
   }
 
   &__actions {
     display: flex;
-    flex: 0 0 260px;
+    flex: 0 0 270px;
     flex-direction: column;
     gap: 10px;
 
@@ -245,28 +302,37 @@ const declineCookies = () => {
     justify-content: center;
 
     width: 100%;
-    min-height: 40px;
+    min-width: 0;
+    min-height: 44px;
 
     padding: 10px 14px;
 
-    border-radius: 5px;
+    border-radius: 6px;
 
-    font-family: var(--font-inter);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.3;
+    font-family: var(--font-audiowide);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 150%;
     text-align: center;
     text-transform: uppercase;
+    white-space: normal;
+
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease,
+      color 0.3s ease;
+
+    overflow-wrap: anywhere;
   }
 
   @media (max-width: $md3) {
     &__frame {
-      align-items: stretch;
+      align-items: flex-start;
       gap: 24px;
     }
 
     &__actions {
-      flex-basis: 220px;
+      flex-basis: 240px;
     }
   }
 
@@ -280,11 +346,11 @@ const declineCookies = () => {
     }
 
     &__information {
-      max-width: none;
+      max-width: 100%;
     }
 
     &__actions {
-      flex: none;
+      flex: 0 0 auto;
       flex-direction: row;
       flex-wrap: wrap;
       gap: 10px;
@@ -303,16 +369,32 @@ const declineCookies = () => {
     &__frame {
       gap: 18px;
 
-      border-radius: 8px;
+      border-radius: 10px;
+    }
+
+    &__heading {
+      gap: 10px;
+    }
+
+    &__icon {
+      flex-basis: 36px;
+
+      width: 36px;
+      height: 36px;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
     }
 
     &__title {
-      font-size: 22px;
+      font-size: 17px;
     }
 
     &__description {
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 160%;
     }
 
     &__actions {
@@ -321,10 +403,19 @@ const declineCookies = () => {
     }
 
     &__button {
-      flex: none;
+      flex: 0 0 auto;
 
       width: 100%;
-      min-height: 40px;
+      min-height: 42px;
+
+      font-size: 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__link,
+    &__button {
+      transition: none;
     }
   }
 }

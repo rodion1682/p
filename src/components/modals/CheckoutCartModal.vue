@@ -1,160 +1,167 @@
 <template>
   <BaseModal
     :show="props.show"
-    size="small"
-    class="cart-checkout-dialog"
-    content-class="cart-checkout-dialog__content"
+    variant="dialog"
+    size="large"
+    :max-width="1120"
+    modal-class="cart-checkout-dialog"
+    labelledby="cart-checkout-modal-title"
     @close="close"
   >
     <div class="cart-checkout-modal">
-      <h2 class="cart-checkout-modal__title">
-        {{ $t('Payment details') }}
-      </h2>
-
-      <div class="cart-checkout-modal__summary">
-        <div class="cart-checkout-modal__summary-row">
-          <span class="cart-checkout-modal__summary-label">
-            {{ $t('Total') }}:
-          </span>
-          <span class="cart-checkout-modal__total">
-            {{ formattedCartTotal }}
-          </span>
+      <div class="cart-checkout-modal__main">
+        <h2
+          id="cart-checkout-modal-title"
+          class="cart-checkout-modal__title _h4"
+        >
+          {{ $t('Payment details') }}
+        </h2>
+        <div
+          v-if="formErrors.general"
+          class="cart-checkout-modal__error"
+          role="alert"
+        >
+          {{ formErrors.general }}
         </div>
 
-        <div class="cart-checkout-modal__summary-divider" />
+        <form
+          id="cart-checkout-payment-form"
+          class="cart-checkout-modal__form"
+          novalidate
+          @submit.prevent="handlePay"
+        >
+          <div class="cart-checkout-modal__fields">
+            <BaseInput
+              v-model="topupStore.checkoutFormData.name"
+              class="cart-checkout-modal__input"
+              :placeholder="$t('First Name')"
+              :error="formErrors.name"
+              autocomplete="given-name"
+              @input="clearFieldError('name')"
+            />
 
-        <div class="cart-checkout-modal__summary-row">
-          <span class="cart-checkout-modal__payment-label">
-            {{ $t('You get') }}:
-          </span>
-          <span class="cart-checkout-modal__payment-value">
-            <PriceFormatter :price="normalizedCartTotal" size="size-14" />
-          </span>
-        </div>
+            <BaseSelect
+              v-model="topupStore.checkoutFormData.country"
+              class="cart-checkout-modal__select"
+              :options="countryOptions"
+              option-label="label"
+              option-value="value"
+              :placeholder="$t('Country')"
+              :empty-text="$t('No countries found')"
+              :error="formErrors.country"
+              required
+              @update:model-value="clearFieldError('country')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.surname"
+              class="cart-checkout-modal__input"
+              :placeholder="$t('Last Name')"
+              :error="formErrors.surname"
+              autocomplete="family-name"
+              @input="clearFieldError('surname')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.city"
+              class="cart-checkout-modal__input"
+              :placeholder="$t('City')"
+              :error="formErrors.city"
+              autocomplete="address-level2"
+              @input="clearFieldError('city')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.email"
+              class="cart-checkout-modal__input"
+              type="email"
+              inputmode="email"
+              :placeholder="$t('Email')"
+              :error="formErrors.email"
+              :disabled="Boolean(authStore.user?.email)"
+              autocomplete="email"
+              @input="clearFieldError('email')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.address"
+              class="cart-checkout-modal__input"
+              :placeholder="$t('Address')"
+              :error="formErrors.address"
+              autocomplete="street-address"
+              @input="clearFieldError('address')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.phone"
+              class="cart-checkout-modal__input"
+              type="tel"
+              inputmode="tel"
+              :placeholder="$t('Phone')"
+              :error="formErrors.phone"
+              autocomplete="tel"
+              @input="clearFieldError('phone')"
+            />
+
+            <BaseInput
+              v-model="topupStore.checkoutFormData.postCode"
+              class="cart-checkout-modal__input"
+              :placeholder="$t('Post code')"
+              :error="formErrors.postCode"
+              autocomplete="postal-code"
+              @input="clearFieldError('postCode')"
+            />
+          </div>
+
+          <div class="cart-checkout-modal__terms">
+            <BaseCheckbox
+              v-model="topupStore.checkoutFormData.termsAccepted"
+              class="cart-checkout-modal__checkbox"
+              :error="formErrors.termsAccepted"
+              @update:model-value="clearFieldError('termsAccepted')"
+              terms
+            />
+
+            <span
+              v-if="formErrors.termsAccepted"
+              class="cart-checkout-modal__field-error"
+            >
+              {{ formErrors.termsAccepted }}
+            </span>
+          </div>
+        </form>
       </div>
-
-      <div
-        v-if="formErrors.general"
-        class="cart-checkout-modal__error"
-        role="alert"
-      >
-        {{ formErrors.general }}
-      </div>
-
-      <form
-        class="cart-checkout-modal__form"
-        novalidate
-        @submit.prevent="handlePay"
-      >
-        <div class="cart-checkout-modal__fields">
-          <BaseInput
-            v-model="topupStore.checkoutFormData.name"
-            class="cart-checkout-modal__input"
-            :placeholder="$t('First Name')"
-            :error="formErrors.name"
-            autocomplete="given-name"
-            @input="clearFieldError('name')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.surname"
-            class="cart-checkout-modal__input"
-            :placeholder="$t('Last Name')"
-            :error="formErrors.surname"
-            autocomplete="family-name"
-            @input="clearFieldError('surname')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.phone"
-            class="cart-checkout-modal__input"
-            type="tel"
-            inputmode="tel"
-            :placeholder="$t('Phone')"
-            :error="formErrors.phone"
-            autocomplete="tel"
-            @input="clearFieldError('phone')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.email"
-            class="cart-checkout-modal__input"
-            type="email"
-            inputmode="email"
-            :placeholder="$t('Email')"
-            :error="formErrors.email"
-            :disabled="Boolean(authStore.user?.email)"
-            autocomplete="email"
-            @input="clearFieldError('email')"
-          />
-
-          <BaseSelect
-            v-model="topupStore.checkoutFormData.country"
-            class="cart-checkout-modal__select"
-            :options="countryOptions"
-            option-label="label"
-            option-value="value"
-            :placeholder="$t('Country')"
-            :empty-text="$t('No countries found')"
-            :error="formErrors.country"
-            required
-            @update:model-value="clearFieldError('country')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.city"
-            class="cart-checkout-modal__input"
-            :placeholder="$t('City')"
-            :error="formErrors.city"
-            autocomplete="address-level2"
-            @input="clearFieldError('city')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.postCode"
-            class="cart-checkout-modal__input"
-            :placeholder="$t('Post code')"
-            :error="formErrors.postCode"
-            autocomplete="postal-code"
-            @input="clearFieldError('postCode')"
-          />
-
-          <BaseInput
-            v-model="topupStore.checkoutFormData.address"
-            class="cart-checkout-modal__input"
-            :placeholder="$t('Address')"
-            :error="formErrors.address"
-            autocomplete="street-address"
-            @input="clearFieldError('address')"
-          />
+      <aside class="cart-checkout-modal__sidebar">
+        <h3 class="cart-checkout-modal__sidebar-title _h6">
+          {{ $t('Payment method') }}
+        </h3>
+        <div class="cart-checkout-modal__summary">
+          <div class="cart-checkout-modal__summary-row">
+            <span class="cart-checkout-modal__summary-label">{{
+              $t('Total')
+            }}</span>
+            <span class="cart-checkout-modal__total">{{
+              formattedCartTotal
+            }}</span>
+          </div>
+          <div class="cart-checkout-modal__summary-row">
+            <span class="cart-checkout-modal__payment-label">{{
+              $t('You get')
+            }}</span>
+            <span class="cart-checkout-modal__payment-value">
+              <PriceFormatter :price="normalizedCartTotal" size="size-14" />
+            </span>
+          </div>
         </div>
-
-        <div class="cart-checkout-modal__terms">
-          <BaseCheckbox
-            v-model="topupStore.checkoutFormData.termsAccepted"
-            class="cart-checkout-modal__checkbox"
-            :error="formErrors.termsAccepted"
-            @update:model-value="clearFieldError('termsAccepted')"
-            terms
-          />
-
-          <span
-            v-if="formErrors.termsAccepted"
-            class="cart-checkout-modal__field-error"
-          >
-            {{ formErrors.termsAccepted }}
-          </span>
-        </div>
-
         <div class="cart-checkout-modal__actions">
           <BaseButton
             type="submit"
+            form="cart-checkout-payment-form"
+            variant="primary"
             class="cart-checkout-modal__submit"
             :disabled="!isFormValid || isLoading"
           >
-            <span v-if="isLoading">
-              {{ $t('Processing...') }}
-            </span>
+            <span v-if="isLoading">{{ $t('Processing...') }}</span>
             <span v-else>
               {{
                 selectedPaymentMethod?.title ||
@@ -163,7 +170,7 @@
             </span>
           </BaseButton>
         </div>
-      </form>
+      </aside>
     </div>
   </BaseModal>
 </template>
@@ -739,166 +746,166 @@ watch(
 
 <style lang="scss" scoped>
 .cart-checkout-modal {
-  width: 100%;
-  max-width: 328px;
+  display: grid;
+  align-items: stretch;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 320px;
 
-  margin: 0 auto;
+  width: 100%;
+  min-width: 0;
+
+  &__main,
+  &__sidebar {
+    @include adaptiveValue('border-radius', 22, 10);
+    min-width: 0;
+
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
+  }
+
+  &__main {
+    @include adaptiveValue('padding-top', 50, 30);
+    @include adaptiveValue('padding-left', 64, 10);
+    @include adaptiveValue('padding-right', 64, 10);
+    @include adaptiveValue('padding-bottom', 42, 10);
+  }
 
   &__title {
-    @include adaptiveValue('font-size', 32, 24);
-    @include adaptiveValue('margin-bottom', 24, 18);
+    margin: 0 0 30px;
 
-    color: var(--secondary-color);
-    font-family: var(--font-texturina);
-    font-weight: 500;
-    line-height: 1.2;
+    color: var(--fourth-color);
     text-align: center;
     text-transform: none;
   }
 
-  &__summary {
-    @include adaptiveValue('margin-bottom', 24, 18);
-  }
+  &__fields {
+    display: grid;
+    gap: 12px 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  &__summary-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  &__summary-label {
-    color: #fff;
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  &__total {
-    @include adaptiveValue('font-size', 28, 24);
-    color: var(--primary-color);
-    font-family: var(--font-ancizar-serif);
-    font-weight: 700;
-    line-height: 120%;
-    white-space: nowrap;
-  }
-
-  &__summary-divider {
-    height: 1px;
-
-    margin: 8px 0;
-
-    background-color: var(--border-priamry-color);
-  }
-
-  &__payment-label {
-    color: var(--seventh-color);
-    font-family: var(--font-inter);
-    font-size: 14px;
-  }
-
-  &__payment-value {
-    :deep(.price) {
-      flex-direction: row-reverse;
-    }
+    width: 100%;
   }
 
   &__form,
-  &__fields,
   &__input,
   &__select {
     width: 100%;
-  }
-
-  &__fields {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    min-width: 0;
   }
 
   &__terms {
-    width: 100%;
-
-    margin-top: 18px;
+    margin-top: 28px;
   }
-
   &__checkbox {
     width: 100%;
-  }
-
-  &__terms-text {
-  }
-
-  &__link {
   }
 
   &__field-error,
   &__error {
     color: var(--error-color);
-    font-family: var(--font-inter);
+    font-family: var(--font-open-sans);
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
   }
-
   &__field-error {
     display: block;
 
     margin-top: 6px;
   }
-
   &__error {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
+  &__sidebar {
+    @include adaptiveValue('padding-left', 32, 10);
+    @include adaptiveValue('padding-right', 32, 10);
+    @include adaptiveValue('padding-bottom', 42, 10);
+    display: flex;
+    flex-direction: column;
+
+    padding-top: 40px;
+  }
+  &__sidebar-title {
+    margin: 0 0 34px;
+
+    color: var(--fourth-color);
+    text-align: center;
+    text-transform: none;
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    padding: 18px;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 12px;
+    background: var(--bg-primary-color);
+  }
+  &__summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-width: 0;
+  }
+  &__summary-label,
+  &__payment-label {
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  &__total {
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: right;
+
+    overflow-wrap: anywhere;
+  }
+  &__payment-value {
+    min-width: 0;
+    :deep(.price) {
+      flex-direction: row-reverse;
+    }
+  }
   &__actions {
-    @include adaptiveValue('margin-top', 22, 18);
-
-    width: 100%;
+    margin-top: auto;
+    padding-top: 28px;
   }
-
   &__submit {
     width: 100%;
-    min-height: 37px;
-
-    border-radius: 5px;
-
-    font-family: var(--font-inter);
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
+    min-height: 44px;
   }
 
-  @media (max-width: $md7) {
-    max-width: none;
+  @media (max-width: $md3) {
+    grid-template-columns: minmax(0, 1fr);
 
-    &__title {
-      font-size: 24px;
+    padding: 12px;
+    &__sidebar-title {
+      margin-bottom: 18px;
     }
-
+    &__actions {
+      margin-top: 8px;
+      padding-top: 16px;
+    }
+  }
+  @media (max-width: $md6) {
+    padding: 8px;
     &__fields {
-      gap: 8px;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr);
     }
-  }
-}
-
-:global(.cart-checkout-dialog .base-modal__inner) {
-  width: min(408px, calc(100vw - 24px));
-  max-width: 408px;
-
-  background: #37335f;
-}
-
-:global(.cart-checkout-dialog .base-modal__frame) {
-  padding: 24px 24px 28px;
-}
-
-:global(.cart-checkout-dialog .base-modal__decor) {
-  display: none;
-}
-
-@media (max-width: 479.98px) {
-  :global(.cart-checkout-dialog .base-modal__frame) {
-    padding: 24px 15px;
+    &__title {
+      margin-bottom: 22px;
+    }
+    &__terms {
+      margin-top: 20px;
+    }
   }
 }
 </style>

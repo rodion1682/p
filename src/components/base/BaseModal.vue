@@ -4,7 +4,7 @@
       <div
         v-if="props.show"
         class="base-modal"
-        :class="props.modalClass"
+        :class="[props.modalClass, `base-modal_${props.variant}`]"
         role="presentation"
         @mousedown="handleBackdropClick"
       >
@@ -12,17 +12,24 @@
           ref="innerRef"
           class="base-modal__inner"
           :class="innerClasses"
-          :style="attrs.style"
+          :style="modalStyle"
           role="dialog"
           aria-modal="true"
           :aria-describedby="props.describedby || undefined"
+          :aria-labelledby="props.labelledby || undefined"
           tabindex="-1"
           @mousedown.stop
         >
-          <div class="base-modal__decor base-modal__decor_left _ibg-contain">
+          <div
+            v-if="props.variant === 'fullscreen'"
+            class="base-modal__decor base-modal__decor_left _ibg-contain"
+          >
             <img src="@/assets/img/blue-left-decor.png" alt="" />
           </div>
-          <div class="base-modal__decor base-modal__decor_right _ibg-contain">
+          <div
+            v-if="props.variant === 'fullscreen'"
+            class="base-modal__decor base-modal__decor_right _ibg-contain"
+          >
             <img src="@/assets/img/blue-right-decor.png" alt="" />
           </div>
 
@@ -32,6 +39,7 @@
               type="button"
               class="base-modal__close"
               :class="props.closeButtonClass"
+              :aria-label="props.closeLabel"
               @click="handleClose"
             >
               <slot name="close-icon">
@@ -47,7 +55,7 @@
               <slot name="header" />
             </div>
 
-            <div class="base-modal__content">
+            <div class="base-modal__content" :class="props.contentClass">
               <slot />
             </div>
           </div>
@@ -88,6 +96,20 @@ const props = defineProps({
     default: false,
   },
 
+  variant: {
+    type: String,
+    default: 'fullscreen',
+    validator: value => ['fullscreen', 'dialog'].includes(value),
+  },
+  labelledby: { type: String, default: undefined },
+  describedby: { type: String, default: undefined },
+  persistent: { type: Boolean, default: false },
+  closeLabel: { type: String, default: 'Close modal' },
+  closeButtonClass: { type: [String, Array, Object], default: '' },
+  headerClass: { type: [String, Array, Object], default: '' },
+  contentClass: { type: [String, Array, Object], default: '' },
+  modalContainerClass: { type: [String, Array, Object], default: '' },
+  maxWidth: { type: [String, Number], default: null },
   modalClass: {
     type: [String, Array, Object],
     default: '',
@@ -106,13 +128,24 @@ const emit = defineEmits(['close', 'open', 'update:show'])
 
 const innerRef = ref(null)
 
+const modalStyle = computed(() => {
+  if (props.variant !== 'dialog' || props.maxWidth == null) return attrs.style
+  const width =
+    typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : props.maxWidth
+  return [attrs.style, { '--modal-max-width': width }]
+})
+
 const GLOBAL_SCROLL_LOCK_KEY = '__base_modal_scroll_lock__'
 
 let didLockScroll = false
 let previouslyFocusedElement = null
 
 const innerClasses = computed(() => {
-  return [attrs.class, `base-modal__inner_${props.size}`]
+  return [
+    attrs.class,
+    props.modalContainerClass,
+    `base-modal__inner_${props.size}`,
+  ]
 })
 
 const getScrollbarWidth = () => {
@@ -266,12 +299,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.heros-modal {
-  .base-modal__inner {
-    max-width: 1370px;
-  }
-}
-
 .base-modal {
   position: fixed;
   inset: 0;
@@ -286,23 +313,11 @@ defineExpose({
   width: 100%;
   height: 100%;
 
-  background: var(--bg-primary-color);
-
-  // -webkit-backdrop-filter: blur(64px);
-  // backdrop-filter: blur(64px);
-
   overscroll-behavior: contain;
 
-  &__layout {
-    // position: relative;
-
-    // width: 100%;
-
-    // margin: auto;
-
-    // pointer-events: none;
-
-    // isolation: isolate;
+  // Legacy fullscreen presentation for hero/product modals.
+  &_fullscreen {
+    background: var(--bg-primary-color);
   }
 
   &__inner {
@@ -310,12 +325,12 @@ defineExpose({
     z-index: 1;
 
     width: 100%;
-    max-height: calc(100dvh);
+    max-height: 100dvh;
 
     margin: auto;
 
     outline: none;
-    background-color: var(--bg-primary-color);
+    background: var(--bg-primary-color);
 
     pointer-events: auto;
   }
@@ -331,7 +346,7 @@ defineExpose({
     overflow-y: auto;
 
     width: 100%;
-    max-height: calc(100dvh);
+    max-height: 100dvh;
   }
 
   &__close {
@@ -357,7 +372,7 @@ defineExpose({
 
     cursor: pointer;
 
-    transition: color 0.3s ease 0s;
+    transition: color 0.3s ease;
 
     @media (any-hover: hover) {
       &:hover {
@@ -381,62 +396,114 @@ defineExpose({
     width: 100%;
     min-width: 0;
   }
-
   &__header:not(:last-child) {
     margin-bottom: clamp(20px, 3vw, 36px);
   }
 
-  @media (max-width: $md3) {
-    padding: 40px 15px;
+  // New optional compact modal. Never stretches to full viewport.
+  &_dialog {
+    padding: 24px;
 
-    &__inner,
-    &__frame {
-      max-height: calc(100dvh - 80px);
+    background: rgb(9, 13, 23, 0.6);
+
+    .base-modal__inner {
+      @include adaptiveValue('border-radius', 22, 10);
+      flex: 0 1 auto;
+
+      width: min(100%, var(--modal-max-width, 1100px));
+      max-width: 100%;
+      max-height: calc(100dvh - 48px);
+
+      background: #111624;
+    }
+
+    .base-modal__frame {
+      overflow-x: hidden;
+      overflow-y: auto;
+
+      max-height: calc(100dvh - 48px);
+
+      border-radius: inherit;
+
+      scrollbar-width: thin;
+    }
+
+    .base-modal__close {
+      top: 10px;
+      right: 10px;
+
+      border-radius: 6px;
+      background: rgb(10 14 24 / 85%);
+    }
+  }
+
+  @media (max-width: $md3) {
+    &_fullscreen {
+      .base-modal__inner,
+      .base-modal__frame {
+        max-height: calc(100dvh - 80px);
+      }
     }
   }
 
   @media (max-width: $md4) {
-    padding: 35px 12px;
+    &_fullscreen {
+      padding: 0px;
+      .base-modal__inner,
+      .base-modal__frame {
+        max-height: calc(100dvh - 70px);
 
-    &__inner,
-    &__frame {
-      max-height: calc(100dvh - 70px);
+        padding: 0px;
+      }
+    }
+    &_dialog {
+      padding: 12px;
+      .base-modal__inner,
+      .base-modal__frame {
+        max-height: calc(100dvh - 24px);
+      }
     }
   }
 
   @media (max-width: $md5) {
-    align-items: flex-end;
+    &_fullscreen {
+      align-items: flex-end;
 
-    padding: 0;
+      padding: 0;
+      .base-modal__inner {
+        max-width: none;
+        max-height: 92dvh;
 
-    &__layout {
-      margin: auto 0 0;
-    }
-
-    &__inner {
-      max-width: none;
-      max-height: 92dvh;
-
-      border-right: 0;
-      border-bottom: 0;
-      border-left: 0;
-      border-radius: 12px 12px 0 0;
-    }
-
-    &__frame {
-      max-height: 92dvh;
-
-      border-radius: 12px 12px 0 0;
-    }
-
-    &__inner_product {
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 12px 12px 0 0;
+      }
       .base-modal__frame {
+        max-height: 92dvh;
+
+        border-radius: 12px 12px 0 0;
+      }
+      .base-modal__inner_product .base-modal__frame {
         padding: 35px 15px 25px;
       }
+      .base-modal__decor {
+        width: 120px;
+      }
     }
+    &_dialog {
+      align-items: center;
 
-    &__decor {
-      width: 120px;
+      padding: 10px;
+      .base-modal__inner {
+        width: 100%;
+        max-height: calc(100dvh - 20px);
+
+        border-radius: 12px;
+      }
+      .base-modal__frame {
+        max-height: calc(100dvh - 20px);
+      }
     }
   }
 }
@@ -444,36 +511,30 @@ defineExpose({
 .base-modal-fade-enter-active,
 .base-modal-fade-leave-active {
   transition: opacity 0.3s ease;
-
   .base-modal__inner {
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
   }
 }
-
 .base-modal-fade-enter-from,
 .base-modal-fade-leave-to {
   opacity: 0;
-
   .base-modal__inner {
     opacity: 0;
 
     transform: translateY(15px) scale(0.98);
   }
 }
-
 .base-modal-fade-enter-to,
 .base-modal-fade-leave-from {
   opacity: 1;
-
   .base-modal__inner {
     opacity: 1;
 
     transform: none;
   }
 }
-
 :global(body.base-modal-open) {
   overflow: hidden;
 
