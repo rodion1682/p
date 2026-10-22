@@ -1,239 +1,366 @@
 <template>
   <main class="faq-page">
-    <div class="faq-page__background _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+    <div class="faq-page__bg _ibg" aria-hidden="true">
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
-    <div class="faq-page__container _cnt">
-      <div class="faq-page__decoration" aria-hidden="true">
-        <img src="@/assets/img/product-list-decor.png" alt="" />
-      </div>
-
-      <div class="faq-page__inner">
-        <section class="faq">
-          <h1 class="faq__title _h5">
+    <div class="faq-page__inner _cnt">
+      <div class="faq-page__top">
+        <div class="faq-page__heading">
+          <h1 class="faq-page__title _h4">
             {{ $t('Frequently Asked Questions') }}
           </h1>
 
-          <div v-if="isLoading" class="faq__items" aria-live="polite">
-            <div v-for="index in 5" :key="index" class="faq__skeleton">
-              <span class="faq__skeleton-line" />
-            </div>
-          </div>
+          <p class="faq-page__subtitle">
+            {{ $t('Find answers to frequently asked questions') }}
+          </p>
+        </div>
+      </div>
 
-          <div v-else-if="faqItems.length" class="faq__items">
-            <article
-              v-for="(item, index) in faqItems"
-              :key="getItemKey(item, index)"
-              class="faq__item"
-              :class="{ faq__item_open: isOpen(index) }"
-            >
+      <div
+        class="faq-page__content faq"
+        :aria-label="$t('Frequently Asked Questions')"
+      >
+        <div v-if="isLoading" class="faq__items" aria-live="polite">
+          <div v-for="index in 6" :key="index" class="faq__skeleton">
+            <span class="faq__skeleton-line" />
+          </div>
+        </div>
+
+        <div
+          v-else-if="error && !faqItems.length"
+          class="faq__empty"
+          role="alert"
+        >
+          <h2 class="faq__empty-title _h6">
+            {{ $t('Unable to load questions') }}
+          </h2>
+
+          <p class="faq__empty-text">
+            {{ error }}
+          </p>
+
+          <BaseButton
+            type="button"
+            variant="bordered"
+            class="faq__retry"
+            @click="reloadFaq"
+          >
+            {{ $t('Try again') }}
+          </BaseButton>
+        </div>
+
+        <div v-else-if="filteredFaqItems.length" class="faq__items">
+          <article
+            v-for="item in filteredFaqItems"
+            :key="item.key"
+            class="faq__item"
+            :class="{
+              faq__item_open: isOpen(item.key),
+            }"
+          >
+            <h2 class="faq__item-heading">
               <button
                 type="button"
                 class="faq__question"
-                :aria-expanded="isOpen(index)"
-                :aria-controls="getAnswerId(index)"
-                @click="toggle(index)"
+                :id="getQuestionId(item.key)"
+                :aria-expanded="isOpen(item.key)"
+                :aria-controls="getAnswerId(item.key)"
+                @click="toggle(item.key)"
               >
-                <span class="faq__question-text _h6">
-                  {{ getQuestion(item) }}
+                <span class="faq__question-text">
+                  {{ getQuestion(item.data) }}
                 </span>
 
-                <span
-                  v-if="isOpen(index)"
-                  class="faq__close"
-                  aria-hidden="true"
-                >
-                  <SvgIcon :icon="CloseIcon" class="faq__close-icon" />
+                <span class="faq__indicator" aria-hidden="true">
+                  <SvgIcon
+                    :icon="isOpen(item.key) ? CloseIcon : PlusIcon"
+                    class="faq__indicator-icon"
+                  />
                 </span>
               </button>
-
-              <div
-                :id="getAnswerId(index)"
-                class="faq__answer-wrapper"
-                :class="{ 'faq__answer-wrapper_open': isOpen(index) }"
-              >
-                <div class="faq__answer-overflow">
-                  <div class="faq__answer">
-                    <div class="faq__answer-content" v-html="getAnswer(item)" />
-                  </div>
-                </div>
-              </div>
-            </article>
-          </div>
-
-          <div v-else class="faq__empty">
-            <h2 class="faq__empty-title _h3">
-              {{ $t('No questions found') }}
             </h2>
 
-            <p class="faq__empty-text">
-              {{ $t('Frequently asked questions will appear here.') }}
-            </p>
-          </div>
-        </section>
+            <div
+              :id="getAnswerId(item.key)"
+              class="faq__answer-wrapper"
+              :class="{
+                'faq__answer-wrapper_open': isOpen(item.key),
+              }"
+              role="region"
+              :aria-labelledby="getQuestionId(item.key)"
+              :inert="!isOpen(item.key)"
+            >
+              <div class="faq__answer-overflow">
+                <div class="faq__answer">
+                  <div
+                    class="faq__answer-content"
+                    v-html="getAnswer(item.data)"
+                  />
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div v-else class="faq__empty">
+          <h2 class="faq__empty-title _h6">
+            {{
+              searchQuery.trim()
+                ? $t('No questions found')
+                : $t('No questions found')
+            }}
+          </h2>
+
+          <p class="faq__empty-text">
+            {{
+              searchQuery.trim()
+                ? $t('Try changing your search.')
+                : $t('Frequently asked questions will appear here.')
+            }}
+          </p>
+
+          <BaseButton
+            v-if="searchQuery.trim()"
+            type="button"
+            variant="bordered"
+            class="faq__retry"
+            @click="clearSearch"
+          >
+            {{ $t('Clear') }}
+          </BaseButton>
+        </div>
       </div>
     </div>
   </main>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
-import { CloseIcon } from '@/components/icons'
+import BaseButton from '@/components/base/BaseButton.vue'
+
+import { CloseIcon, PlusIcon } from '@/components/icons'
+
 import SvgIcon from '@/components/icons/SvgIcon.vue'
+
 import { useFaqStore } from '@/stores/faq'
 
 const faqStore = useFaqStore()
 
-const activeIndex = ref(0)
+const searchQuery = ref('')
+const activeKey = ref(null)
 
 const isLoading = computed(() => Boolean(faqStore.isLoading))
 
+const error = computed(() => faqStore.error || '')
+
 const faqItems = computed(() => {
   const items =
-    faqStore.faqs || faqStore.faq || faqStore.items || faqStore.questions || []
+    faqStore.faq || faqStore.faqs || faqStore.items || faqStore.questions || []
 
   return Array.isArray(items) ? items : []
 })
 
-const getItemKey = (item, index) => item?.id ?? item?.uuid ?? `faq-${index}`
+const normalizedItems = computed(() =>
+  faqItems.value.map((item, index) => ({
+    key: `${item?.id ?? item?.uuid ?? 'faq'}-${index}`,
+    data: item,
+  })),
+)
 
-const getQuestion = item => item?.question || item?.title || item?.name || ''
+const filteredFaqItems = computed(() => {
+  const query = normalizeText(searchQuery.value)
 
-const getAnswer = item =>
-  item?.answer || item?.content || item?.description || item?.text || ''
+  if (!query) {
+    return normalizedItems.value
+  }
 
-const getAnswerId = index => `faq-answer-${index}`
+  return normalizedItems.value.filter(({ data }) => {
+    const question = normalizeText(getQuestion(data))
+    const answer = normalizeText(stripHtml(getAnswer(data)))
 
-const isOpen = index => activeIndex.value === index
+    return question.includes(query) || answer.includes(query)
+  })
+})
 
-const toggle = index => {
-  activeIndex.value = isOpen(index) ? null : index
+function getQuestion(item) {
+  return item?.question || item?.title || item?.name || ''
 }
+
+function getAnswer(item) {
+  return item?.answer || item?.content || item?.description || item?.text || ''
+}
+
+function stripHtml(value) {
+  return String(value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+}
+
+function normalizeText(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .trim()
+}
+
+function getQuestionId(key) {
+  return `faq-question-${key}`
+}
+
+function getAnswerId(key) {
+  return `faq-answer-${key}`
+}
+
+function isOpen(key) {
+  return activeKey.value === key
+}
+
+function toggle(key) {
+  activeKey.value = isOpen(key) ? null : key
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+}
+
+async function reloadFaq() {
+  await faqStore.fetchFaq()
+}
+
+watch(
+  normalizedItems,
+  items => {
+    if (!items.length) {
+      activeKey.value = null
+      return
+    }
+
+    const exists = items.some(item => item.key === activeKey.value)
+
+    if (!exists) {
+      activeKey.value = items[0].key
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <style lang="scss" scoped>
 .faq-page {
-  @include adaptiveValue('padding-bottom', 64, 30);
+  @include adaptiveValue('padding-top', 130, 80);
+  @include adaptiveValue('padding-bottom', 80, 30);
 
   position: relative;
 
   display: flex;
-  overflow: hidden;
   flex: 1 1 auto;
   flex-direction: column;
 
   width: 100%;
   min-width: 0;
-  min-height: 550px;
+  min-height: 100%;
 
-  padding-top: 80px;
-
-  background-color: var(--bg-primary-color);
-
-  &__background {
-    position: absolute;
+  &__bg {
+    position: fixed;
     top: 0;
     left: 0;
-    z-index: 0;
 
     width: 100%;
     height: 100%;
-    max-height: 915px;
 
     pointer-events: none;
-
-    img {
-      object-position: center top;
-    }
-  }
-
-  &__container {
-    position: relative;
-    z-index: 1;
-
-    display: flex;
-    flex: 1 1 100%;
-    flex-direction: column;
-
-    width: 100%;
-    min-width: 0;
-  }
-
-  &__decoration {
-    position: relative;
-
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-
-    width: 100%;
-    height: 32px;
-
-    margin-bottom: 20px;
-
-    border-bottom: 1px solid var(--border-priamry-color);
-
-    img {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-
-      display: block;
-
-      width: min(250px, 55vw);
-      max-height: 50px;
-
-      object-fit: contain;
-      object-position: center bottom;
-
-      transform: translateX(-50%);
-    }
   }
 
   &__inner {
     position: relative;
+    z-index: 1;
 
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     flex-direction: column;
 
     width: 100%;
     min-width: 0;
-
-    margin: auto;
   }
 
-  @media (max-width: $md4) {
-    &__decoration {
-      height: 25px;
+  &__top {
+    position: relative;
+    z-index: 1;
 
-      margin-bottom: 18px;
-
-      img {
-        max-height: 36px;
-      }
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 32, 20);
     }
+  }
+
+  &__heading {
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 28, 18);
+    }
+  }
+
+  &__title {
+    margin: 0;
+
+    color: var(--fourth-color);
+    text-transform: none;
+
+    &:not(:last-child) {
+      margin-bottom: 12px;
+    }
+  }
+
+  &__subtitle {
+    margin: 0;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 150%;
+  }
+
+  &__search {
+    @include adaptiveValue('padding', 18, 10);
+    @include adaptiveValue('border-radius', 12, 10);
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    background: #111624;
+  }
+
+  &__search-input {
+    width: 100%;
+    min-width: 0;
+    max-width: 540px;
+  }
+
+  &__search-icon {
+    display: flex;
+
+    min-width: 32px;
+    height: 32px;
+
+    color: var(--fourth-color);
+
+    :deep(svg) {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__content {
+    width: 100%;
+    min-width: 0;
   }
 }
 
 .faq {
-  width: 100%;
-  max-width: 1376px;
-
-  margin: auto;
-
-  &__title {
-    color: var(--secondary-color);
-    font-weight: 500;
-    line-height: 120%;
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 18);
-    }
-  }
-
   &__items {
     display: flex;
     flex-direction: column;
@@ -243,6 +370,8 @@ const toggle = index => {
   }
 
   &__item {
+    @include adaptiveValue('border-radius', 12, 10);
+
     position: relative;
 
     overflow: hidden;
@@ -250,102 +379,146 @@ const toggle = index => {
     width: 100%;
     min-width: 0;
 
-    border: 1px solid var(--border-seventh-color);
-    border-radius: 12px;
-    background-color: var(--bg-tenth-color);
+    border: 1px solid var(--border-priamry-color);
+    background: #111624;
 
-    transition: all 0.3s ease 0s;
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
 
     &_open {
-      border-color: var(--border-eight-color);
-      background-color: var(--bg-nineth-color);
+      border-color: var(--border-secondary-color);
 
       .faq__question-text {
-        color: var(--secondary-color);
+        color: var(--fourth-color);
+      }
+
+      .faq__indicator {
+        border-color: var(--hint-primary-color);
+
+        color: var(--hint-primary-color);
+      }
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--border-secondary-color);
       }
     }
   }
 
-  &__question {
-    @include adaptiveValue('padding-top', 17, 15);
-    @include adaptiveValue('padding-left', 54, 45);
-    @include adaptiveValue('padding-right', 54, 45);
-    @include adaptiveValue('padding-bottom', 23, 17);
+  &__item-heading {
+    margin: 0;
+    padding: 0;
 
-    position: relative;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  &__question {
+    @include adaptiveValue('padding-top', 24, 16);
+    @include adaptiveValue('padding-bottom', 24, 16);
+    @include adaptiveValue('padding-left', 32, 16);
+    @include adaptiveValue('padding-right', 32, 16);
 
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 20px;
 
     width: 100%;
+    min-height: 68px;
 
-    padding-top: 12px;
-    padding-bottom: 12px;
+    margin: 0;
 
     border: 0;
     outline: none;
     background: transparent;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
+    text-align: left;
 
     cursor: pointer;
 
-    transition: color 0.3s ease;
-
     &:focus-visible {
-      outline: 2px solid var(--border-secondary-color);
+      outline: 2px solid var(--hint-primary-color);
       outline-offset: -3px;
     }
 
     @media (any-hover: hover) {
       &:hover {
         .faq__question-text {
-          color: var(--secondary-color);
+          color: var(--hint-primary-color);
+        }
+
+        .faq__indicator {
+          border-color: var(--hint-primary-color);
+
+          color: var(--hint-primary-color);
         }
       }
     }
   }
 
   &__question-text {
-    font-weight: 500;
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 600;
     line-height: 150%;
-    text-align: center;
 
-    transition: color 0.3s ease 0s;
-  }
+    transition: color 0.3s ease;
 
-  &__close {
-    position: absolute;
-    top: 50%;
-    right: 15px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 34px;
-    height: 34px;
-
-    color: var(--secondary-color);
-
-    transform: translateY(-50%);
-    transition: opacity 0.3s ease;
-
-    @media (any-hover: hover) {
-      opacity: 0.5;
-
-      .faq__question:hover & {
-        opacity: 1;
-      }
+    @media (max-width: $md4) {
+      font-size: 14px;
     }
   }
 
-  &__close-icon {
-    width: 24px;
-    height: 24px;
+  &__indicator {
+    display: flex;
+    flex: 0 0 36px;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 6px;
+    background: var(--bg-primary-color);
+
+    color: var(--fifth-color);
+
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease;
+
+    @media (max-width: $md4) {
+      flex-basis: 32px;
+
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  &__indicator-icon {
+    display: block;
+
+    width: 18px;
+    height: 18px;
 
     color: inherit;
+
+    :deep(svg) {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+    }
   }
 
   &__answer-wrapper {
@@ -355,7 +528,7 @@ const toggle = index => {
     opacity: 0;
 
     transition:
-      grid-template-rows 0.35s ease,
+      grid-template-rows 0.3s ease,
       opacity 0.3s ease;
 
     &_open {
@@ -372,45 +545,56 @@ const toggle = index => {
   }
 
   &__answer {
-    @include adaptiveValue('padding-left', 55, 20);
-    @include adaptiveValue('padding-right', 55, 20);
-    @include adaptiveValue('padding-bottom', 28, 20);
+    @include adaptiveValue('padding-left', 32, 16);
+    @include adaptiveValue('padding-right', 32, 16);
+    @include adaptiveValue('padding-bottom', 28, 18);
 
     padding-top: 0;
   }
 
   &__answer-content {
-    text-align: center;
+    max-width: 1100px;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 170%;
+    text-align: left;
 
     :deep(p) {
       margin: 0;
 
       &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 24, 18);
+        margin-bottom: 14px;
       }
+    }
+
+    :deep(strong),
+    :deep(b) {
+      color: var(--fourth-color);
+      font-weight: 600;
     }
 
     :deep(a) {
       color: var(--hint-primary-color);
-      text-decoration: none;
+      text-decoration: underline;
 
       transition: color 0.3s ease;
 
+      text-underline-offset: 3px;
+
       @media (any-hover: hover) {
         &:hover {
-          color: var(--primary-color);
+          color: var(--fourth-color);
         }
       }
     }
 
     :deep(ul),
     :deep(ol) {
-      display: inline-block;
-
-      margin: 12px auto;
+      margin: 12px 0;
       padding-left: 20px;
-
-      text-align: left;
     }
 
     :deep(li) {
@@ -418,18 +602,34 @@ const toggle = index => {
         margin-bottom: 6px;
       }
     }
+
+    :deep(h3),
+    :deep(h4) {
+      margin: 18px 0 10px;
+
+      color: var(--fourth-color);
+      font-weight: 600;
+    }
   }
 
   &__skeleton {
+    @include adaptiveValue('border-radius', 12, 10);
+
     display: flex;
     align-items: center;
-    justify-content: center;
 
-    min-height: 64px;
+    min-height: 76px;
 
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 11px;
-    background-color: rgb(48 43 91 / 48%);
+    padding: 24px 32px;
+
+    border: 1px solid var(--border-priamry-color);
+    background: #111624;
+
+    @media (max-width: $md4) {
+      min-height: 66px;
+
+      padding: 16px;
+    }
   }
 
   &__skeleton-line {
@@ -439,9 +639,9 @@ const toggle = index => {
     border-radius: 4px;
     background: linear-gradient(
       90deg,
-      var(--bg-secondary-color) 25%,
-      var(--border-fourth-color) 50%,
-      var(--bg-secondary-color) 75%
+      var(--bg-primary-color) 25%,
+      var(--border-secondary-color) 50%,
+      var(--bg-primary-color) 75%
     );
     background-size: 200% 100%;
 
@@ -449,59 +649,69 @@ const toggle = index => {
   }
 
   &__empty {
+    @include adaptiveValue('padding', 40, 20);
+    @include adaptiveValue('border-radius', 12, 10);
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 14px;
 
-    min-height: 180px;
+    min-height: 220px;
 
-    padding: 30px;
-
-    border: 1px solid var(--border-fourth-color);
-    border-radius: 11px;
-    background-color: rgb(48 43 91 / 48%);
+    border: 1px solid var(--border-priamry-color);
+    background: #111624;
 
     text-align: center;
   }
 
   &__empty-title {
-    margin: 0 0 10px;
+    margin: 0;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
+    font-weight: 600;
+    text-transform: none;
   }
 
   &__empty-text {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
+    max-width: 420px;
+
+    margin: 0;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 150%;
   }
 
-  @media (max-width: $md4) {
-    &__items {
-      gap: 8px;
-    }
+  &__retry {
+    width: fit-content;
+    min-width: 150px;
+    max-width: 250px;
 
-    &__question {
-      padding-right: 42px;
-      padding-left: 42px;
-    }
-
-    &__close {
-      right: 5px;
-    }
-
-    &__close-icon {
-      width: 20px;
-      height: 20px;
-    }
+    margin-top: 8px;
   }
 }
 
 @keyframes faq-skeleton {
   to {
     background-position-x: -200%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq {
+    &__item,
+    &__question-text,
+    &__indicator,
+    &__answer-wrapper {
+      transition: none;
+    }
+
+    &__skeleton-line {
+      animation: none;
+    }
   }
 }
 </style>
