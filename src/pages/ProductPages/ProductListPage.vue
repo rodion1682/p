@@ -1049,9 +1049,12 @@ onBeforeUnmount(() => {
   }
   &__inner {
     @include adaptiveValue('gap', 42, 10, 1800, 1370, 1);
+
     display: flex;
+    align-items: stretch;
 
     width: 100%;
+
     @media (max-width: $md3) {
       display: block;
     }
@@ -1151,43 +1154,19 @@ onBeforeUnmount(() => {
 }
 
 .aside {
-  position: relative;
-
   height: fit-content;
-  @media (max-width: $md3) {
-    position: fixed;
-    top: 51px;
-    bottom: 0;
-    left: 0;
-    z-index: 4;
+  @media (min-width: $md3) {
+    position: sticky;
+    top: 71px;
 
-    overflow-x: hidden;
+    overflow-x: clip;
     overflow-y: auto;
+    align-self: flex-start;
 
-    width: 320px;
-    min-width: 0;
-    max-width: none;
-    height: calc(100dvh - 51px);
+    height: auto;
+    max-height: calc(100dvh - 81px);
 
-    padding: 30px 10px;
-
-    background-color: var(--bg-primary-color);
-    opacity: 0;
-
-    pointer-events: none;
-
-    transform: translateX(-105%);
-    transition: all 0.3s ease 0s;
-
-    overscroll-behavior: contain;
-
-    &_open {
-      opacity: 1;
-
-      pointer-events: auto;
-
-      transform: translateX(0);
-    }
+    overscroll-behavior-y: contain;
   }
 
   &__header {
