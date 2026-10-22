@@ -8,9 +8,9 @@
       <BaseButton
         type="button"
         class="product-page__back"
-        @click="goBack"
         variant="back"
         icon="arrow"
+        @click="goBack"
       >
         {{ isFromCollection ? $t('Back to collections') : $t('Back to store') }}
       </BaseButton>
@@ -22,7 +22,10 @@
       </div>
 
       <div v-else-if="error" class="product-page__state">
-        <h1 class="_h4">{{ $t('Unable to load product') }}</h1>
+        <h1 class="_h4">
+          {{ $t('Unable to load product') }}
+        </h1>
+
         <p>{{ error }}</p>
 
         <BaseButton variant="bordered" @click="fetchProductData">
@@ -128,7 +131,7 @@
             </div>
           </div>
 
-          <div class="product-details-page__actions">
+          <div v-if="showPurchaseActions" class="product-details-page__actions">
             <div
               class="product-details-page__tabs"
               role="group"
@@ -147,62 +150,78 @@
                 {{ $t('Sell card') }}
               </button>
 
-              <button
-                type="button"
-                class="product-details-page__tab"
-                :class="{
-                  'product-details-page__tab_active': purchaseMode === 'buy',
-                }"
-                :aria-pressed="purchaseMode === 'buy'"
-                @click="setPurchaseMode('buy')"
-              >
-                {{ $t('Buy card') }}
-              </button>
+              <template v-if="!isFromCollection">
+                <button
+                  type="button"
+                  class="product-details-page__tab"
+                  :class="{
+                    'product-details-page__tab_active': purchaseMode === 'buy',
+                  }"
+                  :aria-pressed="purchaseMode === 'buy'"
+                  @click="setPurchaseMode('buy')"
+                >
+                  {{ $t('Buy card') }}
+                </button>
 
-              <button
-                v-if="canRent"
-                type="button"
-                class="product-details-page__tab"
-                :class="{
-                  'product-details-page__tab_active': purchaseMode === 'rent',
-                }"
-                :aria-pressed="purchaseMode === 'rent'"
-                @click="setPurchaseMode('rent')"
-              >
-                {{ $t('Rent card') }}
-              </button>
+                <button
+                  v-if="canRent"
+                  type="button"
+                  class="product-details-page__tab"
+                  :class="{
+                    'product-details-page__tab_active': purchaseMode === 'rent',
+                  }"
+                  :aria-pressed="purchaseMode === 'rent'"
+                  @click="setPurchaseMode('rent')"
+                >
+                  {{ $t('Rent card') }}
+                </button>
+              </template>
             </div>
 
             <div class="product-details-page__purchase">
               <div class="product-details-page__price">
-                <PriceFormatter
-                  v-if="hasOldPrice"
-                  class="product-details-page__old-price"
-                  :price="currentProduct.price"
-                  size="size-14"
-                />
+                <template v-if="purchaseMode === 'sell'">
+                  <span class="product-details-page__label">
+                    {{ $t('You receive per card') }}
+                  </span>
 
-                <PriceFormatter
-                  v-if="hasValue(totalPrice)"
-                  class="product-details-page__price-value"
-                  :price="totalPrice"
-                  size="size-20"
-                />
+                  <PriceFormatter
+                    class="product-details-page__price-value"
+                    :price="saleUnitPrice"
+                    size="size-20"
+                  />
+                </template>
 
-                <span v-else>—</span>
+                <template v-else>
+                  <PriceFormatter
+                    v-if="hasOldPrice"
+                    class="product-details-page__old-price"
+                    :price="currentProduct.price"
+                    size="size-14"
+                  />
+
+                  <PriceFormatter
+                    v-if="hasValue(totalPrice)"
+                    class="product-details-page__price-value"
+                    :price="totalPrice"
+                    size="size-20"
+                  />
+
+                  <span v-else>—</span>
+                </template>
               </div>
 
               <div
                 v-if="purchaseMode !== 'rent'"
                 class="product-details-page__quantity"
                 :class="{
-                  'product-details-page__quantity_disabled': isInCart,
+                  'product-details-page__quantity_disabled': quantityDisabled,
                 }"
               >
                 <button
                   type="button"
                   :aria-label="$t('Decrease quantity')"
-                  :disabled="isSubmitting || Number(quantity) <= 1"
+                  :disabled="quantityDisabled || Number(quantity) <= 1"
                   @click="decreaseQuantity"
                 >
                   −
@@ -213,7 +232,7 @@
                   type="text"
                   inputmode="numeric"
                   :aria-label="$t('Quantity')"
-                  :disabled="isSubmitting"
+                  :disabled="quantityDisabled"
                   @blur="normalizeQuantity"
                   @keydown.enter="normalizeQuantity"
                 />
@@ -222,7 +241,7 @@
                   type="button"
                   :aria-label="$t('Increase quantity')"
                   :disabled="
-                    isSubmitting ||
+                    quantityDisabled ||
                     (purchaseMode === 'sell' &&
                       Number(quantity) >= availableForSale)
                   "
@@ -236,8 +255,8 @@
                 v-else
                 class="product-details-page__rental"
                 :label="$t(selectedRentalPrice?.label || 'Select period')"
-                :disabled="isSubmitting || isInCart"
                 :placeholder="!selectedRentalPrice"
+                :disabled="isSubmitting || isInCart"
                 bordered
                 absolute
               >
@@ -274,7 +293,9 @@
                   aria-hidden="true"
                 />
 
-                <span v-else>{{ $t(actionLabel) }}</span>
+                <span v-else>
+                  {{ actionLabel }}
+                </span>
               </button>
             </div>
 
@@ -282,14 +303,34 @@
               v-if="purchaseMode === 'sell'"
               class="product-details-page__sale-note"
             >
-              <template v-if="availabilityLoading">
-                {{ $t('Checking availability...') }}
-              </template>
+              <div>
+                <template v-if="availabilityLoading">
+                  {{ $t('Checking availability...') }}
+                </template>
 
-              <template v-else>
-                {{ $t('Available for sale') }}: {{ availableForSale }}
-              </template>
+                <template v-else>
+                  {{ $t('Available for sale') }}:
+                  <strong>{{ availableForSale }}</strong>
+                </template>
+              </div>
+
+              <div v-if="commissionPercent > 0">
+                {{ $t('Commission') }}:
+                <strong>{{ commissionPercent }}%</strong>
+              </div>
+
+              <div>
+                {{ $t('Total') }}:
+                <PriceFormatter :price="saleTotal" size="size-20" />
+              </div>
             </div>
+          </div>
+
+          <div
+            v-else-if="isRentedCollection"
+            class="product-details-page__sale-note"
+          >
+            {{ $t('Rented card') }}
           </div>
         </div>
       </div>
@@ -298,17 +339,20 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import defaultImage from '@/assets/img/default-image.png'
+
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
+
 import { useToast } from '@/composables/useToast'
 import axios from '@/plugins/axios'
+
 import { useCartStore } from '@/stores/cart'
 import { useHeroesStore } from '@/stores/heroes'
 import { useProductStore } from '@/stores/product'
@@ -331,11 +375,13 @@ const error = ref('')
 const quantity = ref(1)
 const purchaseMode = ref('buy')
 const rentalPeriodId = ref(null)
+
 const isSubmitting = ref(false)
 const availabilityLoading = ref(false)
 const availableForSale = ref(0)
 
 let activeRequestId = 0
+let activeAvailabilityId = 0
 
 const currentProduct = computed(() => productStore.currentProduct)
 
@@ -349,15 +395,28 @@ const cardName = computed(
 
 const isFromCollection = computed(() => route.query.from === 'collection')
 
-const isRentedCollection = computed(() => route.query.collection === 'rented')
+const isRentedCollection = computed(
+  () => isFromCollection.value && route.query.collection === 'rented',
+)
+
+const isBoughtCollection = computed(
+  () => isFromCollection.value && route.query.collection === 'bought',
+)
 
 const sellEnabled = computed(
   () => settingsStore.settings?.payouts?.offer_enabled === true,
 )
 
 const showSellTab = computed(
-  () =>
-    isFromCollection.value && !isRentedCollection.value && sellEnabled.value,
+  () => isBoughtCollection.value && sellEnabled.value,
+)
+
+const showPurchaseActions = computed(
+  () => !isFromCollection.value || showSellTab.value,
+)
+
+const commissionPercent = computed(() =>
+  Number(settingsStore.settings?.payouts?.card_sale_commission_percent ?? 0),
 )
 
 const rentalOptions = computed(() =>
@@ -386,10 +445,29 @@ const formatValue = value => {
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
 
+const productHero = computed(() => {
+  const hero = currentProduct.value?.hero
+
+  if (!hero) return null
+
+  const heroes = heroesStore.heroes || []
+
+  const matchedHero = heroes.find(
+    item =>
+      String(item.id) === String(hero.id) ||
+      (item.slug && item.slug === hero.slug) ||
+      (item.name &&
+        hero.name &&
+        item.name.toLowerCase() === hero.name.toLowerCase()),
+  )
+
+  return matchedHero || hero
+})
+
 const productStats = computed(() => [
   {
     label: 'Hero',
-    value: currentProduct.value?.hero?.name || '—',
+    value: productHero.value?.name || currentProduct.value?.hero?.name || '—',
   },
   {
     label: 'Type',
@@ -414,7 +492,9 @@ const productStats = computed(() => [
 ])
 
 const buyPrice = computed(() => {
-  if (!hasValue(currentProduct.value?.price)) return null
+  if (!hasValue(currentProduct.value?.price)) {
+    return null
+  }
 
   const regular = Number(currentProduct.value.price)
   const sale = Number(currentProduct.value?.sale_price)
@@ -432,23 +512,29 @@ const buyPrice = computed(() => {
 })
 
 const saleUnitPrice = computed(() => {
-  const sale = Number(currentProduct.value?.sale_price)
+  const rawSalePrice = currentProduct.value?.sale_price
 
   if (
-    Number.isFinite(sale) &&
-    sale >= 0 &&
-    currentProduct.value?.sale_price != null
+    rawSalePrice !== null &&
+    rawSalePrice !== undefined &&
+    rawSalePrice !== ''
   ) {
-    return sale
+    const price = Number(rawSalePrice)
+
+    if (Number.isFinite(price) && price >= 0) {
+      return price
+    }
   }
 
-  const regular = Number(currentProduct.value?.price ?? 0)
-  const commission = Number(
-    settingsStore.settings?.payouts?.card_sale_commission_percent ?? 0,
-  )
+  const cardPrice = Number(currentProduct.value?.price ?? 0)
+  const commission = commissionPercent.value / 100
 
-  return Number((regular * (1 - commission / 100)).toFixed(2))
+  return Number((cardPrice * (1 - commission)).toFixed(2))
 })
+
+const saleTotal = computed(() =>
+  Number((saleUnitPrice.value * (Number(quantity.value) || 0)).toFixed(2)),
+)
 
 const hasOldPrice = computed(
   () =>
@@ -461,20 +547,31 @@ const hasOldPrice = computed(
 )
 
 const totalPrice = computed(() => {
+  if (purchaseMode.value === 'sell') {
+    return saleTotal.value
+  }
+
   if (purchaseMode.value === 'rent') {
     return selectedRentalPrice.value?.price ?? null
   }
 
-  const unitPrice =
-    purchaseMode.value === 'sell' ? saleUnitPrice.value : buyPrice.value
+  if (purchaseMode.value === 'view') {
+    return null
+  }
 
-  return unitPrice === null
+  return buyPrice.value === null
     ? null
-    : Number((unitPrice * Math.max(1, Number(quantity.value) || 1)).toFixed(2))
+    : Number(
+        (buyPrice.value * Math.max(1, Number(quantity.value) || 1)).toFixed(2),
+      )
 })
 
 const isInCart = computed(() => {
-  if (!currentProduct.value?.id || purchaseMode.value === 'sell') {
+  if (
+    !currentProduct.value?.id ||
+    isFromCollection.value ||
+    purchaseMode.value === 'sell'
+  ) {
     return false
   }
 
@@ -491,48 +588,94 @@ const isInCart = computed(() => {
   return cartStore.isItemInCart(currentProduct.value.id, 'card')
 })
 
+const canSell = computed(
+  () =>
+    showSellTab.value &&
+    purchaseMode.value === 'sell' &&
+    !availabilityLoading.value &&
+    !isSubmitting.value &&
+    availableForSale.value > 0 &&
+    Number.isInteger(Number(quantity.value)) &&
+    Number(quantity.value) >= 1 &&
+    Number(quantity.value) <= availableForSale.value,
+)
+
+const quantityDisabled = computed(
+  () =>
+    isSubmitting.value ||
+    isInCart.value ||
+    (purchaseMode.value === 'sell' &&
+      (availabilityLoading.value || availableForSale.value <= 0)),
+)
+
 const actionLabel = computed(() => {
-  if (purchaseMode.value === 'sell') return t('Sell card')
+  if (purchaseMode.value === 'sell') {
+    if (availabilityLoading.value) return t('Checking...')
+    if (availableForSale.value <= 0) return t('Unavailable')
+
+    return t('Sell card')
+  }
+
   if (isInCart.value) return t('Remove')
 
   return purchaseMode.value === 'rent' ? t('Rent card') : t('Buy card')
 })
-const actionDisabled = computed(
-  () =>
-    isSubmitting.value ||
-    !currentProduct.value?.id ||
-    (purchaseMode.value === 'sell' &&
-      (availabilityLoading.value || availableForSale.value < 1)) ||
-    (purchaseMode.value === 'rent' && !selectedRentalPrice.value) ||
-    !hasValue(totalPrice.value),
-)
+
+const actionDisabled = computed(() => {
+  if (isSubmitting.value || !currentProduct.value?.id) {
+    return true
+  }
+
+  if (isFromCollection.value) {
+    return !canSell.value
+  }
+
+  if (purchaseMode.value === 'rent') {
+    return !selectedRentalPrice.value
+  }
+
+  if (purchaseMode.value !== 'buy') {
+    return true
+  }
+
+  return !hasValue(totalPrice.value)
+})
 
 function handleImageError(event) {
   const image = event.currentTarget
 
-  if (!image.src.endsWith('/default-image.png')) {
+  if (image.src !== defaultImage) {
     image.src = defaultImage
   }
 }
 
 function normalizeQuantity() {
   const parsed = Number.parseInt(String(quantity.value), 10)
+  const normalized = Math.max(1, Number.isFinite(parsed) ? parsed : 1)
 
-  const value = Math.max(1, Number.isFinite(parsed) ? parsed : 1)
+  if (purchaseMode.value === 'sell') {
+    quantity.value =
+      availableForSale.value > 0
+        ? Math.min(normalized, availableForSale.value)
+        : 1
 
-  quantity.value =
-    purchaseMode.value === 'sell'
-      ? Math.min(value, Math.max(1, availableForSale.value))
-      : value
+    return
+  }
+
+  quantity.value = normalized
 }
 
 function increaseQuantity() {
+  if (quantityDisabled.value) return
+
   normalizeQuantity()
 
-  if (
-    purchaseMode.value === 'sell' &&
-    quantity.value >= availableForSale.value
-  ) {
+  if (purchaseMode.value === 'sell') {
+    quantity.value = Math.min(
+      availableForSale.value,
+      Number(quantity.value) + 1,
+    )
+
     return
   }
 
@@ -540,7 +683,10 @@ function increaseQuantity() {
 }
 
 function decreaseQuantity() {
+  if (quantityDisabled.value) return
+
   normalizeQuantity()
+
   quantity.value = Math.max(1, Number(quantity.value) - 1)
 }
 
@@ -556,8 +702,15 @@ function setInitialRentalPeriod() {
 }
 
 function setPurchaseMode(mode) {
+  if (isFromCollection.value) {
+    if (mode !== 'sell' || !showSellTab.value) {
+      return
+    }
+  } else if (!['buy', 'rent'].includes(mode)) {
+    return
+  }
+
   if (mode === 'rent' && !canRent.value) return
-  if (mode === 'sell' && !showSellTab.value) return
 
   purchaseMode.value = mode
   quantity.value = 1
@@ -568,6 +721,8 @@ function setPurchaseMode(mode) {
 }
 
 function selectRentalPeriod(periodId, close) {
+  if (isSubmitting.value || isInCart.value) return
+
   const period = rentalOptions.value.find(
     item => String(item.rental_period_id) === String(periodId),
   )
@@ -579,25 +734,30 @@ function selectRentalPeriod(periodId, close) {
 }
 
 function setInitialMode() {
-  if (
-    isFromCollection.value &&
-    !isRentedCollection.value &&
-    showSellTab.value
-  ) {
-    setPurchaseMode('sell')
-  } else if (
-    (route.query.rent === '1' || isRentedCollection.value) &&
-    canRent.value
-  ) {
-    setPurchaseMode('rent')
-  } else {
-    setPurchaseMode('buy')
+  quantity.value = 1
+
+  if (isFromCollection.value) {
+    purchaseMode.value = showSellTab.value ? 'sell' : 'view'
+
+    return
   }
+
+  if (route.query.rent === '1' && canRent.value) {
+    purchaseMode.value = 'rent'
+    setInitialRentalPeriod()
+    return
+  }
+
+  purchaseMode.value = 'buy'
 }
 
 async function fetchAvailability() {
-  if (!showSellTab.value || !currentProduct.value?.id) {
+  const requestId = ++activeAvailabilityId
+  const productId = currentProduct.value?.id
+
+  if (!showSellTab.value || !productId) {
     availableForSale.value = 0
+    availabilityLoading.value = false
     return
   }
 
@@ -605,8 +765,15 @@ async function fetchAvailability() {
 
   try {
     const { data } = await axios.get(
-      `/players/me/cards/${currentProduct.value.id}/available-for-sale`,
+      `/players/me/cards/${productId}/available-for-sale`,
     )
+
+    if (
+      requestId !== activeAvailabilityId ||
+      String(productId) !== String(currentProduct.value?.id)
+    ) {
+      return
+    }
 
     availableForSale.value = Math.max(
       0,
@@ -615,13 +782,13 @@ async function fetchAvailability() {
           data?.data?.available_count ??
           data?.payload?.available_count ??
           0,
-      ),
+      ) || 0,
     )
 
-    if (purchaseMode.value === 'sell') {
-      normalizeQuantity()
-    }
+    normalizeQuantity()
   } catch (availabilityError) {
+    if (requestId !== activeAvailabilityId) return
+
     availableForSale.value = 0
 
     if (availabilityError?.response?.status !== 401) {
@@ -632,7 +799,9 @@ async function fetchAvailability() {
       )
     }
   } finally {
-    availabilityLoading.value = false
+    if (requestId === activeAvailabilityId) {
+      availabilityLoading.value = false
+    }
   }
 }
 
@@ -640,12 +809,16 @@ async function fetchProductData() {
   const productId = route.params.productId
   const requestId = ++activeRequestId
 
+  ++activeAvailabilityId
+
   loading.value = true
   error.value = ''
+  quantity.value = 1
   availableForSale.value = 0
+  availabilityLoading.value = false
 
   if (!productId) {
-    error.value = 'Product ID is missing'
+    error.value = t('Product ID is missing')
     loading.value = false
     return
   }
@@ -653,17 +826,15 @@ async function fetchProductData() {
   try {
     await Promise.all([
       productStore.fetchProductDetails(productId),
-      heroesStore.ensureHeroes().catch(() => []),
       settingsStore.settings
         ? Promise.resolve()
-        : settingsStore.fetchSettings().catch(() => null),
+        : settingsStore.fetchSettings(),
+      heroesStore.ensureHeroes().catch(() => []),
     ])
 
     if (requestId !== activeRequestId) return
 
-    quantity.value = 1
     rentalPeriodId.value = null
-
     setInitialMode()
 
     if (showSellTab.value) {
@@ -675,7 +846,7 @@ async function fetchProductData() {
     error.value =
       fetchError?.response?.data?.message ||
       fetchError?.message ||
-      'Unable to load product details'
+      t('Unable to load product details')
   } finally {
     if (requestId === activeRequestId) {
       loading.value = false
@@ -714,14 +885,18 @@ function redirectToLogin(message) {
 async function handleSell() {
   normalizeQuantity()
 
-  if (!showSellTab.value || availableForSale.value < Number(quantity.value)) {
+  if (!canSell.value || !currentProduct.value?.id) {
     return
   }
 
+  isSubmitting.value = true
+
   try {
+    const requestedQuantity = Number(quantity.value)
+
     const { data } = await axios.post('/offers/cards', {
       id: currentProduct.value.id,
-      quantity: Number(quantity.value),
+      quantity: requestedQuantity,
     })
 
     toast.success(data?.message || t('Sale offer created'))
@@ -732,8 +907,8 @@ async function handleSell() {
       fetchAvailability(),
       userStore.fetchProfile().catch(() => null),
     ])
-  } catch (sellError) {
-    const response = sellError?.response?.data
+  } catch (saleError) {
+    const response = saleError?.response?.data
 
     if (response?.error_type === 'not_enough_cards') {
       availableForSale.value = Math.max(0, Number(response.available || 0))
@@ -742,12 +917,16 @@ async function handleSell() {
     }
 
     toast.error(
-      response?.message || sellError?.message || t('Unable to sell card'),
+      response?.message || saleError?.message || t('Unable to sell card'),
     )
+  } finally {
+    isSubmitting.value = false
   }
 }
 
 async function handleCartAction() {
+  if (isFromCollection.value) return false
+
   if (isInCart.value) {
     const result = await cartStore.removeFromCart(
       currentProduct.value.id,
@@ -805,17 +984,20 @@ async function handleCartAction() {
 async function handleAction() {
   if (actionDisabled.value) return
 
+  if (purchaseMode.value === 'sell') {
+    await handleSell()
+    return
+  }
+
+  if (isFromCollection.value) return
+
   isSubmitting.value = true
 
   try {
-    if (purchaseMode.value === 'sell') {
-      await handleSell()
-    } else {
-      const succeeded = await handleCartAction()
+    const succeeded = await handleCartAction()
 
-      if (succeeded) {
-        await userStore.fetchProfile().catch(() => null)
-      }
+    if (succeeded) {
+      await userStore.fetchProfile().catch(() => null)
     }
   } catch (actionError) {
     toast.error(
@@ -832,12 +1014,42 @@ watch(() => route.params.productId, fetchProductData, { immediate: true })
 
 watch(
   () => [route.query.rent, route.query.from, route.query.collection],
-  () => {
-    if (!loading.value && currentProduct.value) {
-      setInitialMode()
+  async () => {
+    if (loading.value || !currentProduct.value) return
+
+    ++activeAvailabilityId
+    setInitialMode()
+
+    if (showSellTab.value) {
+      await fetchAvailability()
+    } else {
+      availableForSale.value = 0
+      availabilityLoading.value = false
     }
   },
 )
+
+watch(sellEnabled, async enabled => {
+  if (loading.value || !isFromCollection.value) return
+
+  setInitialMode()
+
+  if (!enabled) {
+    ++activeAvailabilityId
+    availableForSale.value = 0
+    availabilityLoading.value = false
+    return
+  }
+
+  if (showSellTab.value) {
+    await fetchAvailability()
+  }
+})
+
+onBeforeUnmount(() => {
+  ++activeRequestId
+  ++activeAvailabilityId
+})
 </script>
 
 <style lang="scss" scoped>

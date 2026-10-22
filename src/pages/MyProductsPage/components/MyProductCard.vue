@@ -1,93 +1,88 @@
 <template>
   <article
     v-if="product"
-    class="my-product-card"
+    class="product-card"
     :class="[
       props.className,
       {
-        'my-product-card_hovered': isCardHovered,
-        'my-product-card_carousel': props.type === 'carousel',
-        'my-product-card_rented': props.rented,
+        'product-card_hovered': isCardHovered,
+        'product-card_carousel': props.type === 'carousel',
+        'product-card_rent': props.rented,
       },
     ]"
     @mouseenter="isCardHovered = true"
     @mouseleave="isCardHovered = false"
   >
-    <div class="my-product-card__body">
-      <div class="my-product-card__content">
-        <h3 class="my-product-card__title" :title="cardName">
-          {{ cardName }}
-        </h3>
+    <div class="product-card__body">
+      <div class="product-card__content">
+        <div class="product-card__heading">
+          <h3 class="product-card__title" :title="cardName">
+            {{ cardName }}
+          </h3>
+
+          <span class="product-card__quantity">
+            {{ $t('Q-ty') }}:
+            <span>{{ displayQuantity }}</span>
+          </span>
+        </div>
 
         <button
           type="button"
-          class="my-product-card__card"
+          class="product-card__card"
           :aria-label="`${$t('View')} ${cardName}`"
           @click="openCardDetails"
         >
-          <div class="my-product-card__background">
+          <div class="product-card__background">
             <img
               :src="cardFrame"
               alt=""
-              class="my-product-card__background-image"
+              class="product-card__background-image"
               @error="handleImageError"
             />
           </div>
 
-          <div class="my-product-card__image-wrapper">
+          <div class="product-card__image-wrapper">
             <img
               :src="cardImage"
               :alt="cardName"
-              class="my-product-card__image"
+              class="product-card__image"
               @error="handleImageError"
             />
           </div>
 
-          <div v-if="cardName" class="my-product-card__card-name">
+          <div v-if="cardName" class="product-card__card-name">
             {{ cardName }}
           </div>
 
-          <div v-if="cardDescription" class="my-product-card__description">
+          <div v-if="cardDescription" class="product-card__description">
             <span v-html="cardDescription" />
           </div>
 
           <div
             v-if="hasValue(cardData.mana_cost)"
-            class="my-product-card__stat my-product-card__stat_mana"
+            class="product-card__stat product-card__stat_mana"
           >
             {{ cardData.mana_cost }}
           </div>
 
           <div
             v-if="hasValue(cardData.attack)"
-            class="my-product-card__stat my-product-card__stat_attack"
+            class="product-card__stat product-card__stat_attack"
           >
             {{ cardData.attack }}
           </div>
 
           <div
             v-if="hasValue(cardData.health)"
-            class="my-product-card__stat my-product-card__stat_health"
+            class="product-card__stat product-card__stat_health"
           >
             {{ cardData.health }}
           </div>
 
-          <span class="my-product-card__view" aria-hidden="true">
-            <SvgIcon class="my-product-card__view-icon" :icon="EyeIcon" />
+          <span class="product-card__view" aria-hidden="true">
+            <SvgIcon class="product-card__view-icon" :icon="EyeIcon" />
           </span>
         </button>
-
-        <div class="my-product-card__footer">
-          <div class="my-product-card__quantity">
-            <span class="my-product-card__quantity-label">
-              {{ $t('Q-ty') }}:
-            </span>
-
-            <strong class="my-product-card__quantity-value">
-              {{ displayQuantity }}
-            </strong>
-          </div>
-        </div>
       </div>
     </div>
   </article>
@@ -105,15 +100,18 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+
   className: {
     type: [String, Array, Object],
     default: '',
   },
+
   type: {
     type: String,
     default: 'default',
     validator: value => ['default', 'carousel'].includes(value),
   },
+
   rented: {
     type: Boolean,
     default: false,
@@ -230,9 +228,7 @@ function extractMarkdownUrl(value) {
 }
 
 function resolveImage(imageValue) {
-  if (!imageValue) {
-    return defaultImage
-  }
+  if (!imageValue) return defaultImage
 
   const image = extractMarkdownUrl(String(imageValue).trim())
 
@@ -274,16 +270,24 @@ function getDetailsProduct() {
   return {
     ...props.product,
     ...cardData.value,
+
     id: cardId.value,
     card_id: props.product?.card_id ?? cardId.value,
+
     name: cardName.value,
     description: cardDescription.value,
+
     image: cardImage.value,
     image_2: cardFrame.value,
+
     mana_cost: cardData.value?.mana_cost ?? props.product?.mana_cost ?? null,
+
     attack: cardData.value?.attack ?? props.product?.attack ?? null,
+
     health: cardData.value?.health ?? props.product?.health ?? null,
+
     quantity: displayQuantity.value,
+
     original: props.product,
   }
 }
@@ -296,7 +300,7 @@ function openCardDetails() {
 </script>
 
 <style lang="scss" scoped>
-.my-product-card {
+.product-card {
   position: relative;
 
   width: 100%;
@@ -315,14 +319,7 @@ function openCardDetails() {
 
     width: 100%;
 
-    border: 1px solid var(--border-secondary-color);
-    border-radius: 12px;
-    background-color: var(--bg-primary-color);
-
-    transition:
-      border-color 0.3s ease,
-      box-shadow 0.3s ease,
-      transform 0.3s ease;
+    transition: all 0.3s ease 0s;
   }
 
   &__content {
@@ -337,25 +334,51 @@ function openCardDetails() {
     padding-left: 10px;
   }
 
-  &__title {
-    overflow: hidden;
+  &__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 
     width: 100%;
 
+    &:not(:last-child) {
+      margin-bottom: 12px;
+    }
+  }
+
+  &__title {
+    overflow: hidden;
+    flex: 1 1 auto;
+
+    min-width: 0;
+
     margin: 0;
 
-    color: var(--seventh-colo);
-    font-family: var(--font-inter);
-    font-size: 14px;
-    font-weight: 500;
+    color: var(--fourth-color);
+    font-family: var(--font-open-sans);
+    font-size: 16px;
+    font-weight: 600;
     line-height: 100%;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     transition: color 0.3s ease;
+  }
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 31, 18);
+  &__quantity {
+    flex: 0 0 auto;
+
+    color: var(--fifth-color);
+    font-family: var(--font-open-sans);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 100%;
+    white-space: nowrap;
+    span {
+      color: var(--fourth-color);
+      font-weight: 700;
     }
   }
 
@@ -381,7 +404,7 @@ function openCardDetails() {
     transition: transform 0.3s ease;
 
     &:focus-visible {
-      .my-product-card__view {
+      .product-card__view {
         visibility: visible;
 
         opacity: 1;
@@ -483,8 +506,6 @@ function openCardDetails() {
     line-height: 1.2;
     text-align: center;
 
-    pointer-events: none;
-
     transform: translateX(-50%);
 
     :deep(p) {
@@ -510,8 +531,6 @@ function openCardDetails() {
     font-size: clamp(14px, 10cqi, 28px);
     font-weight: 700;
     line-height: 135%;
-
-    pointer-events: none;
 
     paint-order: stroke fill;
 
@@ -594,6 +613,8 @@ function openCardDetails() {
         inset 4px 0 6px rgb(0 25 25 / 40%),
         inset -4px 0 6px rgb(0 25 25 / 40%),
         0 1px 3px rgb(0 0 0 / 60%),
+        0 0 5px rgb(0 25 25 / 50%),
+        0 1px 3px rgb(0 0 0 / 60%),
         0 0 5px rgb(0 25 25 / 50%);
 
       line-height: 110%;
@@ -606,7 +627,7 @@ function openCardDetails() {
     position: absolute;
     top: 50%;
     left: 50%;
-    z-index: 4;
+    z-index: 2;
 
     display: flex;
     visibility: hidden;
@@ -624,7 +645,7 @@ function openCardDetails() {
     );
     opacity: 0;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
 
     pointer-events: none;
 
@@ -642,7 +663,7 @@ function openCardDetails() {
     width: 32px;
     height: 32px;
 
-    color: var(--primary-color);
+    color: var(--fourth-color);
 
     :deep(svg) {
       display: block;
@@ -652,70 +673,31 @@ function openCardDetails() {
     }
   }
 
-  &__footer {
-    @include adaptiveValue('margin-top', 28, 18);
-
-    position: relative;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    min-height: 28px;
-  }
-
-  &__quantity {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-
-    width: 100%;
-  }
-
-  &__quantity-label {
-    color: var(--seventh-color);
-    font-family: var(--font-inter);
-    font-size: clamp(10px, 6cqi, 13px);
-    font-weight: 400;
-    line-height: 120%;
-    white-space: nowrap;
-  }
-
-  &__quantity-value {
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: clamp(11px, 6cqi, 14px);
-    font-weight: 500;
-    line-height: 120%;
-  }
-
   &_hovered {
-    .my-product-card__body {
+    .product-card__body {
       border-color: var(--border-secondary-color);
       box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
 
       transform: translateY(-1%);
     }
 
-    .my-product-card__title {
+    .product-card__title {
       color: var(--primary-color);
     }
 
-    .my-product-card__card {
+    .product-card__card {
       transform: scale(1.02);
     }
 
-    .my-product-card__image-wrapper {
+    .product-card__image-wrapper {
       transform: scale(0.998) translateX(-50%);
     }
 
-    .my-product-card__background-image {
+    .product-card__background-image {
       filter: brightness(0.8);
     }
 
-    .my-product-card__view {
+    .product-card__view {
       visibility: visible;
 
       opacity: 1;
@@ -727,14 +709,10 @@ function openCardDetails() {
   &_carousel {
     width: 100%;
   }
+}
 
-  &_rented {
-    .my-product-card__body {
-      box-shadow: 0 0 20px rgb(46 207 196 / 10%);
-    }
-  }
-
-  @media (any-hover: none) {
+@media (any-hover: none) {
+  .product-card {
     &__view {
       top: 8%;
       right: 8%;

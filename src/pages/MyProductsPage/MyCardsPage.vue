@@ -1,13 +1,15 @@
 <template>
   <main class="collection-page">
     <div class="collection-page__bg _ibg" aria-hidden="true">
-      <img src="@/assets/img/product-list-bg.png" alt="" />
+      <img src="@/assets/img/auth-bg.jpg" alt="" />
     </div>
 
     <button
       type="button"
       class="collection-page__filters-toggle"
-      :class="{ 'collection-page__filters-toggle_open': isFiltersOpen }"
+      :class="{
+        'collection-page__filters-toggle_open': isFiltersOpen,
+      }"
       :aria-expanded="isFiltersOpen"
       aria-controls="collection-filters"
       :aria-label="isFiltersOpen ? $t('Close filters') : $t('Open filters')"
@@ -29,321 +31,339 @@
       />
     </Transition>
 
-    <div class="collection-page__top top _cnt">
-      <div class="top__decor _ibg-contain" aria-hidden="true">
-        <img src="@/assets/img/product-list-decor.png" alt="" />
-      </div>
-
-      <div class="top__controls">
-        <div class="top__switcher">
-          <BaseButton
-            type="button"
-            class="top__switch top__switch_first"
-            :variant="!isRentedCollection ? 'primary' : 'hint-bordered'"
-            :aria-pressed="!isRentedCollection"
-            @click="setCollectionMode('bought')"
-          >
-            {{ $t('Bought') }}
-          </BaseButton>
-
-          <BaseButton
-            type="button"
-            class="top__switch top__switch_last"
-            :variant="isRentedCollection ? 'primary' : 'hint-bordered'"
-            :aria-pressed="isRentedCollection"
-            @click="setCollectionMode('rented')"
-          >
-            {{ $t('Rented') }}
-          </BaseButton>
-        </div>
-
-        <div class="top__dropdown">
-          <div class="top__dropdown-label">{{ $t('Sort') }}</div>
-
-          <BaseDropdown
-            class="top__dropdown-box"
-            :label="$t(selectedSortOption?.label || 'All')"
-            variant="aside"
-            bordered
-            absolute
-          >
-            <template #default="{ close }">
-              <button
-                v-for="option in COLLECTION_SORT_OPTIONS"
-                :key="option.value"
-                type="button"
-                class="dropdown-option"
-                :class="{
-                  'dropdown-option_selected': filters.sort === option.value,
-                }"
-                @click="selectSort(option.value, close)"
-              >
-                {{ $t(option.label) }}
-              </button>
-            </template>
-          </BaseDropdown>
-        </div>
-      </div>
-
-      <h1 class="top__title _h5">
-        {{ $t('My Card') }}
-      </h1>
-
-      <BaseInput
-        v-model="collectionFilters.search"
-        class="top__search"
-        :placeholder="$t('Search')"
-      >
-        <template #suffix>
-          <SvgIcon :icon="SearchIcon" class="top__search-icon" />
-        </template>
-      </BaseInput>
-    </div>
-
     <div class="collection-page__inner _cnt">
-      <aside
-        id="collection-filters"
-        class="collection-page__aside aside"
-        :class="{ aside_open: isFiltersOpen }"
-        :aria-hidden="isFiltersMobile && !isFiltersOpen"
-      >
-        <div class="aside__header">
-          <h2 class="aside__title _h6">
-            {{ $t('Filters') }}
-          </h2>
+      <div class="collection-page__aside-slot">
+        <aside
+          id="collection-filters"
+          class="collection-page__aside aside"
+          :class="{ aside_open: isFiltersOpen }"
+          :aria-hidden="isFiltersMobile && !isFiltersOpen"
+        >
+          <div class="aside__header">
+            <h2 class="aside__title _h6">
+              {{ $t('Filters') }}
+            </h2>
 
-          <button
-            type="button"
-            class="aside__close"
-            :aria-label="$t('Close filters')"
-            @click="closeFilters"
-          >
-            <SvgIcon :icon="CloseIcon" class="aside__close-icon" />
-          </button>
-        </div>
-
-        <div class="aside__body">
-          <div class="aside__section filter-group">
-            <div class="filter-group__title">{{ $t('Heroes') }}</div>
-
-            <BaseDropdown
-              class="filter-group__dropdown"
-              :label="selectedHeroOption?.label || $t('All')"
-              variant="aside"
-              bordered
-              absolute
+            <button
+              type="button"
+              class="aside__close"
+              :aria-label="$t('Close filters')"
+              @click="closeFilters"
             >
-              <template #default="{ close }">
-                <button
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected': !collectionFilters.hero,
-                  }"
-                  @click="selectFilter('hero', '', close)"
-                >
-                  {{ $t('All') }}
-                </button>
-
-                <button
-                  v-for="option in heroOptions"
-                  :key="option.value"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      String(collectionFilters.hero) === String(option.value),
-                  }"
-                  @click="selectFilter('hero', option.value, close)"
-                >
-                  {{ option.label }}
-                </button>
-              </template>
-            </BaseDropdown>
+              <SvgIcon :icon="CloseIcon" class="aside__close-icon" />
+            </button>
           </div>
 
-          <div class="aside__section filter-group">
-            <div class="filter-group__title">{{ $t('Rarity') }}</div>
+          <div class="aside__wrapper">
+            <div class="aside__content">
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Heroes') }}
+                </div>
 
-            <BaseDropdown
-              class="filter-group__dropdown"
-              :label="selectedRarityOption?.label || $t('All')"
-              variant="aside"
-              bordered
-              absolute
-            >
-              <template #default="{ close }">
-                <button
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected': !collectionFilters.rarity,
-                  }"
-                  @click="selectFilter('rarity', '', close)"
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Heroes')"
+                  variant="relative"
                 >
-                  {{ $t('All') }}
-                </button>
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': !collectionFilters.hero,
+                      }"
+                      @click="selectFilter('hero', '', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
 
-                <button
-                  v-for="option in rarityOptions"
-                  :key="option.value"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      String(collectionFilters.rarity) === String(option.value),
-                  }"
-                  @click="selectFilter('rarity', option.value, close)"
+                    <button
+                      v-for="option in heroOptions"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          collectionFilters.hero,
+                        ),
+                      }"
+                      @click="selectFilter('hero', option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Rarity') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Rarity')"
+                  variant="relative"
                 >
-                  {{ option.label }}
-                </button>
-              </template>
-            </BaseDropdown>
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': !collectionFilters.rarity,
+                      }"
+                      @click="selectFilter('rarity', '', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in rarityOptions"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          collectionFilters.rarity,
+                        ),
+                      }"
+                      @click="selectFilter('rarity', option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Card Type') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Card Type')"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': !collectionFilters.type,
+                      }"
+                      @click="selectFilter('type', '', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in typeOptions"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          collectionFilters.type,
+                        ),
+                      }"
+                      @click="selectFilter('type', option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__section filter-group">
+                <div class="filter-group__title">
+                  {{ $t('Frame Type') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Frame Type')"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected':
+                          !collectionFilters.frameType,
+                      }"
+                      @click="selectFilter('frameType', '', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in frameOptions"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': isSelected(
+                          option.value,
+                          collectionFilters.frameType,
+                        ),
+                      }"
+                      @click="selectFilter('frameType', option.value, close)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div
+                v-if="isRentedCollection"
+                class="aside__section filter-group"
+              >
+                <div class="filter-group__title">
+                  {{ $t('Rental Status') }}
+                </div>
+
+                <BaseDropdown
+                  class="aside__dropdown"
+                  :label="$t('Rental Status')"
+                  variant="relative"
+                >
+                  <template #default="{ close }">
+                    <button
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected': !filters.rentalStatus,
+                      }"
+                      @click="selectRentalStatus('', close)"
+                    >
+                      {{ $t('All') }}
+                    </button>
+
+                    <button
+                      v-for="option in rentalStatusOptions"
+                      :key="option.value"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{
+                        'dropdown-option_selected':
+                          filters.rentalStatus === option.value,
+                      }"
+                      @click="selectRentalStatus(option.value, close)"
+                    >
+                      {{ $t(option.label) }}
+                    </button>
+                  </template>
+                </BaseDropdown>
+              </div>
+
+              <div class="aside__bottom">
+                <BaseButton
+                  type="button"
+                  class="aside__submit"
+                  variant="clear"
+                  @click="resetFilters"
+                >
+                  {{ $t('Clear') }}
+                </BaseButton>
+
+                <BaseButton
+                  type="button"
+                  class="aside__submit"
+                  @click="applyFilters"
+                >
+                  {{ $t('Apply') }}
+                </BaseButton>
+              </div>
+            </div>
           </div>
-
-          <div class="aside__section filter-group">
-            <div class="filter-group__title">{{ $t('Card Type') }}</div>
-
-            <BaseDropdown
-              class="filter-group__dropdown"
-              :label="selectedTypeOption?.label || $t('All')"
-              variant="aside"
-              bordered
-              absolute
-            >
-              <template #default="{ close }">
-                <button
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected': !collectionFilters.type,
-                  }"
-                  @click="selectFilter('type', '', close)"
-                >
-                  {{ $t('All') }}
-                </button>
-
-                <button
-                  v-for="option in typeOptions"
-                  :key="option.value"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      String(collectionFilters.type) === String(option.value),
-                  }"
-                  @click="selectFilter('type', option.value, close)"
-                >
-                  {{ option.label }}
-                </button>
-              </template>
-            </BaseDropdown>
-          </div>
-
-          <div class="aside__section filter-group">
-            <div class="filter-group__title">{{ $t('Frame Type') }}</div>
-
-            <BaseDropdown
-              class="filter-group__dropdown"
-              :label="selectedFrameOption?.label || $t('All')"
-              variant="aside"
-              bordered
-              absolute
-            >
-              <template #default="{ close }">
-                <button
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected': !collectionFilters.frameType,
-                  }"
-                  @click="selectFilter('frameType', '', close)"
-                >
-                  {{ $t('All') }}
-                </button>
-
-                <button
-                  v-for="option in frameOptions"
-                  :key="option.value"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      String(collectionFilters.frameType) ===
-                      String(option.value),
-                  }"
-                  @click="selectFilter('frameType', option.value, close)"
-                >
-                  {{ option.label }}
-                </button>
-              </template>
-            </BaseDropdown>
-          </div>
-
-          <div v-if="isRentedCollection" class="aside__section filter-group">
-            <div class="filter-group__title">{{ $t('Rental Status') }}</div>
-
-            <BaseDropdown
-              class="filter-group__dropdown"
-              :label="selectedRentalStatusOption?.label || $t('All')"
-              variant="aside"
-              bordered
-              absolute
-            >
-              <template #default="{ close }">
-                <button
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected': !filters.rentalStatus,
-                  }"
-                  @click="selectRentalStatus('', close)"
-                >
-                  {{ $t('All') }}
-                </button>
-
-                <button
-                  v-for="option in rentalStatusOptions"
-                  :key="option.value"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      filters.rentalStatus === option.value,
-                  }"
-                  @click="selectRentalStatus(option.value, close)"
-                >
-                  {{ $t(option.label) }}
-                </button>
-              </template>
-            </BaseDropdown>
-          </div>
-
-          <BaseButton
-            type="button"
-            class="aside__submit"
-            variant="hint-bordered"
-            @click="applyFilters"
-          >
-            {{ $t('Apply') }}
-          </BaseButton>
-
-          <button
-            type="button"
-            class="aside__clear _link"
-            @click="resetFilters"
-          >
-            {{ $t('Clear all') }}
-          </button>
-        </div>
-      </aside>
+        </aside>
+      </div>
 
       <div class="collection-page__content content">
+        <div class="content__top top">
+          <h1 class="top__title _h4">
+            {{ $t('My Collection') }}
+          </h1>
+
+          <div class="top__content">
+            <div class="top__switcher">
+              <BaseButton
+                type="button"
+                class="top__switch top__switch_first"
+                :variant="
+                  !isRentedCollection ? 'switch-active' : 'switch-inactive'
+                "
+                :aria-pressed="!isRentedCollection"
+                @click="setCollectionMode('bought')"
+              >
+                {{ $t('Bought') }}
+              </BaseButton>
+
+              <BaseButton
+                type="button"
+                class="top__switch top__switch_last"
+                :variant="
+                  isRentedCollection ? 'switch-active' : 'switch-inactive'
+                "
+                :aria-pressed="isRentedCollection"
+                @click="setCollectionMode('rented')"
+              >
+                {{ $t('Rented') }}
+              </BaseButton>
+            </div>
+
+            <BaseInput
+              v-model="collectionFilters.search"
+              class="top__search"
+              :placeholder="$t('Search')"
+            >
+              <template #suffix>
+                <SvgIcon :icon="SearchIcon" class="top__search-icon" />
+              </template>
+            </BaseInput>
+
+            <div class="top__dropdown">
+              <div class="top__dropdown-label">
+                {{ $t('Sort') }}
+              </div>
+
+              <BaseDropdown
+                class="top__dropdown-box"
+                :label="$t(selectedSortOption?.label || 'Sort by')"
+                :placeholder="!selectedSortOption"
+                absolute
+              >
+                <template #default="{ close }">
+                  <button
+                    v-for="option in COLLECTION_SORT_OPTIONS"
+                    :key="option.value"
+                    type="button"
+                    class="dropdown-option"
+                    :class="{
+                      'dropdown-option_selected': filters.sort === option.value,
+                    }"
+                    @click="selectSort(option.value, close)"
+                  >
+                    {{ $t(option.label) }}
+                  </button>
+                </template>
+              </BaseDropdown>
+            </div>
+          </div>
+        </div>
+
         <div class="content__body">
           <LoadingSpinner v-if="loading" class="content__loader" />
 
           <div v-else-if="error" class="content__empty empty">
-            <h2 class="empty__title _h5">
+            <h2 class="empty__title _h4">
               {{ $t('Unable to load cards') }}
             </h2>
 
@@ -354,7 +374,7 @@
             <BaseButton
               type="button"
               class="empty__reset"
-              variant="hint-bordered"
+              variant="clear"
               @click="reloadCards"
             >
               {{ $t('Try again') }}
@@ -377,7 +397,7 @@
           </div>
 
           <div v-else class="content__empty empty">
-            <h2 class="empty__title _h5">
+            <h2 class="empty__title _h4">
               {{ $t('No cards found') }}
             </h2>
 
@@ -395,7 +415,7 @@
               v-if="hasLocalFilters"
               type="button"
               class="empty__reset"
-              variant="hint-bordered"
+              variant="clear"
               @click="resetFilters"
             >
               {{ $t('Clear all') }}
@@ -407,37 +427,6 @@
           v-if="showPaginationControls"
           class="content__pagination pagination"
         >
-          <div class="pagination__dropdown">
-            <div class="pagination__dropdown-label">
-              {{ $t('Items per page:') }}
-            </div>
-
-            <BaseDropdown
-              class="pagination__dropdown-box"
-              :label="String(filters.perPage)"
-              variant="aside"
-              bordered
-              absolute
-            >
-              <template #default="{ close }">
-                <button
-                  v-for="option in ITEMS_PER_PAGE_OPTIONS"
-                  :key="option.value ?? option"
-                  type="button"
-                  class="dropdown-option"
-                  :class="{
-                    'dropdown-option_selected':
-                      Number(filters.perPage) ===
-                      Number(option.value ?? option),
-                  }"
-                  @click="selectPerPage(option.value ?? option, close)"
-                >
-                  {{ option.label ?? option.value ?? option }}
-                </button>
-              </template>
-            </BaseDropdown>
-          </div>
-
           <PaginationComponent
             v-if="showPagination"
             class="pagination__pagination"
@@ -451,6 +440,7 @@
     </div>
 
     <MyCardDetailsModal
+      v-if="IS_DETAILS_MODAL_ACTIVE"
       v-model:show="isProductDetailsOpen"
       :product-id="selectedProductId"
       :collection-item="selectedCollectionItem"
@@ -470,7 +460,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseDropdown from '@/components/base/BaseDropdown.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import LoadingSpinner from '@/components/base/LoadingSpinner.vue'
-import { CloseIcon, SearchIcon } from '@/components/icons'
+import { CloseIcon, FilterIcon, SearchIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 
@@ -482,22 +472,7 @@ import { useNavigationStore } from '@/stores/navigation'
 import MyProductCard from './components/MyProductCard.vue'
 import MyCardDetailsModal from './modals/MyCardDetailsModal.vue'
 
-const FilterIcon = `
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M4 6H20M7 12H17M10 18H14"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-    />
-  </svg>
-`
+const IS_DETAILS_MODAL_ACTIVE = false
 
 const route = useRoute()
 const router = useRouter()
@@ -511,7 +486,6 @@ const { isFiltersOpen } = storeToRefs(navigationStore)
 
 const {
   COLLECTION_SORT_OPTIONS,
-  ITEMS_PER_PAGE_OPTIONS,
   collectionMode,
   isRentedCollection,
   collectionProducts,
@@ -548,6 +522,9 @@ const normalize = value =>
   String(value ?? '')
     .trim()
     .toLowerCase()
+
+const isSelected = (value, selectedValue) =>
+  normalize(value) === normalize(selectedValue)
 
 const getCard = product =>
   product?.card ??
@@ -655,33 +632,10 @@ const rentalStatusOptions = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-const findOption = (options, value) =>
-  options.find(option => normalize(option.value) === normalize(value))
-
 const selectedSortOption = computed(() =>
-  COLLECTION_SORT_OPTIONS.find(
-    option => normalize(option.value) === normalize(filters.sort),
+  COLLECTION_SORT_OPTIONS.find(option =>
+    isSelected(option.value, filters.sort),
   ),
-)
-
-const selectedHeroOption = computed(() =>
-  findOption(heroOptions.value, collectionFilters.hero),
-)
-
-const selectedRarityOption = computed(() =>
-  findOption(rarityOptions.value, collectionFilters.rarity),
-)
-
-const selectedTypeOption = computed(() =>
-  findOption(typeOptions.value, collectionFilters.type),
-)
-
-const selectedFrameOption = computed(() =>
-  findOption(frameOptions.value, collectionFilters.frameType),
-)
-
-const selectedRentalStatusOption = computed(() =>
-  findOption(rentalStatusOptions, filters.rentalStatus),
 )
 
 const hasLocalFilters = computed(() =>
@@ -690,7 +644,8 @@ const hasLocalFilters = computed(() =>
     appliedFilters.hero ||
     appliedFilters.rarity ||
     appliedFilters.type ||
-    appliedFilters.frameType,
+    appliedFilters.frameType ||
+    (isRentedCollection.value && filters.rentalStatus),
   ),
 )
 
@@ -698,12 +653,12 @@ const matchesFilter = (actual, expected) => {
   if (!expected) return true
 
   if (actual && typeof actual === 'object') {
-    return [actual.id, actual.value, actual.slug, actual.name].some(
-      value => normalize(value) === normalize(expected),
+    return [actual.id, actual.value, actual.slug, actual.name].some(value =>
+      isSelected(value, expected),
     )
   }
 
-  return normalize(actual) === normalize(expected)
+  return isSelected(actual, expected)
 }
 
 const visibleProducts = computed(() => {
@@ -808,15 +763,6 @@ const selectRentalStatus = async (value, close) => {
   })
 }
 
-const selectPerPage = async (value, close) => {
-  close?.()
-
-  await updateFilters({
-    perPage: Number(value),
-    page: 1,
-  })
-}
-
 const onPageChange = async page => {
   await updateFilters({
     page: Number(page),
@@ -862,6 +808,12 @@ const resetFilters = async () => {
   closeFilters()
 }
 
+const closeProduct = () => {
+  isProductDetailsOpen.value = false
+  selectedProductId.value = null
+  selectedCollectionItem.value = null
+}
+
 const setCollectionMode = async mode => {
   if (!['bought', 'rented'].includes(mode) || collectionMode.value === mode) {
     return
@@ -871,7 +823,6 @@ const setCollectionMode = async mode => {
   closeFilters()
   closeProduct()
 
-  // Reset server-side filters and local filter controls.
   Object.assign(filters, {
     page: 1,
     search: '',
@@ -883,8 +834,6 @@ const setCollectionMode = async mode => {
     sort: COLLECTION_SORT_OPTIONS[0].value,
   })
 
-  // collectionMode is read-only. The route query controls
-  // which collection useProductList fetches.
   const query = { ...route.query }
 
   for (const key of [
@@ -921,15 +870,24 @@ const openProduct = product => {
 
   if (!cardId) return
 
+  if (!IS_DETAILS_MODAL_ACTIVE) {
+    router.push({
+      name: 'ProductDetailsPage',
+      params: {
+        productId: cardId,
+      },
+      query: {
+        from: 'collection',
+        collection: isRentedCollection.value ? 'rented' : 'bought',
+      },
+    })
+
+    return
+  }
+
   selectedCollectionItem.value = product
   selectedProductId.value = cardId
   isProductDetailsOpen.value = true
-}
-
-const closeProduct = () => {
-  isProductDetailsOpen.value = false
-  selectedProductId.value = null
-  selectedCollectionItem.value = null
 }
 
 const handleCardSold = async () => {
@@ -962,29 +920,9 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.filters-overlay-enter-active,
-.filters-overlay-leave-active {
-  transition:
-    opacity 0.3s ease,
-    backdrop-filter 0.3s ease;
-}
-
-.filters-overlay-enter-from,
-.filters-overlay-leave-to {
-  opacity: 0;
-
-  backdrop-filter: blur(0);
-}
-
-:global(body.filters-drawer-open) {
-  @media (max-width: $md3) {
-    overflow: hidden;
-  }
-}
-
 .collection-page {
-  @include adaptiveValue('padding-top', 120, 80);
-  @include adaptiveValue('padding-bottom', 46, 30);
+  @include adaptiveValue('padding-top', 130, 80);
+  @include adaptiveValue('padding-bottom', 54, 30);
 
   position: relative;
 
@@ -994,7 +932,9 @@ onBeforeUnmount(() => {
     left: 0;
 
     width: 100%;
-    aspect-ratio: 1 / 0.315;
+    aspect-ratio: 1 / 0.54;
+
+    pointer-events: none;
   }
 
   &__filters-toggle {
@@ -1012,34 +952,24 @@ onBeforeUnmount(() => {
 
     padding: 0;
 
-    border: 1px solid var(--border-secondary-color);
+    border: 1px solid var(--border-priamry-color);
     border-radius: 6px;
     outline: none;
-    background-color: var(--bg-eight-color);
+    background-color: var(--bg-primary-color);
 
-    color: var(--secondary-color);
+    color: var(--fifth-color);
 
     cursor: pointer;
 
     transition: all 0.3s ease 0s;
 
     &_open {
-      border-color: var(--border-priamry-color);
-      background: var(--third-color);
-
-      color: var(--primary-color);
+      color: var(--hint-primary-color);
     }
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--border-priamry-color);
-        background: var(--third-color);
-
-        color: var(--primary-color);
-      }
-
-      &_open:hover {
-        color: var(--primary-color);
+        color: var(--hint-primary-color);
       }
     }
 
@@ -1069,8 +999,6 @@ onBeforeUnmount(() => {
     inset: 51px 0 0;
     z-index: 100;
 
-    display: none;
-
     width: 100%;
     height: calc(100dvh - 51px);
 
@@ -1078,22 +1006,17 @@ onBeforeUnmount(() => {
 
     border: 0;
     outline: none;
-    background-color: rgb(0, 0, 0, 0.5);
+    background-color: rgb(0 0 0 / 50%);
 
     -webkit-backdrop-filter: blur(64px);
     backdrop-filter: blur(64px);
   }
 
-  &__top {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
-  }
-
   &__inner {
-    @include adaptiveValue('gap', 16, 10, 1870, 1370, 1);
+    @include adaptiveValue('gap', 42, 10, 1800, 1370, 1);
 
     display: flex;
+    align-items: stretch;
 
     width: 100%;
 
@@ -1102,9 +1025,22 @@ onBeforeUnmount(() => {
     }
   }
 
+  &__aside-slot {
+    @include adaptiveValue('min-width', 353, 250, 1800, 1370, 1);
+    @include adaptiveValue('max-width', 353, 250, 1800, 1370, 1);
+
+    flex: 0 0 auto;
+
+    @media (max-width: $md3) {
+      width: 0;
+      min-width: 0;
+      max-width: 0;
+    }
+  }
+
   &__aside {
-    min-width: 220px;
-    max-width: 220px;
+    width: 100%;
+    min-width: 0;
   }
 
   &__content {
@@ -1115,81 +1051,90 @@ onBeforeUnmount(() => {
 }
 
 .top {
-  @include adaptiveValue('padding', 24, 10);
-  @include adaptiveValue('gap', 30, 10);
-
   position: relative;
+  z-index: 1;
 
-  display: grid;
-  align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  &__title {
+    width: fit-content;
 
-  width: 100%;
+    margin-right: auto;
 
-  border: 1px solid var(--border-fourth-color);
-  border-radius: 12px;
-  background-color: var(--bg-nineth-color);
+    color: var(--fourth-color);
 
-  &__decor {
-    @include adaptiveValue('width', 338, 138);
-
-    position: absolute;
-    top: 0;
-    left: 50%;
-
-    aspect-ratio: 1 / 0.11;
-
-    transform: translate(-50%, -100%);
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 34, 18);
+    }
   }
 
-  &__controls {
+  &__content {
+    @include adaptiveValue('padding', 18, 10);
+    @include adaptiveValue('border-radius', 12, 10);
+
+    position: relative;
+
     display: flex;
     align-items: center;
-    gap: 16px;
-    grid-column: 1;
-    grid-row: 1;
+    gap: 18px;
 
-    min-width: 0;
+    background: linear-gradient(180deg, #111624 0%, #111624 100%);
+
+    @media (max-width: $md4) {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
   }
 
   &__switcher {
     display: flex;
-    flex: 0 0 auto;
-    align-items: center;
+    gap: 6px;
+
+    @media (max-width: $md4) {
+      order: 1;
+    }
+
+    @media (max-width: $md6) {
+      flex: 1 1 100%;
+    }
   }
 
   &__switch {
-    min-width: 88px;
+    @media (min-width: $md6) {
+      width: 100%;
+      min-width: 80px;
+    }
+  }
 
-    &_first {
-      border-bottom-right-radius: 0;
-      border-top-right-radius: 0;
+  &__search {
+    width: 100%;
+    min-width: 0;
+    max-width: 539px;
+
+    margin: 0 auto;
+
+    @media (max-width: $md4) {
+      order: 3;
     }
 
-    &_last {
-      border-bottom-left-radius: 0;
-      border-top-left-radius: 0;
+    &-icon {
+      min-width: 32px;
+      height: 32px;
+
+      color: var(--fourth-color);
     }
   }
 
   &__dropdown {
-    @include adaptiveValue('gap', 16, 10);
+    @media (max-width: $md4) {
+      order: 2;
+    }
 
-    display: flex;
-    flex: 0 1 auto;
-    align-items: center;
-
-    min-width: 0;
+    @media (max-width: $md6) {
+      flex: 1 1 100%;
+      order: 4;
+    }
 
     &-label {
-      flex: 0 0 auto;
-
-      color: var(--seventh-color);
-      font-size: 16px;
-      font-weight: 500;
-      line-height: 100%;
-      letter-spacing: 0;
-      white-space: nowrap;
+      @include hide-item;
     }
 
     &-box {
@@ -1197,147 +1142,19 @@ onBeforeUnmount(() => {
 
       width: 100%;
       min-width: 0;
-      max-width: 258px;
-    }
-  }
 
-  &__title {
-    align-self: center;
-    justify-self: center;
-    grid-column: 2;
-    grid-row: 1;
-
-    margin: 0;
-
-    color: var(--secondary-color);
-    font-weight: 500;
-    line-height: 120%;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  &__search {
-    justify-self: end;
-    grid-column: 3;
-    grid-row: 1;
-
-    width: 100%;
-    min-width: 0;
-    max-width: 659px;
-
-    margin: 0;
-
-    &-icon {
-      min-width: 20px;
-      height: 20px;
-
-      opacity: 0.5;
-
-      color: var(--secondary-color);
-    }
-  }
-
-  @media (max-width: 1199.98px) {
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1 / -1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      gap: 12px;
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    &__dropdown {
-      flex: 1 1 auto;
-    }
-
-    &__search {
-      grid-column: 2;
-      grid-row: 2;
-    }
-  }
-
-  @media (max-width: $md3) {
-    grid-template-columns: minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      grid-column: 1;
-      grid-row: 2;
-
-      width: 100%;
-    }
-
-    &__search {
-      grid-column: 1;
-      grid-row: 3;
-
-      width: 100%;
-      max-width: none;
-    }
-  }
-
-  @media (max-width: $md4) {
-    gap: 15px;
-    grid-template-columns: minmax(0, 1fr);
-
-    &__title {
-      grid-column: 1;
-      grid-row: 1;
-    }
-
-    &__controls {
-      gap: 12px;
-      grid-column: 1;
-      grid-row: 2;
-
-      width: 100%;
-    }
-
-    &__dropdown {
-      flex: 1 1 100%;
-
-      &-box {
-        max-width: none;
+      @media (min-width: $md6) {
+        max-width: 230px;
       }
-    }
 
-    &__search {
-      grid-column: 1;
-      grid-row: 3;
-
-      max-width: none;
-    }
-  }
-
-  @media (max-width: $md7) {
-    &__controls {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    &__switcher {
-      justify-content: center;
-    }
-
-    &__dropdown {
-      width: 100%;
+      @media (max-width: $md6) {
+        flex: 1 1 100%;
+      }
     }
   }
 }
 
 .aside {
-  position: relative;
-
   height: fit-content;
 
   @media (max-width: $md3) {
@@ -1358,8 +1175,7 @@ onBeforeUnmount(() => {
 
     padding: 30px 10px;
 
-    border-right: 1px solid var(--border-secondary-color);
-    background-color: var(--bg-fourth-color);
+    background-color: var(--bg-primary-color);
     opacity: 0;
 
     pointer-events: none;
@@ -1381,13 +1197,24 @@ onBeforeUnmount(() => {
   }
 
   &__header {
+    @include adaptiveValue('padding-top', 30, 10);
+    @include adaptiveValue('padding-bottom', 30, 10);
+    @include adaptiveValue('padding-left', 24, 10);
+    @include adaptiveValue('padding-right', 24, 10);
+    @include adaptiveValue('border-radius', 12, 10);
+
+    position: relative;
+    z-index: 1;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 18px;
+
+    background-color: var(--bg-fourth-color);
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
+      margin-bottom: 4px;
     }
 
     @media (max-width: $md3) {
@@ -1408,8 +1235,7 @@ onBeforeUnmount(() => {
   }
 
   &__title {
-    font-weight: 500;
-    line-height: 120%;
+    font-weight: 400;
     text-transform: none;
   }
 
@@ -1424,24 +1250,20 @@ onBeforeUnmount(() => {
 
     padding: 0;
 
-    border: 1px solid var(--border-secondary-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-priamry-color);
+    border-radius: 6px;
     outline: none;
-    background-color: var(--third-color);
+    background-color: var(--bg-primary-color);
 
-    color: var(--primary-color);
+    color: var(--hint-primary-color);
 
     cursor: pointer;
 
-    transition:
-      color 0.3s ease,
-      border-color 0.3s ease;
+    transition: all 0.3s ease 0s;
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--hint-secondary-color);
-
-        color: var(--hint-secondary-color);
+        color: var(--fourth-color);
       }
     }
 
@@ -1455,83 +1277,38 @@ onBeforeUnmount(() => {
     }
   }
 
-  &__wrapper {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
-  }
-
-  &__content {
-  }
-
   &__section {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
+      margin-bottom: 4px;
     }
   }
 
-  &__dropdown {
+  &__bottom {
+    @include adaptiveValue('padding-top', 30, 10);
+    @include adaptiveValue('padding-bottom', 30, 10);
+    @include adaptiveValue('padding-left', 24, 10);
+    @include adaptiveValue('padding-right', 24, 10);
+    @include adaptiveValue('border-radius', 12, 10);
+
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+
+    background-color: var(--bg-fourth-color);
   }
 
   &__submit {
-  }
-
-  &__clear {
-    width: fit-content;
-
-    @media (max-width: $md3) {
-      display: flex;
-      justify-content: flex-end;
-
-      margin-left: auto;
-    }
+    max-width: 120px;
   }
 }
 
 .filter-group {
   &__title {
-    color: var(--seventh-color);
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 100%;
-    letter-spacing: 0px;
-
-    &::after {
-      content: ':';
-    }
-
-    &:not(:last-child) {
-      margin-bottom: 8px;
-    }
-  }
-
-  &__top {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
-    }
-  }
-
-  &__range {
-  }
-
-  &__price {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &-input {
-      width: 100%;
-      max-width: 50%;
-    }
-  }
-
-  &__separator {
-    color: var(--secondary-color);
-    font-size: 16px;
-    font-weight: 500;
-  }
-
-  &__dropdown {
+    @include hide-item;
   }
 }
 
@@ -1544,7 +1321,7 @@ onBeforeUnmount(() => {
 
   &__top {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 18);
+      @include adaptiveValue('margin-bottom', 13, 18);
     }
   }
 
@@ -1554,8 +1331,21 @@ onBeforeUnmount(() => {
     flex-direction: column;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 20);
+      @include adaptiveValue('margin-bottom', 54, 22);
     }
+  }
+
+  &__loader,
+  &__empty {
+    margin: auto;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
   }
 
   &__items {
@@ -1571,11 +1361,7 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding-left', 8, 2);
     @include adaptiveValue('padding-right', 8, 2);
 
-    flex: 0 1 14.285%;
-
-    @media (max-width: $md1) {
-      flex-basis: 16.666%;
-    }
+    flex-basis: 16.666%;
 
     @media (max-width: 1499.98px) {
       flex-basis: 20%;
@@ -1597,15 +1383,6 @@ onBeforeUnmount(() => {
       flex-basis: 100%;
     }
   }
-
-  &__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    margin: auto;
-  }
 }
 
 .empty {
@@ -1615,205 +1392,40 @@ onBeforeUnmount(() => {
     position: relative;
     z-index: 1;
 
-    color: var(--secondary-color);
-
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 24, 18);
     }
   }
 
   &__reset {
-    max-width: 300px;
+    max-width: 250px;
 
     margin: 0 auto;
   }
 }
 
 .pagination {
-  position: relative;
-  z-index: 1;
-
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-
-  width: 100%;
-
-  @media (max-width: $md5) {
-    display: block;
-  }
-
-  &__pagination {
-    width: fit-content;
-
-    margin-left: auto;
-
-    @media (max-width: $md5) {
-      display: flex !important;
-      flex: 1 1 100% !important;
-
-      margin-right: auto;
-    }
-  }
-
-  &__dropdown {
-    @include adaptiveValue('gap', 16, 10);
-
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-
-    margin-right: auto;
-
-    @media (max-width: $md5) {
-      justify-content: center;
-
-      margin-left: auto;
-
-      &:not(:last-child) {
-        margin-bottom: 18px;
-      }
-    }
-
-    &-label {
-      color: var(--secondary-color);
-      font-size: 14px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    &-box {
-      width: 100%;
-      min-width: 80px;
-      max-width: 100px;
-    }
-  }
+  justify-content: center;
 }
 
-// My Cards-specific elements: Product List dimensions + collection behavior.
-.collection-page {
-  min-height: 100vh;
+.filters-overlay-enter-active,
+.filters-overlay-leave-active {
+  transition:
+    opacity 0.3s ease,
+    backdrop-filter 0.3s ease;
+}
 
-  &__bg {
-    pointer-events: none;
-  }
+.filters-overlay-enter-from,
+.filters-overlay-leave-to {
+  opacity: 0;
 
-  &__aside {
-    flex: 0 0 220px;
+  backdrop-filter: blur(0);
+}
 
-    width: 220px;
-  }
-
+:global(body.filters-drawer-open) {
   @media (max-width: $md3) {
-    &__aside {
-      width: 320px;
-    }
-  }
-}
-
-.aside {
-  &__body {
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-  }
-
-  &__section {
-    width: 100%;
-  }
-
-  &__submit {
-    width: 100%;
-
-    margin-top: 2px;
-  }
-
-  &__clear {
-    margin-top: 20px;
-  }
-}
-
-.filter-group {
-  &__dropdown {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-.content {
-  &__card {
-    display: block;
-
-    width: 100%;
-    height: 100%;
-  }
-
-  &__item {
-    min-width: 0;
-  }
-
-  &__loader {
-    align-self: center;
-
-    margin: auto;
-  }
-
-  &__empty {
-    min-height: 300px;
-  }
-}
-
-.empty {
-  &__description {
-    max-width: 420px;
-
-    margin: 0 0 22px;
-
-    color: var(--seventh-color);
-    font-size: 14px;
-    line-height: 150%;
-  }
-
-  &__reset {
-    min-width: 160px;
-  }
-}
-
-.dropdown-option {
-  display: flex;
-  align-items: center;
-
-  width: 100%;
-  min-height: 38px;
-
-  padding: 10px 14px;
-
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-
-  color: var(--secondary-color);
-  font-size: 14px;
-  text-align: left;
-
-  cursor: pointer;
-
-  &_selected {
-    background-color: var(--bg-secondary-color);
-
-    color: var(--primary-color);
-
-    pointer-events: none;
-  }
-
-  @media (any-hover: hover) {
-    &:not(&_selected):hover {
-      background-color: var(--bg-fourth-color);
-
-      color: var(--primary-color);
-    }
+    overflow: hidden;
   }
 }
 </style>
