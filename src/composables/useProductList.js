@@ -72,7 +72,7 @@ export const DEFAULT_FILTERS = {
   },
 
   page: 1,
-  perPage: 21,
+  perPage: 18,
 
   type: '',
   rarity: '',
