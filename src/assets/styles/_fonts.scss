@@ -1,0 +1,137 @@
+@use '_mixins.scss' as *;
+
+:root {
+  --font-inter:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --font-orbitron: 'Orbitron', system-ui, sans-serif;
+
+  --font-space-grotesk: 'Space Grotesk', system-ui, sans-serif;
+
+  --font-roboto: 'Roboto', system-ui, sans-serif;
+}
+
+@mixin font-h4 {
+  font-size: 16px;
+}
+
+@mixin font-h3 {
+  @include adaptiveValue('font-size', 24, 22);
+}
+
+@mixin font-h2 {
+  @include adaptiveValue('font-size', 50, 24);
+}
+
+@mixin font-h1 {
+  @include adaptiveValue('font-size', 90, 35);
+}
+
+._h1,
+._h2,
+._h3,
+._h4 {
+  font-weight: 900;
+  line-height: 120%;
+  font-family: var(--font-montserrat);
+  text-transform: uppercase;
+  color: var(--primary-color);
+  span {
+    color: var(--hint-primary-color);
+  }
+}
+
+._h1 {
+  @include font-h1;
+}
+
+._h2 {
+  @include font-h2;
+}
+
+._h3 {
+  @include font-h3;
+}
+
+._h4 {
+  @include font-h4;
+}
+
+._text-gradient {
+  background: linear-gradient(180deg, #a855f7 -100%, #131320 100%);
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+._text-gradient-green-reversed {
+  background: linear-gradient(
+    -90deg,
+    #b7ff2a 0%,
+    #a8ef2b 35%,
+    #6f8e2c 62%,
+    #2a2d2d 82%,
+    #101214 100%
+  );
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+._link {
+  background-color: transparent;
+  display: block;
+  width: fit-content;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 150%;
+  transition: all 0.3s ease 0s;
+  border-bottom: 1px solid transparent;
+  font-family: var(--font-inter);
+  color: var(--link-color);
+  @media (any-hover: hover) {
+    &:hover {
+      border-color: inherit;
+    }
+  }
+}
+
+._link-grey {
+  color: var(--secondary-color);
+  border-color: inherit;
+  @media (any-hover: hover) {
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+}
+
+._link-white {
+  color: var(--primary-color);
+  border-color: transparent;
+  @media (any-hover: hover) {
+    &:hover {
+      color: var(--hint-primary-color);
+    }
+  }
+}
+
+._text-error,
+._text-success {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 150%;
+  font-family: var(--font-inter);
+}
+
+._text-error {
+  color: var(--error-color);
+}
+
+._text-success {
+  color: var(--success-color);
+}

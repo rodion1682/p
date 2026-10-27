@@ -1,0 +1,33 @@
+:root {
+  // text
+  --primary-color: #f4f4f5;
+  --secondary-color: #9ca3af;
+  // #9CA3AF 50%
+  --third-color: rgb(156, 163, 175, 0.5);
+
+  // bg
+  --bg-primary-color: #0b0b12;
+  --bg-secondary-color: #1a1a2e;
+  --bg-third-color: #131320;
+
+  /* GLASS */
+  --glass-bg: rgb(255 255 255 / 20%);
+  --glass-blur: 20px;
+
+  // hint
+  --hint-primary-color: #7c3aed;
+
+  // border
+  // #9CA3AF 25%
+  --border-primary-color: rgb(156, 163, 175, 0.25);
+  // #9CA3AF 40%
+  --border-secondary-color: rgb(156, 163, 175, 0.4);
+
+  // link
+  --link-color: #a855f7;
+
+  // status
+  --pending-color: #ff5e00;
+  --error-color: #ed0006;
+  --success-color: #34a853;
+}
