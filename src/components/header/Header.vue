@@ -1,51 +1,18 @@
 <template>
   <header class="header" :class="{ scrolled: isScrolled }">
     <div class="header__inner _cnt">
-      <div :class="{ open: isMobileMenuVisible }" class="header__nav nav">
-        <RouterLink
-          v-if="false"
-          :to="{ name: 'HomePage' }"
-          class="nav__link"
-          @click="closeMobileMenu"
-        >
-          {{ $t('Home') }}
-        </RouterLink>
-        <RouterLink
-          :to="marketRoute"
-          class="nav__link"
-          @click="closeMobileMenu"
-        >
-          {{ $t('Market') }}
-        </RouterLink>
-        <button
-          v-if="isOfferEnabled && isAuthenticated"
-          type="button"
-          class="nav__link"
-          :class="{ active: isSellSkinActive }"
-          @click="openSellSkinsFromNav"
-        >
-          {{ $t('Sell Skin') }}
-        </button>
-        <RouterLink
-          v-if="false"
-          :to="{ name: 'ContactPage' }"
-          class="nav__link"
-          @click="closeMobileMenu"
-        >
-          {{ $t('Contact us') }}
-        </RouterLink>
-
-        <RouterLink
-          :to="{ name: 'FAQ' }"
-          class="nav__link"
-          @click="closeMobileMenu"
-        >
-          {{ $t('FAQ') }}
-        </RouterLink>
-      </div>
       <div class="header__logo logo">
         <RouterLink :to="{ name: 'HomePage' }" class="logo__link _ibg-contain">
-          <img class="logo__image_desk" src="@/assets/img/logo-full.svg" />
+          <img
+            v-if="route.name === 'HomePage'"
+            class="logo__image_desk"
+            src="@/assets/img/logo-full-home.svg"
+          />
+          <img
+            v-else
+            class="logo__image_desk"
+            src="@/assets/img/logo-full.svg"
+          />
           <img class="logo__image_mob" src="@/assets/img/logo-small.svg" />
         </RouterLink>
         <button
@@ -56,6 +23,56 @@
         >
           <SvgIcon :icon="SellSkinsIcon" class="logo__sell-icon" />
         </button>
+      </div>
+      <div :class="{ open: isMobileMenuVisible }" class="header__nav nav">
+        <RouterLink
+          :to="{ name: 'HomePage' }"
+          class="nav__link"
+          @click="closeMobileMenu"
+        >
+          {{ $t('Home') }}
+        </RouterLink>
+        <button
+          type="button"
+          class="nav__link"
+          :class="{ active: isCS2Active }"
+          @click="goToCS2"
+        >
+          {{ $t('CS2 Skins') }}
+        </button>
+
+        <button
+          type="button"
+          class="nav__link"
+          :class="{ active: isDota2Active }"
+          @click="goToDota2"
+        >
+          {{ $t('Dota 2 Skins') }}
+        </button>
+        <button
+          v-if="isOfferEnabled && isAuthenticated"
+          type="button"
+          class="nav__link"
+          :class="{ active: isSellSkinActive }"
+          @click="openSellSkinsFromNav"
+        >
+          {{ $t('Sell Skin') }}
+        </button>
+
+        <RouterLink
+          :to="{ name: 'FAQ' }"
+          class="nav__link"
+          @click="closeMobileMenu"
+        >
+          {{ $t('FAQ') }}
+        </RouterLink>
+        <RouterLink
+          :to="{ name: 'ContactPage' }"
+          class="nav__link"
+          @click="closeMobileMenu"
+        >
+          {{ $t('Contact us') }}
+        </RouterLink>
       </div>
       <div class="header__auth">
         <LanguageSwitcher
@@ -117,7 +134,7 @@
             class="header__reg-button header__reg-button_signin"
             @click="goToRegister"
           >
-            {{ $t('Register') }}
+            {{ $t('Sign Up') }}
           </BaseButton>
         </template>
       </div>
@@ -214,6 +231,32 @@ const closeMobileMenu = () => {
   isMobileMenuVisible.value = false
 }
 
+const isCS2Active = computed(
+  () => route.name === 'ProductListPage' && route.query.category === 'cs2',
+)
+
+const isDota2Active = computed(
+  () => route.name === 'ProductListPage' && route.query.category === 'dota2',
+)
+
+const goToCS2 = () => {
+  closeMobileMenu()
+
+  router.push({
+    name: 'ProductListPage',
+    query: { category: 'cs2' },
+  })
+}
+
+const goToDota2 = () => {
+  closeMobileMenu()
+
+  router.push({
+    name: 'ProductListPage',
+    query: { category: 'dota2' },
+  })
+}
+
 const goToLogin = () => {
   closeMobileMenu()
 
@@ -263,6 +306,7 @@ const openSellSkinsFromNav = () => {
     name: 'SellSkisnPage',
   })
 }
+
 const handleScroll = () => {
   isScrolled.value = (window.scrollY || window.pageYOffset) >= 1
 }
@@ -357,13 +401,14 @@ onBeforeUnmount(() => {
   min-width: 320px;
   transition: background-color 0.3s ease 0s;
   z-index: var(--header-z-index);
-  background-color: var(--bg-primary-color);
+  background-color: transparent;
   &.scrolled {
+    background-color: var(--bg-primary-color);
     @media (min-width: $md3) {
       .header__inner {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        min-height: 70px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        min-height: 50px;
       }
     }
   }
@@ -371,11 +416,17 @@ onBeforeUnmount(() => {
   &__inner {
     display: flex;
     align-items: center;
-    @include adaptiveValue('padding-top', 20, 5, 1440, 992, 1);
-    @include adaptiveValue('padding-bottom', 20, 5, 1440, 992, 1);
+    @include adaptiveValue('padding-top', 30, 5, 1440, 992, 1);
+    @include adaptiveValue('padding-bottom', 30, 5, 1440, 992, 1);
     @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
     transition: padding 0.3s ease 0s;
-    @include adaptiveValue('min-height', 100, 50, 1440, 992, 1);
+    @include adaptiveValue('min-height', 110, 50, 1440, 992, 1);
+  }
+  &__logo {
+    @include adaptiveValue('margin-right', 40, 0, 1440, 992, 1);
+    @media (max-width: $md2) {
+      margin-right: auto;
+    }
   }
 
   &__logo,
@@ -386,14 +437,10 @@ onBeforeUnmount(() => {
     z-index: var(--header-z-index);
   }
 
-  &__logo {
-    margin-right: auto;
-    @media (min-width: $md2) {
-      margin-left: auto;
-    }
-  }
-
   &__nav {
+    @media (min-width: $md2) {
+      margin-right: auto;
+    }
   }
 
   &__auth {
@@ -401,21 +448,13 @@ onBeforeUnmount(() => {
     @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
   }
   &__reg-button {
-    :deep(.btn) {
-      @include adaptiveValue('min-height', 50, 40, 1440, 992, 1);
-    }
     :deep(.btn__text) {
       white-space: nowrap;
     }
-    @media (max-width: $md7) {
-      font-size: 14px;
-      min-width: fit-content !important;
-    }
+    @include adaptiveValue('min-width', 160, 100);
     &_login {
-      @include adaptiveValue('min-width', 150, 100);
     }
     &_signin {
-      @include adaptiveValue('min-width', 150, 100);
     }
   }
 }
@@ -425,12 +464,16 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 10px;
   height: fit-content;
+  :deep(.relic-logo .logo-text) {
+    fill: #ffffff;
+  }
   &__link {
     display: block;
     width: fit-content;
+    height: fit-content;
     @media (min-width: $md5) {
-      @include adaptiveValue('min-width', 218, 100, 1440, 992, 1);
-      @include adaptiveValue('min-height', 60, 30, 1440, 992, 1);
+      @include adaptiveValue('min-width', 188, 100, 1440, 992, 1);
+      aspect-ratio: 1 / 0.28;
     }
     @media (max-width: $md5) {
       min-width: 40px;
@@ -448,7 +491,7 @@ onBeforeUnmount(() => {
     }
   }
   &__sell {
-    @include adaptiveValue('border-radius', 20, 10);
+    border-radius: 8px;
     min-width: 50px;
     height: 40px;
     background-color: transparent;
@@ -483,12 +526,7 @@ onBeforeUnmount(() => {
 .nav {
   @media (min-width: $md2) {
     display: flex;
-    align-self: center;
-    min-height: 50px;
-    @include adaptiveValue('border-radius', 20, 10);
-    background-color: var(--bg-secondary-color);
-    @include adaptiveValue('padding-left', 20, 10, 1440, 992, 1);
-    @include adaptiveValue('padding-right', 20, 10, 1440, 992, 1);
+    align-self: stretch;
   }
   @media (max-width: $md2) {
     position: fixed;
@@ -530,6 +568,7 @@ onBeforeUnmount(() => {
   }
 
   &__link {
+    @include adaptiveValue('--border-offset', 40, 20, 1440, 992, 1);
     white-space: nowrap;
     display: flex;
     justify-content: center;
@@ -537,27 +576,43 @@ onBeforeUnmount(() => {
     text-align: center;
     background-color: transparent;
     text-transform: capitalize;
-    font-weight: 400;
+    font-weight: 700;
     font-size: 16px;
     line-height: 120%;
     transition: color 0.3s ease 0s;
-    color: var(--secondary-color);
+    color: var(--border-primary-color);
     font-family: var(--font-inter);
-    border-bottom: 1px solid transparent;
     padding-top: 8px;
     padding-bottom: 8px;
     @include adaptiveValue('padding-left', 20, 10, 1440, 992, 1);
     @include adaptiveValue('padding-right', 20, 10, 1440, 992, 1);
     position: relative;
     z-index: 1;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - var(--border-offset));
+      height: 1px;
+      background-color: var(--hint-primary-color);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
     &.active,
-    &.router-link-active {
+    &.router-link-exact-active {
       pointer-events: none;
-      color: var(--primary-color);
+      color: var(--secondary-color);
+      &::after {
+        opacity: 1;
+      }
     }
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        color: var(--secondary-color);
       }
     }
 
@@ -565,8 +620,6 @@ onBeforeUnmount(() => {
       height: fit-content;
       width: 100%;
       min-height: 45px;
-      @include adaptiveValue('border-radius', 20, 10);
-      background-color: var(--bg-primary-color);
       &:not(:last-child) {
         margin-bottom: 5px;
       }
@@ -581,49 +634,46 @@ onBeforeUnmount(() => {
   gap: 10px;
   justify-content: space-between;
   transition: all 0.3s ease 0s;
-  border: 1px solid transparent;
-  background-color: var(--bg-secondary-color);
-  color: var(--primary-color);
-  @include adaptiveValue('border-radius', 20, 10);
+  border: 1px solid var(--border-primary-color);
+  background-color: var(--bg-third-color);
+  color: var(--third-color);
+  border-radius: 8px;
   position: relative;
 
   &.router-link-active {
-    background-color: var(--bg-primary-color);
-    color: var(--primary-color);
-    border-color: var(--hint-primary-color);
+    background-color: var(--hint-primary-color);
+    color: var(--third-color);
+    border-color: transparent;
     .balance__wallet {
-      color: var(--primary-color);
+      color: var(--third-color);
     }
     :deep(.price__value) {
-      color: var(--primary-color);
+      color: var(--third-color);
     }
     .balance__plus {
-      color: var(--primary-color);
-      background-color: var(--bg-primary-color);
-      border-color: var(--hint-primary-color);
+      color: var(--hint-primary-color);
+      background-color: var(--third-color);
     }
   }
   @media (any-hover: hover) {
     &:hover {
-      background-color: var(--bg-primary-color);
-      color: var(--primary-color);
-      border-color: var(--hint-primary-color);
+      background-color: var(--hint-primary-color);
+      color: var(--third-color);
+      border-color: transparent;
       .balance__wallet {
-        color: var(--primary-color);
+        color: var(--third-color);
       }
       :deep(.price__value) {
-        color: var(--primary-color);
+        color: var(--third-color);
       }
       .balance__plus {
-        color: var(--primary-color);
-        background-color: var(--bg-primary-color);
-        border-color: var(--hint-primary-color);
+        color: var(--hint-primary-color);
+        background-color: var(--third-color);
       }
     }
   }
   @media (min-width: $md7) {
-    @include adaptiveValue('padding-left', 20, 10);
-    @include adaptiveValue('padding-right', 60, 50, 1440, 992, 1);
+    @include adaptiveValue('padding-left', 12, 10);
   }
   @media (max-width: $md7) {
     min-width: 40px;
@@ -633,10 +683,10 @@ onBeforeUnmount(() => {
     justify-content: center;
   }
   &__wallet {
-    min-width: 17px;
+    min-width: 18px;
     height: 17px;
     transition: color 0.3s ease 0s;
-    color: var(--primary-color);
+    color: var(--border-primary-color);
   }
   &__balance {
     margin-top: 3px;
@@ -645,28 +695,24 @@ onBeforeUnmount(() => {
     }
   }
   &__plus {
-    position: absolute;
-    right: 0;
-    top: 0;
     @include adaptiveValue('min-width', 50, 40, 1440, 992, 1);
-    @include adaptiveValue('height', 50, 40, 1440, 992, 1);
+    height: 100%;
     display: flex;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-color);
+    color: var(--third-color);
     background-color: var(--hint-primary-color);
     border: 1px solid transparent;
     transition: all 0.3s ease 0s;
-    @include adaptiveValue('border-radius', 20, 10);
+    border-radius: 8px;
     @media (max-width: $md7) {
       @include hide-item;
     }
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
-        background-color: var(--bg-primary-color);
-        border-color: var(--hint-primary-color);
+        color: var(--hint-primary-color);
+        background-color: var(--third-color);
       }
     }
     &-icon {
@@ -678,35 +724,36 @@ onBeforeUnmount(() => {
 
 .link {
   width: fit-content;
-  @include adaptiveValue('border-radius', 20, 10);
+  border-radius: 8px;
   @include adaptiveValue('min-width', 50, 40, 1440, 992, 1);
-  @include adaptiveValue('height', 50, 40, 1440, 992, 1);
+  height: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 5px;
-  background-color: var(--hint-primary-color);
-  border: 1px solid transparent;
-  color: var(--primary-color);
+  background-color: var(--bg-third-color);
+  border: 1px solid var(--border-primary-color);
+  color: var(--third-color);
   transition: all 0.3s ease 0s;
   position: relative;
 
   @media (any-hover: hover) {
     &:hover {
-      color: var(--primary-color);
-      background-color: var(--bg-primary-color);
-      border-color: var(--hint-primary-color);
+      background-color: var(--hint-primary-color);
+      border-color: transparent;
       .link__count {
         background-color: var(--hint-primary-color);
       }
     }
   }
   &.router-link-active {
-    color: var(--primary-color);
-    background-color: var(--bg-primary-color);
-    border-color: var(--hint-primary-color);
+    background-color: var(--hint-primary-color);
+    border-color: transparent;
     .link__count {
       background-color: var(--hint-primary-color);
+    }
+    .link__count {
+      background-color: var(--bg-third-color);
     }
   }
 
@@ -720,15 +767,15 @@ onBeforeUnmount(() => {
     top: 0;
     right: 0;
     z-index: 1;
-    background-color: var(--bg-primary-color);
-    color: var(--primary-color);
-    border: 1px solid var(--hint-primary-color);
+    background-color: var(--hint-primary-color);
+    color: var(--third-color);
+    border: 1px solid transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 3px 5px;
     line-height: 1;
-    @include adaptiveValue('border-radius', 10, 6);
+    border-radius: 4px;
     transform: translate(25%, -25%);
     font-size: 12px;
     font-weight: 400;

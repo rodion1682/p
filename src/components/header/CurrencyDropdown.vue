@@ -112,11 +112,11 @@ const dropdownClasses = computed(() => ({
     pointer-events: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-family: var(--font-inter);
     font-size: 16px;
-    font-weight: 400;
-    line-height: 120%;
+    font-weight: 700;
+    line-height: 150%;
     color: inherit;
   }
 
@@ -126,18 +126,18 @@ const dropdownClasses = computed(() => ({
 
   &__caret {
     pointer-events: none;
-    color: var(--hint-primary-color);
-    width: 15px;
-    min-width: 15px;
-    height: 8px;
+    color: var(--third-color);
+    width: 10px;
+    min-width: 10px;
+    height: 6px;
     display: flex;
     align-items: center;
     background-color: transparent;
     justify-content: center;
     &-icon {
-      width: 15px;
-      min-width: 15px;
-      height: 8px;
+      width: 10px;
+      min-width: 10px;
+      height: 6px;
       color: inherit;
       transform: rotate(0deg);
       svg {
@@ -155,9 +155,9 @@ const dropdownClasses = computed(() => ({
   position: relative;
   &_open {
     .dropdown__wrapper {
-      background-color: var(--bg-primary-color);
-      color: var(--primary-color);
-      border-color: var(--hint-primary-color);
+      background-color: var(--hint-primary-color);
+      color: var(--third-color);
+      border-color: transparent;
     }
   }
 
@@ -167,29 +167,28 @@ const dropdownClasses = computed(() => ({
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    @include adaptiveValue('min-height', 50, 40, 1440, 992, 1);
+    min-height: inherit;
     padding-top: 5px;
     padding-bottom: 5px;
     @include adaptiveValue('padding-left', 20, 10, 1400, 992, 1);
     @include adaptiveValue('padding-right', 20, 10, 1400, 992, 1);
-    @include adaptiveValue('border-radius', 20, 10);
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease 0s;
-    color: var(--primary-color);
-    transition: all 0.3s ease 0s;
+    color: var(--third-color);
+    border: 1px solid var(--border-primary-color);
+    background-color: var(--bg-third-color);
 
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--bg-primary-color);
-        color: var(--primary-color);
-        border-color: var(--hint-primary-color);
+        background-color: var(--hint-primary-color);
+        color: var(--third-color);
+        border-color: transparent;
       }
     }
     @media (max-width: $md4) {
       min-height: 45px;
       width: 100%;
-      border-radius: 20px;
-      background-color: var(--bg-secondary-color);
       justify-content: center;
       &:not(:last-child) {
         margin-bottom: 5px;
@@ -203,8 +202,9 @@ const dropdownClasses = computed(() => ({
     right: 0;
     min-width: 100%;
     padding: 10px;
-    @include adaptiveValue('border-radius', 20, 10);
-    background-color: var(--bg-secondary-color);
+    border-radius: 8px;
+    background-color: var(--bg-third-color);
+    border: 1px solid var(--border-primary-color);
     overflow: hidden;
     z-index: var(--header-z-index);
     transition: all 0.3s ease 0s;
@@ -247,16 +247,16 @@ const dropdownClasses = computed(() => ({
     justify-content: flex-start;
 
     min-width: 40px;
-    padding: 10px;
+    padding: 5px 10px;
 
-    @include adaptiveValue('border-radius', 20, 10);
+    border-radius: 8px;
 
     font-family: var(--font-inter);
     font-size: 16px;
     font-weight: 400;
     line-height: 100%;
     text-transform: uppercase;
-    color: var(--primary-color);
+    color: var(--third-color);
     border: 1px solid transparent;
     background-color: transparent;
     transition: all 0.3s ease 0s;
@@ -264,9 +264,9 @@ const dropdownClasses = computed(() => ({
       margin-bottom: 2px;
     }
     &_selected {
-      background-color: var(--bg-primary-color);
-      color: var(--primary-color);
-      border-color: var(--hint-primary-color);
+      background-color: var(--hint-primary-color);
+      color: var(--third-color);
+      border-color: transparent;
       pointer-events: none;
     }
 
