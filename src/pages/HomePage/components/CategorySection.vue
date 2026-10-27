@@ -1,189 +1,139 @@
 <script setup>
-import {
-  GlovesIcon,
-  KnifeIcon,
-  PistolIcon,
-  RifleIcon,
-  StickerIcon,
-} from '@/components/icons'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
-import axios from '@/plugins/axios'
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const { t } = useI18n()
-
-const loadingCategories = ref(false)
-const categories = ref([])
-
-const CS2_CATEGORY_CONFIG = [
-  {
-    key: 'knives',
-    label: t('Knives'),
-    category: 'Knife',
-    filterType: 'type',
-    icon: KnifeIcon,
-  },
-  {
-    key: 'gloves',
-    label: t('Gloves'),
-    category: 'Gloves',
-    filterType: 'type',
-    icon: GlovesIcon,
-  },
-  {
-    key: 'rifles',
-    label: t('Rifles'),
-    category: 'Rifle',
-    filterType: 'type',
-    icon: RifleIcon,
-  },
-  {
-    key: 'pistols',
-    label: t('Pistols'),
-    category: 'Pistol',
-    filterType: 'type',
-    icon: PistolIcon,
-  },
-  {
-    key: 'stickers',
-    label: t('Stickers'),
-    category: 'Sticker',
-    filterType: 'type',
-    icon: StickerIcon,
-  },
-]
-
-const normalizeValue = value => {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-}
-
-const normalizeCategory = item => {
-  return {
-    label: item?.category || '',
-    value: normalizeValue(item?.category),
-    queryValue: item?.category || '',
-
-    subCategories: Array.isArray(item?.sub_categories)
-      ? item.sub_categories
-      : [],
-  }
-}
-
-const visibleCategories = computed(() => {
-  return CS2_CATEGORY_CONFIG.map((config, index) => {
-    const matchedCategory = categories.value.find(category => {
-      return category.value === normalizeValue(config.category)
-    })
-
-    // Don't display category if API doesn't provide it.
-    if (!matchedCategory) {
-      return null
-    }
-
-    return {
-      key: config.key,
-      label: config.label,
-      icon: config.icon,
-
-      queryValue: matchedCategory.queryValue,
-
-      subCategories: matchedCategory.subCategories,
-
-      filterType: config.filterType,
-    }
-  }).filter(Boolean)
-})
-
-const fetchCategories = async () => {
-  loadingCategories.value = true
-
-  try {
-    const { data } = await axios.get('/items/subcategories', {
-      params: {
-        category: 'cs2',
-      },
-    })
-
-    if (data?.status !== 'OK' || !Array.isArray(data?.payload)) {
-      categories.value = []
-      return
-    }
-
-    categories.value = data.payload
-      .map(normalizeCategory)
-      .filter(category => category.value)
-  } catch (error) {
-    console.error('Failed to fetch CS2 categories:', error)
-
-    categories.value = []
-  } finally {
-    loadingCategories.value = false
-  }
-}
-
-const goToCategory = category => {
-  if (!category) {
-    return
-  }
-
-  const query = {
-    category: 'cs2',
-    page: 1,
-  }
-
-  if (category.filterType === 'type' && category.queryValue) {
-    query.type = category.queryValue
-  }
-
+const goToCS2 = () => {
   router.push({
     name: 'ProductListPage',
-    query,
+    query: { category: 'cs2' },
   })
 }
 
-onMounted(() => {
-  fetchCategories()
-})
+const goToDota2 = () => {
+  router.push({
+    name: 'ProductListPage',
+    query: { category: 'dota2' },
+  })
+}
 </script>
 
 <template>
-  <section class="category">
-    <div class="category__bg _ibg">
-      <img src="@/assets/img/category-bg.png" />
-    </div>
-    <div class="category__inner _cnt">
-      <div class="category__title _h2">
-        {{ $t('Popular Categories') }}
-      </div>
-
-      <div class="category__body">
-        <LoadingSpinner v-if="loadingCategories" class="category__loading" />
-
-        <div v-else-if="visibleCategories.length" class="category__items">
-          <button
-            v-for="category in visibleCategories"
-            :key="category.key"
-            type="button"
-            class="category__item"
-            @click="goToCategory(category)"
-          >
-            <SvgIcon :icon="category.icon" class="category__item-icon" />
-
-            <div class="category__item-label">
-              {{ $t(category.label) }}
-            </div>
-          </button>
+  <section class="cat">
+    <div class="cat__inner _cnt">
+      <div class="cat__top">
+        <div class="cat__label">
+          {{ $t('FEATURED CATEGORIES') }}
         </div>
-
-        <div v-else class="category__empty _empty">
-          {{ $t('No categories found') }}
+        <div class="cat__title _h2">
+          {{ $t('FIND YOUR') }}
+          <span>{{ $t('NEXT FAVORITE') }}</span>
+        </div>
+        <div class="cat__text">
+          {{
+            $t(
+              'Explore a wide selection of cosmetics and discover items that match your style.',
+            )
+          }}
+        </div>
+        <div class="cat__items">
+          <div class="cat__item">
+            <div class="cat__content">
+              <div class="cat__number">01</div>
+              <div class="cat__subtitle _h3">
+                <div>{{ $t('CS2') }}</div>
+                <span>{{ $t('Weapon Skins') }}</span>
+              </div>
+              <div class="cat__info">
+                {{
+                  $t(
+                    'Give your loadout a new look with weapon finishes ranging fr om clean, minimalist designs to bold and colorful patterns.',
+                  )
+                }}
+              </div>
+              <BaseButton
+                class="cat__button"
+                variant="bordered"
+                @click="goToCS2"
+              >
+                {{ $t('Browse CS2 Skins') }}</BaseButton
+              >
+            </div>
+            <div class="cat__image _ibg">
+              <img src="@/assets/img/cat-01.png" />
+            </div>
+          </div>
+          <div class="cat__item">
+            <div class="cat__content">
+              <div class="cat__number">02</div>
+              <div class="cat__subtitle _h3">
+                <div>{{ $t('Knives &') }}</div>
+                <span>{{ $t('Gloves') }}</span>
+              </div>
+              <div class="cat__info">
+                {{
+                  $t(
+                    'Knives & Gloves Discover distinctive knives and gloves that bring character to your inventory and help you stand out in every match.',
+                  )
+                }}
+              </div>
+              <BaseButton class="cat__button" variant="bordered">
+                {{ $t('Explore Knives & Gloves') }}</BaseButton
+              >
+            </div>
+            <div class="cat__image _ibg">
+              <img src="@/assets/img/cat-02.png" />
+            </div>
+          </div>
+          <div class="cat__item">
+            <div class="cat__content">
+              <div class="cat__number">03</div>
+              <div class="cat__subtitle _h3">
+                <div>{{ $t('Dota 2') }}</div>
+                <span>{{ $t('Cosmetics') }}</span>
+              </div>
+              <div class="cat__info">
+                {{
+                  $t(
+                    'Customize your favorite heroes with unique equipment, character sets, and cosmetic items inspired by the world of Dota 2.',
+                  )
+                }}
+              </div>
+              <BaseButton
+                class="cat__button"
+                variant="bordered"
+                @click="goToDota2"
+              >
+                {{ $t('Browse Dota 2 Skins') }}</BaseButton
+              >
+            </div>
+            <div class="cat__image _ibg">
+              <img src="@/assets/img/cat-03.png" />
+            </div>
+          </div>
+          <div class="cat__item">
+            <div class="cat__content">
+              <div class="cat__number">04</div>
+              <div class="cat__subtitle _h3">
+                <div>{{ $t('Rare &') }}</div>
+                <span>{{ $t('Collectible Items') }}</span>
+              </div>
+              <div class="cat__info">
+                {{
+                  $t(
+                    'Find distinctive designs and collectible cosmetics for players who appreciate unique appearances and memorable in-game items.',
+                  )
+                }}
+              </div>
+              <BaseButton class="cat__button" variant="bordered">
+                {{ $t('Discover Items') }}</BaseButton
+              >
+            </div>
+            <div class="cat__image _ibg">
+              <img src="@/assets/img/cat-04.png" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,9 +1,22 @@
 <script setup>
-import { useGame } from '@/composables/useGame'
-
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useRouter } from 'vue-router'
 
-const { marketRoute } = useGame()
+const router = useRouter()
+
+const goToCS2 = () => {
+  router.push({
+    name: 'ProductListPage',
+    query: { category: 'cs2' },
+  })
+}
+
+const goToDota2 = () => {
+  router.push({
+    name: 'ProductListPage',
+    query: { category: 'dota2' },
+  })
+}
 </script>
 
 <template>
@@ -26,11 +39,18 @@ const { marketRoute } = useGame()
             )
           }}
         </div>
-        <div class="hero__actions"></div>
+        <div class="hero__actions">
+          <BaseButton class="hero__button" @click="goToCS2">{{
+            $t('Explore CS2 Skins')
+          }}</BaseButton>
+          <BaseButton
+            class="hero__button"
+            variant="bordered"
+            @click="goToDota2"
+            >{{ $t('Browse Dota 2 Skins') }}</BaseButton
+          >
+        </div>
       </div>
-      <RouterLink :to="marketRoute" class="hero__action">
-        <BaseButton variant="bordered">{{ $t('Explore Skins') }}</BaseButton>
-      </RouterLink>
     </div>
   </section>
 </template>
@@ -41,108 +61,57 @@ const { marketRoute } = useGame()
 @use '@/assets/styles/components/classes' as *;
 
 .hero {
-  @include adaptiveValue('padding-top', 190, 25);
-  @include adaptiveValue('padding-bottom', 410, 50);
+  @include adaptiveValue('padding-top', 214, 80);
+  @include adaptiveValue('padding-bottom', 446, 60);
   position: relative;
-  &__image {
-    position: absolute;
-    z-index: 5;
-    left: 54%;
-    transform: translate(-50%, 0px);
-    height: 95%;
-    width: 40%;
-    @include adaptiveValue('top', 30, 0);
-    @include adaptiveValue('bottom', 40, 0);
-    @media (max-width: $md2) {
-      opacity: 0.8;
-    }
-    @media (max-width: $md4) {
-      left: 45%;
-    }
-  }
-
-  &__knife {
-    z-index: 4;
-    position: absolute;
-    width: 11%;
-    aspect-ratio: 1/ 0.75;
-    &_left {
-      left: 3%;
-      bottom: 18%;
-    }
-
-    &_right {
-      right: 3%;
-      top: 18%;
-    }
-  }
-
-  &__ellipse {
-    z-index: 3;
-    position: absolute;
-    width: 50%;
-    aspect-ratio: 1;
-    &_left {
-      top: -10%;
-      left: -5%;
-    }
-
-    &_right {
-      bottom: 0%;
-      right: -15%;
-    }
-  }
-
-  &__texture {
-    position: absolute;
-    z-index: 2;
-    height: 100%;
-    left: 54%;
-    top: 0;
-    transform: translate(-50%, -5%) rotate(-1deg);
-    width: 100%;
-    @media (max-width: $md4) {
-      height: 150%;
-      width: 150%;
-      transform: translate(-55%, -20%) rotate(-1deg);
-    }
-  }
-
   &__bg {
-    z-index: 1;
     position: absolute;
     width: 100%;
-    height: 90%;
+    height: 100%;
     top: 0;
-    left: 50%;
-    transform: translate(-50%, 0px);
+    left: 0;
+    img {
+      object-position: center;
+    }
   }
 
   &__inner {
     position: relative;
-    z-index: 6;
+    z-index: 1;
+  }
+
+  &__content {
+    text-shadow:
+      0 0 5px rgba(255, 255, 255),
+      0 0 8px rgba(255, 255, 255, 0.9),
+      0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   &__title {
-  }
-
-  &__info {
-    max-width: 345px;
-    margin-left: auto;
-    @include adaptiveValue('margin-top', -57, 18);
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 20, 18);
+    }
   }
 
   &__text {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
+    max-width: 588px;
+    color: var(--fourth-color);
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 30, 18);
     }
   }
 
-  &__action {
-    :deep(.btn) {
-      background-color: var(--bg-primary-color);
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    @include adaptiveValue('gap', 20, 10);
+    @media (max-width: $md4) {
+      justify-content: center;
     }
+  }
+
+  &__button {
+    max-width: 284px;
   }
 }
 </style>

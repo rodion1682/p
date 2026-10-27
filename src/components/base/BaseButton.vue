@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ChevronDownIcon, OfferIcon, UserIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | bordered | transparent-link | delete | white-bordered | white | transparent | gray
+  variant: { type: String, default: 'primary' }, // primary | bordered
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -87,16 +87,15 @@ const buttonClasses = computed(() => [
   z-index: 1;
   overflow: hidden;
   text-align: center;
-  font-weight: 400;
+  font-weight: 700;
   font-family: var(--font-inter);
   border: 1px solid transparent;
   font-size: 16px;
-  line-height: 120%;
+  line-height: 150%;
   gap: 10px;
-  text-transform: capitalize;
   padding: 5px 10px;
-  @include adaptiveValue('border-radius', 20, 10);
-  @include adaptiveValue('min-height', 50, 40, 1440, 992, 1);
+  border-radius: 8px;
+  @include adaptiveValue('min-height', 50, 40);
   &:disabled {
     opacity: 0.5;
     pointer-events: none;
@@ -106,87 +105,24 @@ const buttonClasses = computed(() => [
     gap: 10px;
   }
   &.primary {
-    color: var(--primary-color);
+    color: var(--third-color);
     background-color: var(--hint-primary-color);
+    border-color: transparent;
     @media (any-hover: hover) {
       &:hover {
-        background-color: transparent;
-        border-color: var(--hint-primary-color);
+        background-color: var(--bg-third-color);
+        border-color: var(--border-primary-color);
       }
     }
   }
   &.bordered {
-    background-color: transparent;
-    color: var(--primary-color);
-    border-color: var(--hint-primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        border-color: transparent;
-        background-color: var(--hint-primary-color);
-      }
-    }
-  }
-  &.transparent-link {
-    background-color: transparent;
-    color: var(--hint-primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--primary-color);
-        background-color: var(--hint-primary-color);
-      }
-    }
-  }
-  &.delete {
-    background-color: transparent;
-    color: var(--error-color);
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--bg-primary-color);
-        background-color: var(--error-color);
-      }
-    }
-  }
-  &.white-bordered {
-    background-color: transparent;
-    color: var(--primary-color);
+    background-color: var(--bg-secondary-color);
+    color: var(--bg-primary-color);
     border-color: inherit;
     @media (any-hover: hover) {
       &:hover {
-        border-color: transparent;
         background-color: var(--hint-primary-color);
-      }
-    }
-  }
-  &.white {
-    background-color: var(--primary-color);
-    color: var(--bg-primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-primary-color);
-        color: var(--primary-color);
-        border-color: inherit;
-      }
-    }
-  }
-  &.transparent {
-    padding: 8px 0px;
-    width: fit-content;
-    color: var(--secondary-color);
-    background-color: transparent;
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--primary-color);
-      }
-    }
-  }
-  &.gray {
-    color: var(--bg-primary-color);
-    background-color: var(--secondary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--primary-color);
-        background-color: var(--bg-primary-color);
-        border-color: inherit;
+        color: var(--third-color);
       }
     }
   }

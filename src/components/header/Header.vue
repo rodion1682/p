@@ -454,6 +454,9 @@ onBeforeUnmount(() => {
     }
   }
   &__reg-button {
+    :deep(.btn) {
+      min-height: inherit !important;
+    }
     :deep(.btn__text) {
       white-space: nowrap;
     }

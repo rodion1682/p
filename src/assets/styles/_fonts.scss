@@ -24,7 +24,7 @@
 }
 
 @mixin font-h1 {
-  @include adaptiveValue('font-size', 90, 35);
+  @include adaptiveValue('font-size', 80, 38);
 }
 
 ._h1,
@@ -32,10 +32,10 @@
 ._h3,
 ._h4 {
   font-weight: 900;
-  line-height: 120%;
-  font-family: var(--font-montserrat);
+  line-height: 100%;
+  font-family: var(--font-orbitron);
   text-transform: uppercase;
-  color: var(--primary-color);
+  color: var(--third-color);
   span {
     color: var(--hint-primary-color);
   }
@@ -43,6 +43,7 @@
 
 ._h1 {
   @include font-h1;
+  color: var(--secondary-color);
 }
 
 ._h2 {
@@ -51,6 +52,7 @@
 
 ._h3 {
   @include font-h3;
+  line-height: 120%;
 }
 
 ._h4 {
