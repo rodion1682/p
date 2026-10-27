@@ -8,45 +8,29 @@ const { marketRoute } = useGame()
 
 <template>
   <section class="hero">
-    <div class="hero__image _ibg-contain">
-      <img src="@/assets/img/hero.png" />
-    </div>
-    <div class="hero__knife hero__knife_left _ibg-contain">
-      <img src="@/assets/img/hero-decor-left.png" />
-    </div>
-    <div class="hero__knife hero__knife_right _ibg-contain">
-      <img src="@/assets/img/hero-decor-right.png" />
-    </div>
-    <div class="hero__ellipse hero__ellipse_left _ibg-contain">
-      <img src="@/assets/img/ellipse.svg" />
-    </div>
-    <div class="hero__ellipse hero__ellipse_right _ibg-contain">
-      <img src="@/assets/img/ellipse.svg" />
-    </div>
-    <div class="hero__texture _ibg-contain">
-      <img src="@/assets/img/hero-texture.svg" />
-    </div>
     <div class="hero__bg _ibg">
       <img src="@/assets/img/hero-bg.png" />
     </div>
     <div class="hero__inner _cnt">
-      <div class="hero__title _h1">
-        <div>{{ $t('Counter-') }}</div>
-        <div>{{ $t('Strike 2') }}</div>
-        <div>{{ $t('(CS2)') }}</div>
-      </div>
-      <div class="hero__info">
+      <div class="hero__content">
+        <div class="hero__title _h1">
+          <div>{{ $t('FORGE YOUR') }}</div>
+          <span>{{ $t('COLLECTION.') }}</span>
+          <div>{{ $t('FIND YOUR') }}</div>
+          <span>{{ $t('NEXT RELIC.') }}</span>
+        </div>
         <div class="hero__text">
           {{
             $t(
-              'Discover a premium selection of CS2 skins, featuring rare knives, gloves, weapon finishes, stickers, and collectible items. Find standout pieces, unique patterns, and sought-after skins to elevate your inventory.',
+              'Discover a world of unique CS2 and Dota 2 skins at Relic Forge. Explore iconic weapon finishes, rare knives, distinctive gloves, legendary hero cosmetics, and other sought-after items. Find the perfect additions to your collection and get the items you want through a simple, convenient shopping experience.',
             )
           }}
         </div>
-        <RouterLink :to="marketRoute" class="hero__action">
-          <BaseButton variant="bordered">{{ $t('Explore Skins') }}</BaseButton>
-        </RouterLink>
+        <div class="hero__actions"></div>
       </div>
+      <RouterLink :to="marketRoute" class="hero__action">
+        <BaseButton variant="bordered">{{ $t('Explore Skins') }}</BaseButton>
+      </RouterLink>
     </div>
   </section>
 </template>

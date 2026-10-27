@@ -20,8 +20,10 @@
     >
       <template #singlelabel="{ value }">
         <div class="language-select__label">
-          <div class="language-select__code">
-            {{ value?.code }}
+          <div class="language-select__text">
+            <div class="language-select__code">
+              {{ value?.code }}
+            </div>
           </div>
         </div>
       </template>
@@ -97,19 +99,19 @@ const selectedLanguage = computed({
 })
 
 const dropdownClasses = computed(() => ({
-  container: 'dropdown',
-  containerOpen: 'dropdown_open',
-  wrapper: 'dropdown__wrapper',
+  container: 'language-dropdown',
+  containerOpen: 'language-dropdown_open',
+  wrapper: 'language-dropdown__wrapper',
 
-  singleLabel: 'dropdown__single',
-  singleLabelText: 'dropdown__singleText',
+  singleLabel: 'language-dropdown__single',
+  singleLabelText: 'language-dropdown__singleText',
 
-  dropdown: `dropdown__list ${props.isFooter ? 'dropdown__list_footer' : ''}`,
+  dropdown: `language-dropdown__list ${props.isFooter ? 'language-dropdown__list_footer' : ''}`,
 
-  options: 'dropdown__options',
-  option: 'dropdown__option',
-  optionPointed: 'dropdown__option_pointed',
-  optionSelected: 'dropdown__option_selected',
+  options: 'language-dropdown__options',
+  option: 'language-dropdown__option',
+  optionPointed: 'language-dropdown__option_pointed',
+  optionSelected: 'language-dropdown__option_selected',
 }))
 
 onMounted(() => {
@@ -123,6 +125,10 @@ onMounted(() => {
 @use '@/assets/styles/components/classes' as *;
 
 .language-select {
+  @media (min-width: $md4) {
+    display: flex;
+    align-self: stretch;
+  }
   @media (any-hover: hover) {
     &:hover {
       .language-select__caret {
@@ -132,17 +138,15 @@ onMounted(() => {
   }
 
   &__label {
+    pointer-events: none;
     display: flex;
     align-items: center;
-    gap: 8px;
-
+    gap: 10px;
     font-family: var(--font-inter);
     font-size: 16px;
-    font-weight: 400;
-    line-height: 120%;
+    font-weight: 700;
+    line-height: 150%;
     color: inherit;
-
-    pointer-events: none;
   }
 
   &__code {
@@ -150,37 +154,32 @@ onMounted(() => {
   }
 
   &__caret {
+    pointer-events: none;
+    color: var(--third-color);
+    width: 10px;
+    min-width: 10px;
+    height: 6px;
     display: flex;
     align-items: center;
-    justify-content: center;
-
-    width: 15px;
-    min-width: 15px;
-    height: 8px;
-    padding: 0;
-
-    border: 0;
     background-color: transparent;
+    justify-content: center;
+    padding: 0;
+    border: 0;
 
-    color: var(--hint-primary-color);
-
-    pointer-events: none;
-  }
-
-  &__caret-icon {
-    width: 15px;
-    min-width: 15px;
-    height: 8px;
-
-    color: inherit;
-
-    svg {
+    &-icon {
+      width: 10px;
+      min-width: 10px;
+      height: 6px;
+      color: inherit;
       transform: rotate(0deg);
-      transition: transform 0.3s ease;
-    }
 
-    &.is-open svg {
-      transform: rotate(180deg);
+      svg {
+        transition: transform 0.3s ease;
+      }
+
+      &.is-open svg {
+        transform: rotate(180deg);
+      }
     }
   }
 
@@ -188,7 +187,6 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 8px;
-
     width: 100%;
     min-width: 0;
   }
@@ -201,70 +199,55 @@ onMounted(() => {
   &__option-title {
     min-width: 0;
     overflow: hidden;
-
     white-space: nowrap;
     text-overflow: ellipsis;
     text-transform: none;
   }
 }
 
-/*
- * Same dropdown styles as CurrencySelect.
- *
- * If these styles are already global/shared from CurrencySelect,
- * move them into a shared SCSS file instead of duplicating them here.
- */
-.dropdown {
+.language-dropdown {
   position: relative;
 
   &_open {
-    .dropdown__wrapper {
-      background-color: var(--bg-primary-color);
-      color: var(--primary-color);
-      border-color: var(--hint-primary-color);
+    .language-dropdown__wrapper {
+      background-color: var(--hint-primary-color);
+      color: var(--third-color);
+      border-color: transparent;
     }
   }
 
   &__wrapper {
     position: relative;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-
-    @include adaptiveValue('min-height', 50, 40, 1440, 992, 1);
-
+    min-height: inherit;
     padding-top: 5px;
     padding-bottom: 5px;
 
     @include adaptiveValue('padding-left', 20, 10, 1400, 992, 1);
     @include adaptiveValue('padding-right', 20, 10, 1400, 992, 1);
-    @include adaptiveValue('border-radius', 20, 10);
 
-    color: var(--primary-color);
-
+    border-radius: 6px;
     cursor: pointer;
-
-    transition: all 0.3s ease;
+    transition: all 0.3s ease 0s;
+    color: var(--third-color);
+    border: 1px solid var(--border-primary-color);
+    background-color: var(--bg-third-color);
 
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--bg-primary-color);
-        color: var(--primary-color);
-        border-color: var(--hint-primary-color);
+        background-color: var(--hint-primary-color);
+        color: var(--third-color);
+        border-color: transparent;
       }
     }
 
     @media (max-width: $md4) {
-      justify-content: center;
-
-      width: 100%;
       min-height: 45px;
-
-      border-radius: 20px;
-
-      background-color: var(--bg-secondary-color);
+      width: 100%;
+      justify-content: center;
 
       &:not(:last-child) {
         margin-bottom: 5px;
@@ -272,46 +255,34 @@ onMounted(() => {
     }
   }
 
-  &__single,
-  &__singleText {
-    width: 100%;
-  }
-
   &__list {
     position: absolute;
     top: calc(100% + 3px);
     right: 0;
-    z-index: var(--header-z-index);
-
     min-width: 100%;
     padding: 10px;
-
-    @include adaptiveValue('border-radius', 20, 10);
-
-    background-color: var(--bg-secondary-color);
-
+    border-radius: 8px;
+    background-color: var(--bg-third-color);
+    border: 1px solid var(--border-primary-color);
     overflow: hidden;
-
-    transition: all 0.3s ease;
+    z-index: var(--header-z-index);
+    transition: all 0.3s ease 0s;
 
     &.is-hidden {
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-6px);
-
       pointer-events: none;
+      transform: translateY(-6px);
     }
 
     &_footer {
       max-height: 200px;
       overflow-y: auto;
-
       -webkit-overflow-scrolling: touch;
     }
 
     @media (max-width: $md3) {
       top: calc(100% + 6px);
-
       width: 100%;
     }
   }
@@ -322,40 +293,46 @@ onMounted(() => {
     gap: 4px;
   }
 
+  &__single,
+  &__singleText {
+    width: 100%;
+  }
+
   &__option {
+    cursor: pointer;
+    pointer-events: auto;
+
     display: flex;
     align-items: center;
     justify-content: flex-start;
 
     min-width: 40px;
-    padding: 10px;
-
-    @include adaptiveValue('border-radius', 20, 10);
-
-    border: 1px solid transparent;
-    background-color: transparent;
+    padding: 5px 10px;
+    border-radius: 8px;
 
     font-family: var(--font-inter);
     font-size: 16px;
     font-weight: 400;
     line-height: 100%;
-    color: var(--primary-color);
+    text-transform: uppercase;
 
-    cursor: pointer;
-    pointer-events: auto;
-
-    transition: all 0.3s ease;
+    color: var(--third-color);
+    border: 1px solid transparent;
+    background-color: transparent;
+    transition: all 0.3s ease 0s;
 
     &:not(:last-child) {
       margin-bottom: 2px;
     }
 
     &_selected {
-      background-color: var(--bg-primary-color);
-      color: var(--primary-color);
-      border-color: var(--hint-primary-color);
-
+      background-color: var(--hint-primary-color);
+      color: var(--third-color);
+      border-color: transparent;
       pointer-events: none;
+    }
+
+    &_pointed {
     }
 
     @media (any-hover: hover) {

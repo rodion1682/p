@@ -4,7 +4,7 @@
       <div class="header__logo logo">
         <RouterLink :to="{ name: 'HomePage' }" class="logo__link _ibg-contain">
           <img
-            v-if="route.name === 'HomePage'"
+            v-if="route.name === 'HomePage' && !isScrolled"
             class="logo__image_desk"
             src="@/assets/img/logo-full-home.svg"
           />
@@ -16,7 +16,7 @@
           <img class="logo__image_mob" src="@/assets/img/logo-small.svg" />
         </RouterLink>
         <button
-          v-if="isOfferEnabled && isAuthenticated"
+          v-if="(isOfferEnabled && isAuthenticated) || true"
           class="logo__sell"
           :class="{ active: isSellSkinActive }"
           @click="openSellSkinsFromNav"
@@ -430,7 +430,6 @@ onBeforeUnmount(() => {
   }
 
   &__logo,
-  &__game-switch,
   &__nav,
   &__auth {
     position: relative;
@@ -445,7 +444,14 @@ onBeforeUnmount(() => {
 
   &__auth {
     display: flex;
+    align-items: stretch;
     @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
+  }
+  &__language,
+  &__currency {
+    @media (min-width: $md4) {
+      height: inherit;
+    }
   }
   &__reg-button {
     :deep(.btn__text) {
@@ -464,9 +470,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 10px;
   height: fit-content;
-  :deep(.relic-logo .logo-text) {
-    fill: #ffffff;
-  }
   &__link {
     display: block;
     width: fit-content;
@@ -477,7 +480,7 @@ onBeforeUnmount(() => {
     }
     @media (max-width: $md5) {
       min-width: 40px;
-      height: 40px;
+      height: 35px;
     }
   }
   &__image_desk {
@@ -492,33 +495,33 @@ onBeforeUnmount(() => {
   }
   &__sell {
     border-radius: 8px;
-    min-width: 50px;
+    min-width: 40px;
     height: 40px;
-    background-color: transparent;
-    color: var(--primary-color);
-    background-color: var(--hint-primary-color);
+    color: var(--third-color);
+    background-color: var(--bg-third-color);
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-primary-color);
     transition: all 0.3s ease 0s;
     &.active {
-      border-color: var(--hint-primary-color);
-      background-color: var(--bg-primary-color);
+      border-color: transparent;
+      background-color: var(--hint-primary-color);
+      pointer-events: none;
     }
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--hint-primary-color);
-        background-color: var(--bg-primary-color);
+        border-color: transparent;
+        background-color: var(--hint-primary-color);
+        pointer-events: none;
       }
     }
     @media (min-width: $md2) {
       @include hide-item;
     }
     &-icon {
-      margin-right: 5px;
-      min-width: 39px;
-      height: 20px;
+      min-width: 24px;
+      height: 24px;
     }
   }
 }
@@ -537,7 +540,7 @@ onBeforeUnmount(() => {
     min-height: calc(100dvh - 50px);
     display: block;
     z-index: var(--menu-z-index);
-    padding: 25px 10px 30px;
+    padding: 30px 10px 30px;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -589,7 +592,6 @@ onBeforeUnmount(() => {
     position: relative;
     z-index: 1;
     position: relative;
-
     &::after {
       content: '';
       position: absolute;
@@ -609,6 +611,9 @@ onBeforeUnmount(() => {
       &::after {
         opacity: 1;
       }
+      @media (max-width: $md2) {
+        color: var(--third-color);
+      }
     }
     @media (any-hover: hover) {
       &:hover {
@@ -620,6 +625,8 @@ onBeforeUnmount(() => {
       height: fit-content;
       width: 100%;
       min-height: 45px;
+      border-radius: 8px;
+      background-color: var(--bg-third-color);
       &:not(:last-child) {
         margin-bottom: 5px;
       }
@@ -677,7 +684,7 @@ onBeforeUnmount(() => {
   }
   @media (max-width: $md7) {
     min-width: 40px;
-    background-color: var(--hint-primary-color);
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -687,6 +694,9 @@ onBeforeUnmount(() => {
     height: 17px;
     transition: color 0.3s ease 0s;
     color: var(--border-primary-color);
+    @media (max-width: $md7) {
+      color: var(--third-color);
+    }
   }
   &__balance {
     margin-top: 3px;
@@ -815,7 +825,7 @@ onBeforeUnmount(() => {
       position: absolute;
       width: 100%;
       height: 2px;
-      background-color: var(--primary-color);
+      background-color: var(--third-color);
     }
 
     &::before {
@@ -844,115 +854,6 @@ onBeforeUnmount(() => {
         bottom: calc(50% - 1px);
         transform: rotate(45deg);
       }
-    }
-  }
-}
-
-.game-switch {
-  display: none !important;
-  align-items: center;
-  gap: 8px;
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background-image:
-    linear-gradient(var(--bg-primary-color), var(--bg-primary-color)),
-    linear-gradient(180deg, #909496 0%, #181e28 100%);
-
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  @media (max-width: $md4) {
-    &:not(:last-child) {
-      margin-bottom: 5px;
-    }
-  }
-  &__button {
-    min-width: 73px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    background-color: var(--bg-secondary-color);
-    transition: all 0.3s ease;
-    cursor: pointer;
-
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-primary-color);
-      }
-    }
-    @media (max-width: $md4) {
-      min-width: none;
-      flex: 0 1 50%;
-      height: 37px;
-    }
-
-    &.active {
-      background-color: var(--bg-primary-color);
-    }
-
-    &_dota {
-      @media (any-hover: hover) {
-        &:hover {
-          :deep(svg path:first-child) {
-            fill: #b9070a;
-          }
-
-          :deep(svg path:last-child) {
-            fill: #ffffff;
-          }
-        }
-      }
-
-      &.active {
-        :deep(svg path:first-child) {
-          fill: #b9070a;
-        }
-
-        :deep(svg path:last-child) {
-          fill: #ffffff;
-        }
-      }
-    }
-
-    &_cs {
-      @media (any-hover: hover) {
-        &:hover {
-          :deep(svg path:nth-child(-n + 3)) {
-            fill: #3b5fff;
-          }
-
-          :deep(svg path:nth-child(n + 4)) {
-            fill: #ffffff;
-          }
-        }
-      }
-
-      &.active {
-        :deep(svg path:nth-child(-n + 3)) {
-          fill: #3b5fff;
-        }
-
-        :deep(svg path:nth-child(n + 4)) {
-          fill: #ffffff;
-        }
-      }
-    }
-  }
-
-  &__icon {
-    width: 64px;
-    height: 16px;
-
-    :deep(svg) {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    :deep(path) {
-      transition: fill 0.3s ease;
     }
   }
 }

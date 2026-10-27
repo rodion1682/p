@@ -101,6 +101,10 @@ const dropdownClasses = computed(() => ({
 @use '@/assets/styles/components/classes' as *;
 
 .currency-select {
+  @media (min-width: $md4) {
+    display: flex;
+    align-self: stretch;
+  }
   @media (any-hover: hover) {
     &:hover {
       .currency-select__caret {
@@ -153,6 +157,9 @@ const dropdownClasses = computed(() => ({
 
 .dropdown {
   position: relative;
+  @media (min-width: $md4) {
+    min-height: 100%;
+  }
   &_open {
     .dropdown__wrapper {
       background-color: var(--hint-primary-color);
@@ -168,6 +175,7 @@ const dropdownClasses = computed(() => ({
     justify-content: space-between;
     gap: 8px;
     min-height: inherit;
+    height: inherit;
     padding-top: 5px;
     padding-bottom: 5px;
     @include adaptiveValue('padding-left', 20, 10, 1400, 992, 1);
