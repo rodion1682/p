@@ -50,6 +50,38 @@ const goToDota2 = () => {
             >{{ $t('Browse Dota 2 Skins') }}</BaseButton
           >
         </div>
+        <div class="hero__lists">
+          <div class="hero__list">
+            <div class="hero__list-line"></div>
+            <div class="hero__list-label">
+              {{ $t('CS2 SKINS') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Weapons') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Knives') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Gloves') }}
+            </div>
+          </div>
+          <div class="hero__list">
+            <div class="hero__list-line"></div>
+            <div class="hero__list-label">
+              {{ $t('DOTA 2 SKINS') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Hero Sets') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Immortals') }}
+            </div>
+            <div class="hero__list-item">
+              {{ $t('Couriers') }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -81,10 +113,7 @@ const goToDota2 = () => {
   }
 
   &__content {
-    text-shadow:
-      0 0 5px rgba(255, 255, 255),
-      0 0 8px rgba(255, 255, 255, 0.9),
-      0 2px 8px rgba(0, 0, 0, 0.15);
+    text-shadow: 1px 1px 2px rgba(255, 255, 255);
   }
 
   &__title {
@@ -112,6 +141,67 @@ const goToDota2 = () => {
 
   &__button {
     max-width: 284px;
+  }
+  &__lists {
+    position: absolute;
+    right: 3%;
+    top: 2%;
+    display: flex;
+    @include adaptiveValue('gap', 77, 20);
+    @media (max-width: $md2) {
+      @include hide-item;
+    }
+  }
+  &__list {
+    padding-left: 29px;
+    padding-bottom: 24px;
+    line-height: 120%;
+    position: relative;
+    text-shadow: 1px 1px 2px var(--secondary-color);
+    height: fit-content;
+    &:not(:last-child) {
+      margin-top: 30%;
+    }
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--hint-primary-color);
+      left: 0;
+      transform: translate(-50%, 0px);
+    }
+    &::before {
+      top: 0;
+    }
+    &::after {
+      bottom: 0;
+    }
+    &-line {
+      position: absolute;
+      height: 60%;
+      left: 0;
+      top: 50%;
+      transform: translate(0px, -50%);
+      width: 1px;
+      background-color: var(--hint-primary-color);
+    }
+    &-label {
+      text-transform: uppercase;
+      color: var(--third-color);
+      &:not(:last-child) {
+        margin-bottom: 12px;
+      }
+    }
+
+    &-item {
+      color: var(--border-primary-color);
+      &:not(:last-child) {
+        margin-bottom: 12px;
+      }
+    }
   }
 }
 </style>
