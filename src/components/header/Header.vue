@@ -16,7 +16,7 @@
           <img class="logo__image_mob" src="@/assets/img/logo-small.svg" />
         </RouterLink>
         <button
-          v-if="(isOfferEnabled && isAuthenticated) || true"
+          v-if="isOfferEnabled && isAuthenticated"
           class="logo__sell"
           :class="{ active: isSellSkinActive }"
           @click="openSellSkinsFromNav"
