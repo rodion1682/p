@@ -1,25 +1,18 @@
+
 <template>
   <div class="sign-in sign-in_rest">
-    <button
-      variant="transparent"
-      class="sign-in__reset"
-      type="button"
-      @click="router.push({ name: 'LoginPage' })"
-      v-if="false"
-    >
-      <SvgIcon :icon="CloseIcon" class="sign-in__reset-icon" />
-    </button>
     <div class="sign-in__title _h3">
       {{ $t('Forgot your password?') }}
     </div>
-    <div v-if="false" class="sign-in__subtitle">
-      {{ $t('Enter your E-Mail to get a reset link to your account.') }}
-    </div>
-    <form @submit.prevent="handlePasswordReset" class="sign-in__form">
+
+    <form
+      class="sign-in__form"
+      @submit.prevent="handlePasswordReset"
+    >
       <div class="sign-in__inputs">
         <BaseInput
-          class="sign-in__input"
           v-model="email"
+          class="sign-in__input"
           type="email"
           name="email"
           autocomplete="email"
@@ -30,60 +23,65 @@
         />
       </div>
 
-      <div v-if="serverMessage" class="sign-in__success _text-success">
+      <div
+        v-if="serverMessage"
+        class="sign-in__success _text-success"
+      >
         {{ serverMessage }}
       </div>
 
-      <div v-if="errorMessage" class="sign-in__error _text-error">
+      <div
+        v-if="errorMessage"
+        class="sign-in__error _text-error"
+      >
         {{ errorMessage }}
       </div>
+
       <div class="sign-in__actions">
         <BaseButton
           type="submit"
           :disabled="isLoading"
           class="sign-in__submit sign-in__submit_reset"
         >
-          <span v-if="isLoading">{{ $t('Sending') }}...</span>
-          <span v-else>{{ $t('Send') }}</span>
+          <span v-if="isLoading">
+            {{ $t('Sending') }}...
+          </span>
+          <span v-else>
+            {{ $t('Send') }}
+          </span>
         </BaseButton>
+
         <BaseButton
           variant="white-bordered"
           class="sign-in__switch sign-in__switch_full"
           type="button"
-          @click="router.push({ name: 'LoginPage' })"
+          @click="handleBackToSignIn"
         >
           {{ $t('back') }}
         </BaseButton>
       </div>
     </form>
-    <div v-if="false" class="sign-in__bottom">
-      <div class="sign-in__text">
-        {{ $t('Remember your password?') }}
-      </div>
-      <BaseButton
-        variant="white-bordered"
-        class="sign-in__switch"
-        type="button"
-        @click="router.push({ name: 'LoginPage' })"
-      >
-        {{ $t('back') }}
-      </BaseButton>
-    </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import { useToast } from '@/composables/useToast'
 import { useUserStore } from '@/stores/user'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { CloseIcon } from '../icons'
-import SvgIcon from '../icons/SvgIcon.vue'
 
-defineEmits(['back-to-sign-in'])
+const props = defineProps({
+  isAuthModalActive: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['back-to-sign-in'])
 
 const { t } = useI18n()
 const toast = useToast()
@@ -92,9 +90,17 @@ const userStore = useUserStore()
 
 const email = ref('')
 const isLoading = ref(false)
-
 const errorMessage = ref('')
 const serverMessage = ref('')
+
+const handleBackToSignIn = () => {
+  if (props.isAuthModalActive) {
+    emit('back-to-sign-in')
+    return
+  }
+
+  router.push({ name: 'LoginPage' })
+}
 
 const handlePasswordReset = async () => {
   errorMessage.value = ''
@@ -105,6 +111,8 @@ const handlePasswordReset = async () => {
     return
   }
 
+  if (isLoading.value) return
+
   isLoading.value = true
 
   try {
@@ -113,6 +121,7 @@ const handlePasswordReset = async () => {
     serverMessage.value = t(
       'Password reset link sent. Please check your email.',
     )
+
     toast.success(serverMessage.value)
   } catch (error) {
     const apiMessage =

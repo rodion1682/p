@@ -77,14 +77,7 @@
           :error="fieldErrors.confirmPassword"
         />
       </div>
-      <!-- <div class="sign-in__terms">
-        <BaseCheckbox
-          v-model="form.ageConfirmed"
-          :error="fieldErrors.ageConfirmed"
-        >
-          {{ $t('I confirm that I am a person aged 18 or over.') }}
-        </BaseCheckbox>
-      </div> -->
+
       <div class="sign-in__terms">
         <BaseCheckbox
           v-model="form.ageRestrictionAccepted"
@@ -97,6 +90,7 @@
           }}
         </BaseCheckbox>
       </div>
+
       <div class="sign-in__terms">
         <BaseCheckbox
           v-model="form.termsAccepted"
@@ -124,9 +118,10 @@
       </div>
 
       <BaseButton
+        type="button"
         variant="white-bordered"
         class="sign-in__switch"
-        @click="router.push({ name: 'LoginPage' })"
+        @click="handleSignInClick"
       >
         {{ $t('Log In') }}
       </BaseButton>
@@ -147,7 +142,14 @@ import { useStaticPages } from '@/composables/useStaticPages'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
-defineEmits(['open-sign-in'])
+const props = defineProps({
+  isAuthModalActive: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['open-sign-in', 'success'])
 
 const IS_COMBINED_NAME_AND_SURNAME = false
 const SHOW_PHONE = false
@@ -218,6 +220,17 @@ const clearFieldErrors = () => {
   })
 }
 
+const handleSignInClick = () => {
+  if (props.isAuthModalActive) {
+    emit('open-sign-in')
+    return
+  }
+
+  router.push({
+    name: 'LoginPage',
+  })
+}
+
 const validateForm = () => {
   clearFieldErrors()
   error.value = ''
@@ -227,34 +240,26 @@ const validateForm = () => {
 
     if (!name || !surname) {
       fieldErrors.value.fullName = t('Please enter your full name')
-
       error.value = fieldErrors.value.fullName
-
       return false
     }
   } else {
     if (!norm(form.firstName)) {
       fieldErrors.value.firstName = t('First name is required')
-
       error.value = fieldErrors.value.firstName
-
       return false
     }
 
     if (!norm(form.lastName)) {
       fieldErrors.value.lastName = t('Last name is required')
-
       error.value = fieldErrors.value.lastName
-
       return false
     }
   }
 
   if (!norm(form.email)) {
     fieldErrors.value.email = t('Email is required')
-
     error.value = fieldErrors.value.email
-
     return false
   }
 
@@ -262,9 +267,7 @@ const validateForm = () => {
 
   if (!emailRegex.test(norm(form.email))) {
     fieldErrors.value.email = t('Please enter a valid email address')
-
     error.value = fieldErrors.value.email
-
     return false
   }
 
@@ -273,46 +276,35 @@ const validateForm = () => {
 
     if (!phone) {
       fieldErrors.value.phone = t('Phone number is required')
-
       error.value = fieldErrors.value.phone
-
       return false
     }
 
     const normalizedPhone = phone.replace(/\s+/g, '')
-
     const phoneRegex = /^\+?\d{8,15}$/
 
     if (!phoneRegex.test(normalizedPhone)) {
       fieldErrors.value.phone = t('Please enter a valid phone number')
-
       error.value = fieldErrors.value.phone
-
       return false
     }
   }
 
   if (!form.password) {
     fieldErrors.value.password = t('Password is required')
-
     error.value = fieldErrors.value.password
-
     return false
   }
 
   if (form.password.length < 5) {
     fieldErrors.value.password = t('Password must be at least 5 characters')
-
     error.value = fieldErrors.value.password
-
     return false
   }
 
   if (!form.confirmPassword) {
     fieldErrors.value.confirmPassword = t('Please confirm your password')
-
     error.value = fieldErrors.value.confirmPassword
-
     return false
   }
 
@@ -321,7 +313,6 @@ const validateForm = () => {
 
     fieldErrors.value.password = message
     fieldErrors.value.confirmPassword = message
-
     error.value = message
 
     return false
@@ -333,7 +324,6 @@ const validateForm = () => {
     )
 
     error.value = fieldErrors.value.ageRestrictionAccepted
-
     return false
   }
 
@@ -343,7 +333,6 @@ const validateForm = () => {
     )
 
     error.value = fieldErrors.value.termsAccepted
-
     return false
   }
 
@@ -367,10 +356,6 @@ const buildRegisterPayload = () => {
     passConfirm: form.confirmPassword,
   }
 
-  /*
-   * The phone property does not exist
-   * at all when SHOW_PHONE = false.
-   */
   if (SHOW_PHONE) {
     payload.phone = norm(form.phone)
   }
@@ -385,16 +370,10 @@ const handleBackendErrors = backendErrors => {
     surname: IS_COMBINED_NAME_AND_SURNAME ? 'fullName' : 'lastName',
 
     email: 'email',
-
     password: 'password',
-
     passConfirm: 'confirmPassword',
   }
 
-  /*
-   * Only map backend phone errors when the
-   * phone field actually exists in the UI.
-   */
   if (SHOW_PHONE) {
     map.phone = 'phone'
     map.phoneE164 = 'phone'
@@ -403,15 +382,9 @@ const handleBackendErrors = backendErrors => {
   Object.entries(backendErrors || {}).forEach(([field, messages]) => {
     const key = map[field]
 
-    /*
-     * Ignore fields we intentionally don't
-     * expose, such as phone when SHOW_PHONE=false.
-     */
     if (!key) return
 
-    if (!(key in fieldErrors.value)) {
-      return
-    }
+    if (!(key in fieldErrors.value)) return
 
     const message = Array.isArray(messages) ? messages[0] : messages
 
@@ -427,7 +400,6 @@ const handleSignUp = async () => {
   try {
     if (!validateForm()) {
       toast.error(error.value || t('Please fill in all required fields'))
-
       return
     }
 
@@ -437,12 +409,16 @@ const handleSignUp = async () => {
 
     await authStore.register(payload)
 
+    if (props.isAuthModalActive) {
+      emit('success')
+      return
+    }
+
     await router.push({
       name: 'account',
     })
   } catch (err) {
     const backendErrors = err?.response?.data?.errors
-
     const backendMessage = err?.response?.data?.message
 
     if (backendErrors && Object.keys(backendErrors).length) {
@@ -450,14 +426,12 @@ const handleSignUp = async () => {
 
       if (backendMessage) {
         error.value = backendMessage
-
         toast.error(error.value)
       } else {
         const firstFieldError = Object.values(fieldErrors.value).find(Boolean)
 
         if (firstFieldError) {
           error.value = firstFieldError
-
           toast.error(firstFieldError)
         }
       }
@@ -465,16 +439,12 @@ const handleSignUp = async () => {
       return
     }
 
-    error.value =
-      backendMessage || err?.message || err || t('Registration failed')
+    error.value = backendMessage || err?.message || t('Registration failed')
 
     toast.error(error.value)
   } finally {
     isLoading.value = false
-
-    setTimeout(() => {
-      isSubmitting = false
-    }, 500)
+    isSubmitting = false
   }
 }
 

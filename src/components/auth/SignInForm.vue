@@ -38,7 +38,6 @@
       <div class="sign-in__actions">
         <BaseButton type="submit" :disabled="isLoading" class="sign-in__submit">
           <span v-if="isLoading"> {{ $t('Logging in') }}... </span>
-
           <span v-else>
             {{ $t('Log In') }}
           </span>
@@ -54,7 +53,8 @@
       <BaseButton
         variant="white-bordered"
         class="sign-in__switch"
-        @click="router.push({ name: 'RegisterPage' })"
+        type="button"
+        @click="handleSignUpClick"
       >
         {{ $t('Sign Up') }}
       </BaseButton>
@@ -69,16 +69,19 @@ import { useRouter } from 'vue-router'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
-
 import { useAuthStore } from '@/stores/auth'
 
-const emit = defineEmits(['open-sign-up', 'open-reset-password'])
+const props = defineProps({
+  isAuthModalActive: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['success', 'open-sign-up', 'open-reset-password'])
 
 const router = useRouter()
 const { t } = useI18n()
-
-const IS_RESET_MODAL_ACTIVE = true
-
 const authStore = useAuthStore()
 
 const isLoading = ref(false)
@@ -89,15 +92,22 @@ const form = reactive({
   password: '',
 })
 
+const handleSignUpClick = () => {
+  if (props.isAuthModalActive) {
+    emit('open-sign-up')
+    return
+  }
+
+  router.push({ name: 'RegisterPage' })
+}
+
 const handleForgotPassword = () => {
-  if (IS_RESET_MODAL_ACTIVE) {
+  if (props.isAuthModalActive) {
     emit('open-reset-password')
     return
   }
 
-  router.push({
-    name: 'ForgotPasswordPage',
-  })
+  router.push({ name: 'ForgotPasswordPage' })
 }
 
 const validateForm = () => {
@@ -117,30 +127,39 @@ const validateForm = () => {
 const handleSignIn = async () => {
   error.value = ''
 
-  if (!validateForm()) {
-    return
-  }
+  if (!validateForm() || isLoading.value) return
 
   isLoading.value = true
 
   try {
     await authStore.login(form.email, form.password)
 
-    const redirectTo = router.currentRoute.value.query.redirect
-
-    if (redirectTo) {
-      router.push(redirectTo)
+    if (props.isAuthModalActive) {
+      emit('success')
       return
     }
 
-    router.replace({
-      path: '/account',
-    })
+    const redirectTo = router.currentRoute.value.query.redirect
+
+    if (
+      typeof redirectTo === 'string' &&
+      redirectTo.startsWith('/') &&
+      !redirectTo.startsWith('//')
+    ) {
+      await router.push(redirectTo)
+      return
+    }
+
+    await router.replace({ path: '/account' })
   } catch (err) {
     if (err?.errors && Object.keys(err.errors).length > 0) {
-      error.value = Object.values(err.errors)[0][0]
+      const firstError = Object.values(err.errors)[0]
+      error.value = Array.isArray(firstError)
+        ? firstError[0]
+        : String(firstError)
     } else {
-      error.value = err?.message || err || t('An error occurred')
+      error.value =
+        err?.response?.data?.message || err?.message || t('An error occurred')
     }
   } finally {
     isLoading.value = false
