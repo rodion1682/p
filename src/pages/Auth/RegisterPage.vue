@@ -5,6 +5,7 @@
 </template>
 
 <script setup>
-import SignUpForm from '@/components/auth/SignUpForm.vue'
+
 import AuthLayout from '@/layouts/AuthLayout.vue'
+import SignUpForm from './components/SignUpForm.vue';
 </script>

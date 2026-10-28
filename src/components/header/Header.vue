@@ -202,9 +202,6 @@ import {
 
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
-import PasswordResetModal from '@/components/modals/auth/PasswordResetModal.vue'
-import SignInModal from '@/components/modals/auth/SignInModal.vue'
-import SignUpModal from '@/components/modals/auth/SignUpModal.vue'
 import SellSkinsModal from '@/components/modals/sellSkins/SellSkinModal/SellSkinsModal.vue'
 
 import { useGame } from '@/composables/useGame'
@@ -214,6 +211,9 @@ import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 
 import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
+import PasswordResetModal from '@/pages/Auth/modals/PasswordResetModal.vue'
+import SignUpModal from '@/pages/Auth/modals/SignUpModal.vue'
+import SignInModal from '@/pages/Auth/modals/SignInModal.vue'
 
 defineOptions({
   name: 'AppHeader',
