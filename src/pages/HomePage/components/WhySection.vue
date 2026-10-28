@@ -127,15 +127,23 @@
 @use '@/assets/styles/components/classes' as *;
 
 .why {
-  @include adaptiveValue('padding-top', 100, 30);
-  @include adaptiveValue('padding-bottom', 100, 30);
+  @include adaptiveValue('padding-top', 200, 60);
+  @include adaptiveValue('padding-bottom', 200, 60);
   position: relative;
+
   &__bg {
     position: absolute;
+    width: 50%;
+    aspect-ratio: 1 / 0.75;
     &_left {
+      left: 0;
+      top: 0;
     }
 
     &_right {
+      right: 0;
+      bottom: 0;
+      transform: translate(0px, 20%);
     }
   }
 

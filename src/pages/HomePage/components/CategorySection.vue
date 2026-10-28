@@ -280,7 +280,6 @@ onMounted(() => {
   position: relative;
   z-index: 1;
   @include adaptiveValue('margin-top', -50, 0);
-  @include adaptiveValue('padding-bottom', 100, 30);
   &__inner {
   }
 

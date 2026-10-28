@@ -2,7 +2,7 @@ import axios from '@/plugins/axios'
 import { defineStore } from 'pinia'
 
 const DOTA2_CATEGORY = 'cs2'
-const DEFAULT_LIMIT = 20
+const DEFAULT_LIMIT = 24
 
 export const useProductStore = defineStore('product', {
   state: () => ({

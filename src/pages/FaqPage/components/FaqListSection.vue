@@ -1,42 +1,42 @@
 <template>
-  <section class="faq-section">
-    <div class="faq-section__title _h3">
-      {{ $t('Frequently asked questions') }}
+  <section class="faq _cnt">
+    <div class="faq__title _h2">
+      {{ $t('FAQ') }}
     </div>
 
-    <LoadingSpinner v-if="loadingFaq" class="faq-section__loading" />
+    <LoadingSpinner v-if="loadingFaq" class="faq__loading" />
 
     <template v-else-if="faqItems.length">
-      <div class="faq-section__items">
+      <div class="faq__items">
         <div
           v-for="(item, index) in faqItems"
           :key="item.id"
-          class="faq-section__item"
+          class="faq__item"
           :class="{ active: activeIndex === index }"
         >
-          <div class="faq-section__content" @click="toggleItem(index)">
-            <div class="faq-section__question">
+          <div class="faq__content" @click="toggleItem(index)">
+            <div class="faq__question">
               {{ item.question }}
             </div>
 
             <div
-              class="faq-section__answer-wrapper"
+              class="faq__answer-wrapper"
               :class="{ open: activeIndex === index }"
             >
-              <div class="faq-section__answer-inner">
-                <div class="faq-section__answer" v-html="item.answer" />
+              <div class="faq__answer-inner">
+                <div class="faq__answer" v-html="item.answer" />
               </div>
             </div>
           </div>
 
           <button
             type="button"
-            class="faq-section__icon-wrapper"
+            class="faq__icon-wrapper"
             :aria-expanded="activeIndex === index"
             @click="toggleItem(index)"
           >
             <SvgIcon
-              class="faq-section__icon"
+              class="faq__icon"
               :class="{ active: activeIndex === index }"
               :icon="ChevronDownIcon"
             />
@@ -45,7 +45,7 @@
       </div>
     </template>
 
-    <div v-else class="faq-section__empty _empty">
+    <div v-else class="faq__empty _empty">
       {{ $t('No questions found') }}
     </div>
   </section>
@@ -99,8 +99,9 @@ onMounted(fetchFaq)
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.faq-section {
+.faq {
   &__title {
+    text-align: center;
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 18);
     }
@@ -111,30 +112,25 @@ onMounted(fetchFaq)
     cursor: pointer;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 4);
+      @include adaptiveValue('margin-bottom', 15, 4);
     }
   }
 
   &__content {
-    position: relative;
-
-    @include adaptiveValue('padding', 16, 10);
-    @include adaptiveValue('border-radius', 20, 10);
-
-    padding-right: 40px;
-
-    border: 1px solid var(--border-primary-color);
-
-    background-color: var(--bg-primary-color);
-    color: var(--primary-color);
-
-    transition: color 0.3s ease;
-
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--hint-primary-color);
-      }
-    }
+    @include adaptiveValue('padding', 30, 10);
+    @include adaptiveValue('border-radius', 18, 8);
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#030b17, #030b17) padding-box,
+      linear-gradient(
+          0deg,
+          #030b17 10%,
+          rgb(26, 115, 255, 0.7) 50%,
+          #030b17 90%
+        )
+        border-box;
+    box-shadow: inset -200px 0 60px 20px rgba(26, 115, 255, 0.05);
+    overflow: hidden;
   }
 
   &__question {
@@ -143,31 +139,43 @@ onMounted(fetchFaq)
 
     gap: 20px;
 
-    color: inherit;
+    color: var(--third-color);
+    font-weight: 700;
   }
 
   &__icon-wrapper {
     position: absolute;
 
-    @include adaptiveValue('top', 16, 10);
-    @include adaptiveValue('right', 16, 10);
-
+    @include adaptiveValue('top', 23, 10);
+    @include adaptiveValue('right', 23, 10);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: transparent;
+    border-radius: 5px;
+    background-color: var(--bg-third-color);
+    border: 1px solid inherit;
+    color: var(--third-color);
+    transition: background-color 0.3s ease 0s;
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--hint-primary-color);
+      }
+    }
   }
 
   &__icon {
-    min-width: 16px;
-    width: 16px;
-    height: 16px;
+    min-width: 10px;
+    width: 10px;
+    height: 6px;
 
-    color: var(--hint-primary-color);
-
-    transform: rotate(-180deg);
-
+    transform: rotate(0deg);
     transition: transform 0.3s ease;
 
     &.active {
-      transform: rotate(0deg);
+      transform: rotate(-180deg);
     }
   }
 
@@ -194,9 +202,9 @@ onMounted(fetchFaq)
   }
 
   &__answer {
-    padding-top: 10px;
+    padding-top: 20px;
 
-    color: var(--third-color);
+    color: var(--primary-color);
 
     :deep(p) {
       margin: 0;

@@ -4,7 +4,7 @@ import { computed, useSlots } from 'vue'
 import { ChevronDownIcon, OfferIcon, UserIcon } from '../icons'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | bordered | white-bordered
+  variant: { type: String, default: 'primary' }, // primary | bordered | white-bordered | dark
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -130,6 +130,15 @@ const buttonClasses = computed(() => [
   &.white-bordered {
     background-color: var(--bg-primary-color);
     color: var(--third-color);
+  }
+  &.dark {
+    background-color: var(--bg-primary-color);
+    color: var(--third-color);
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--hint-primary-color);
+      }
+    }
   }
   &.with-addons {
     gap: 10px;

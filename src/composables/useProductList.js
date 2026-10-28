@@ -12,7 +12,7 @@ export const PRODUCT_GAMES = {
   DOTA2: 'dota2',
 }
 
-export const ALLOWED_GAMES = [PRODUCT_GAMES.CS2]
+export const ALLOWED_GAMES = [PRODUCT_GAMES.CS2, PRODUCT_GAMES.DOTA2]
 
 export const SORT_OPTIONS = [
   {
