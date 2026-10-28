@@ -123,7 +123,7 @@
 
         <template v-else>
           <BaseButton
-            variant="bordered"
+            variant="white-bordered"
             class="header__reg-button header__reg-button_login"
             @click="goToLogin"
           >

@@ -1,6 +1,7 @@
 <script setup>
 import CategorySection from '@/pages/HomePage/components/CategorySection.vue'
 import HeroSection from '@/pages/HomePage/components/HeroSection.vue'
+import TrandingSection from './components/TrandingSection.vue'
 import WhySection from './components/WhySection.vue'
 </script>
 
@@ -9,6 +10,7 @@ import WhySection from './components/WhySection.vue'
     <HeroSection />
     <CategorySection />
     <WhySection />
+    <TrandingSection />
   </div>
 </template>
 
