@@ -1,7 +1,7 @@
 <template>
   <div class="sign-in">
     <div class="sign-in__title _h3">
-      {{ $t('Register') }}
+      {{ $t('Sign Up') }}
     </div>
 
     <form class="sign-in__form" @submit.prevent="handleSignUp">
@@ -113,7 +113,7 @@
         <span v-if="isLoading"> {{ $t('creating') }}... </span>
 
         <span v-else>
-          {{ $t('Register') }}
+          {{ $t('Sign Up') }}
         </span>
       </BaseButton>
     </form>
@@ -124,7 +124,7 @@
       </div>
 
       <BaseButton
-        variant="bordered"
+        variant="white-bordered"
         class="sign-in__switch"
         @click="router.push({ name: 'LoginPage' })"
       >

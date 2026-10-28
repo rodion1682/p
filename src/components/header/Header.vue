@@ -7,24 +7,34 @@
             v-if="route.name === 'HomePage' && !isScrolled"
             class="logo__image_desk"
             src="@/assets/img/logo-full-home.svg"
+            alt="RelicForge"
           />
           <img
             v-else
             class="logo__image_desk"
             src="@/assets/img/logo-full.svg"
+            alt="RelicForge"
           />
-          <img class="logo__image_mob" src="@/assets/img/logo-small.svg" />
+          <img
+            class="logo__image_mob"
+            src="@/assets/img/logo-small.svg"
+            alt="RelicForge"
+          />
         </RouterLink>
+
         <button
           v-if="isOfferEnabled && isAuthenticated"
+          type="button"
           class="logo__sell"
           :class="{ active: isSellSkinActive }"
+          aria-label="Sell Skins"
           @click="openSellSkinsFromNav"
         >
           <SvgIcon :icon="SellSkinsIcon" class="logo__sell-icon" />
         </button>
       </div>
-      <div :class="{ open: isMobileMenuVisible }" class="header__nav nav">
+
+      <div class="header__nav nav" :class="{ open: isMobileMenuVisible }">
         <RouterLink
           :to="{ name: 'HomePage' }"
           class="nav__link"
@@ -32,6 +42,7 @@
         >
           {{ $t('Home') }}
         </RouterLink>
+
         <button
           type="button"
           class="nav__link"
@@ -49,6 +60,7 @@
         >
           {{ $t('Dota 2 Skins') }}
         </button>
+
         <button
           v-if="isOfferEnabled && isAuthenticated"
           type="button"
@@ -66,6 +78,7 @@
         >
           {{ $t('FAQ') }}
         </RouterLink>
+
         <RouterLink
           :to="{ name: 'ContactPage' }"
           class="nav__link"
@@ -74,17 +87,20 @@
           {{ $t('Contact us') }}
         </RouterLink>
       </div>
+
       <div class="header__auth">
         <LanguageSwitcher
           data-da-id="header-language"
           data-da=".header__nav,619.98,first"
           class="header__language"
         />
+
         <CurrencyDropdown
           data-da-id="header-currency"
           data-da=".header__nav,619.98,first"
           class="header__currency"
         />
+
         <template v-if="isAuthenticated">
           <RouterLink
             :to="{ name: 'account-balance' }"
@@ -102,9 +118,9 @@
               <SvgIcon :icon="PlusIcon" class="balance__plus-icon" />
             </div>
           </RouterLink>
-          <!--  @click="openCartModal" -->
+
           <RouterLink :to="{ name: 'CartPage' }" class="header__link link">
-            <SvgIcon class="link__icon" :icon="CartIcon" />
+            <SvgIcon :icon="CartIcon" class="link__icon" />
             <span v-if="cartCount" class="link__count">
               {{ cartCount }}
             </span>
@@ -114,10 +130,7 @@
             :to="{ name: 'account-profile' }"
             class="header__link link"
           >
-            <SvgIcon class="link__icon" :icon="UserIcon" />
-            <div v-if="false" class="link__text">
-              {{ $t('Profile') }}
-            </div>
+            <SvgIcon :icon="UserIcon" class="link__icon" />
           </RouterLink>
         </template>
 
@@ -125,14 +138,14 @@
           <BaseButton
             variant="white-bordered"
             class="header__reg-button header__reg-button_login"
-            @click="goToLogin"
+            @click="openSignIn"
           >
             {{ $t('Log In') }}
           </BaseButton>
 
           <BaseButton
             class="header__reg-button header__reg-button_signin"
-            @click="goToRegister"
+            @click="openSignUp"
           >
             {{ $t('Sign Up') }}
           </BaseButton>
@@ -149,25 +162,36 @@
     </div>
   </header>
 
+  <SignInModal
+    v-model="isSignInOpen"
+    @switch-to-sign-up="openSignUp"
+    @switch-to-reset-password="openResetPassword"
+  />
+
+  <SignUpModal v-model="isSignUpOpen" @switch-to-sign-in="openSignIn" />
+
+  <PasswordResetModal
+    v-model="isResetPasswordOpen"
+    @switch-to-sign-in="openSignIn"
+  />
+
   <SellSkinsModal
     v-if="SHOW_SELL_SKIN_MODAL && isSellSkinsOpen && isAuthenticated"
     v-model="isSellSkinsOpen"
     @close="isSellSkinsOpen = false"
   />
-
-  <!--   v-if="isCartOpen"
-    v-model:show="isCartOpen" -->
-  <!--<CartPageModal
-    v-if="false"
-    v-model="isCartOpen"
-    @close="isCartOpen = false"
-  />-->
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 import PriceFormatter from '@/components/PriceFormatter.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import CurrencyDropdown from '@/components/header/CurrencyDropdown.vue'
+import LanguageSwitcher from '@/components/header/LanguageSwitcher.vue'
+
 import {
   CartIcon,
   PlusIcon,
@@ -175,18 +199,22 @@ import {
   UserIcon,
   WalletIcon,
 } from '@/components/icons'
+
 import SvgIcon from '@/components/icons/SvgIcon.vue'
+
+import PasswordResetModal from '@/components/modals/auth/PasswordResetModal.vue'
+import SignInModal from '@/components/modals/auth/SignInModal.vue'
+import SignUpModal from '@/components/modals/auth/SignUpModal.vue'
+import SellSkinsModal from '@/components/modals/sellSkins/SellSkinModal/SellSkinsModal.vue'
+
 import { useGame } from '@/composables/useGame'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+
 import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
-import { storeToRefs } from 'pinia'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import SellSkinsModal from '../modals/sellSkins/SellSkinModal/SellSkinsModal.vue'
-import LanguageSwitcher from './LanguageSwitcher.vue'
+
 defineOptions({
   name: 'AppHeader',
 })
@@ -203,33 +231,22 @@ const settingsStore = useSettingsStore()
 
 const { userBalance } = storeToRefs(userStore)
 
-const { selectedGame, marketRoute, setGame, syncGame } = useGame()
+const { syncGame } = useGame()
 
 const isMobileMenuVisible = ref(false)
-const isSignInOpen = ref(false)
 const isScrolled = ref(false)
 const isSellSkinsOpen = ref(false)
 const isCartOpen = ref(false)
 
+const isSignInOpen = ref(false)
+const isSignUpOpen = ref(false)
+const isResetPasswordOpen = ref(false)
+
 const isOfferEnabled = computed(() => settingsStore.isOfferEnabled)
+
 const cartCount = computed(() => cartstore.cartItemsCount)
+
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-const isSellSkinActive = computed(() => {
-  if (SHOW_SELL_SKIN_MODAL) {
-    return isSellSkinsOpen.value
-  }
-
-  return route.name === 'SellSkisnPage'
-})
-
-//const openCartModal = () => {
-//  closeMobileMenu()
-//  isCartOpen.value = true
-//}
-
-const closeMobileMenu = () => {
-  isMobileMenuVisible.value = false
-}
 
 const isCS2Active = computed(
   () => route.name === 'ProductListPage' && route.query.category === 'cs2',
@@ -239,12 +256,59 @@ const isDota2Active = computed(
   () => route.name === 'ProductListPage' && route.query.category === 'dota2',
 )
 
+const isSellSkinActive = computed(() => {
+  if (SHOW_SELL_SKIN_MODAL) {
+    return isSellSkinsOpen.value
+  }
+
+  return route.name === 'SellSkisnPage'
+})
+
+const closeMobileMenu = () => {
+  isMobileMenuVisible.value = false
+}
+
+const closeAuthModals = () => {
+  isSignInOpen.value = false
+  isSignUpOpen.value = false
+  isResetPasswordOpen.value = false
+}
+
+const openSignIn = () => {
+  if (isAuthenticated.value) return
+
+  closeMobileMenu()
+  closeAuthModals()
+
+  isSignInOpen.value = true
+}
+
+const openSignUp = () => {
+  if (isAuthenticated.value) return
+
+  closeMobileMenu()
+  closeAuthModals()
+
+  isSignUpOpen.value = true
+}
+
+const openResetPassword = () => {
+  if (isAuthenticated.value) return
+
+  closeMobileMenu()
+  closeAuthModals()
+
+  isResetPasswordOpen.value = true
+}
+
 const goToCS2 = () => {
   closeMobileMenu()
 
   router.push({
     name: 'ProductListPage',
-    query: { category: 'cs2' },
+    query: {
+      category: 'cs2',
+    },
   })
 }
 
@@ -253,28 +317,8 @@ const goToDota2 = () => {
 
   router.push({
     name: 'ProductListPage',
-    query: { category: 'dota2' },
-  })
-}
-
-const goToLogin = () => {
-  closeMobileMenu()
-
-  router.push({
-    name: 'LoginPage',
     query: {
-      redirect: route.fullPath,
-    },
-  })
-}
-
-const goToRegister = () => {
-  closeMobileMenu()
-
-  router.push({
-    name: 'RegisterPage',
-    query: {
-      redirect: route.fullPath,
+      category: 'dota2',
     },
   })
 }
@@ -286,14 +330,8 @@ const toggleMobileMenu = () => {
 const openSellSkinsFromNav = () => {
   closeMobileMenu()
 
-  if (!authStore.isAuthenticated) {
-    router.push({
-      name: 'LoginPage',
-      query: {
-        redirect: route.fullPath,
-      },
-    })
-
+  if (!isAuthenticated.value) {
+    openSignIn()
     return
   }
 
@@ -340,8 +378,19 @@ watch(
   () => route.fullPath,
   () => {
     closeMobileMenu()
+    closeAuthModals()
   },
 )
+
+watch(isAuthenticated, async value => {
+  if (value) {
+    closeAuthModals()
+    await refreshDynamicAdapt()
+  } else {
+    destroyDynamicAdapt()
+    await refreshDynamicAdapt()
+  }
+})
 
 watch(
   [isMobileMenuVisible, isSellSkinsOpen, isCartOpen],
@@ -359,18 +408,8 @@ const refreshDynamicAdapt = async () => {
   initDynamicAdapt('max')
 }
 
-watch(isAuthenticated, async value => {
-  if (value) {
-    await refreshDynamicAdapt()
-  } else {
-    destroyDynamicAdapt()
-  }
-})
-
 onMounted(async () => {
   await refreshDynamicAdapt()
-
-  isSignInOpen.value = false
 
   handleScroll()
 
@@ -402,8 +441,10 @@ onBeforeUnmount(() => {
   transition: background-color 0.3s ease 0s;
   z-index: var(--header-z-index);
   background-color: transparent;
+
   &.scrolled {
     background-color: var(--bg-primary-color);
+
     @media (min-width: $md3) {
       .header__inner {
         padding-top: 5px;
@@ -416,14 +457,18 @@ onBeforeUnmount(() => {
   &__inner {
     display: flex;
     align-items: center;
+
     @include adaptiveValue('padding-top', 30, 5, 1440, 992, 1);
     @include adaptiveValue('padding-bottom', 30, 5, 1440, 992, 1);
     @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
-    transition: padding 0.3s ease 0s;
     @include adaptiveValue('min-height', 110, 50, 1440, 992, 1);
+
+    transition: padding 0.3s ease 0s;
   }
+
   &__logo {
     @include adaptiveValue('margin-right', 40, 0, 1440, 992, 1);
+
     @media (max-width: $md2) {
       margin-right: auto;
     }
@@ -445,24 +490,31 @@ onBeforeUnmount(() => {
   &__auth {
     display: flex;
     align-items: stretch;
+
     @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
   }
+
   &__language,
   &__currency {
     @media (min-width: $md4) {
       height: inherit;
     }
   }
+
   &__reg-button {
     :deep(.btn) {
       min-height: inherit !important;
     }
+
     :deep(.btn__text) {
       white-space: nowrap;
     }
+
     @include adaptiveValue('min-width', 160, 100);
+
     &_login {
     }
+
     &_signin {
     }
   }
@@ -473,29 +525,35 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 10px;
   height: fit-content;
+
   &__link {
     display: block;
     width: fit-content;
     height: fit-content;
+
     @media (min-width: $md5) {
       @include adaptiveValue('min-width', 188, 100, 1440, 992, 1);
       aspect-ratio: 1 / 0.28;
     }
+
     @media (max-width: $md5) {
       min-width: 40px;
       height: 35px;
     }
   }
+
   &__image_desk {
     @media (max-width: $md5) {
       @include hide-item;
     }
   }
+
   &__image_mob {
     @media (min-width: $md5) {
       @include hide-item;
     }
   }
+
   &__sell {
     border-radius: 8px;
     min-width: 40px;
@@ -507,21 +565,24 @@ onBeforeUnmount(() => {
     justify-content: center;
     border: 1px solid var(--border-primary-color);
     transition: all 0.3s ease 0s;
+
     &.active {
       border-color: transparent;
       background-color: var(--hint-primary-color);
       pointer-events: none;
     }
+
     @media (any-hover: hover) {
       &:hover {
         border-color: transparent;
         background-color: var(--hint-primary-color);
-        pointer-events: none;
       }
     }
+
     @media (min-width: $md2) {
       @include hide-item;
     }
+
     &-icon {
       min-width: 24px;
       height: 24px;
@@ -534,6 +595,7 @@ onBeforeUnmount(() => {
     display: flex;
     align-self: stretch;
   }
+
   @media (max-width: $md2) {
     position: fixed;
     top: 50px;
@@ -543,7 +605,7 @@ onBeforeUnmount(() => {
     min-height: calc(100dvh - 50px);
     display: block;
     z-index: var(--menu-z-index);
-    padding: 30px 10px 30px;
+    padding: 30px 10px;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -575,6 +637,7 @@ onBeforeUnmount(() => {
 
   &__link {
     @include adaptiveValue('--border-offset', 40, 20, 1440, 992, 1);
+
     white-space: nowrap;
     display: flex;
     justify-content: center;
@@ -590,11 +653,14 @@ onBeforeUnmount(() => {
     font-family: var(--font-inter);
     padding-top: 8px;
     padding-bottom: 8px;
+
     @include adaptiveValue('padding-left', 20, 10, 1440, 992, 1);
     @include adaptiveValue('padding-right', 20, 10, 1440, 992, 1);
+
     position: relative;
     z-index: 1;
-    position: relative;
+    cursor: pointer;
+
     &::after {
       content: '';
       position: absolute;
@@ -607,17 +673,21 @@ onBeforeUnmount(() => {
       opacity: 0;
       transition: opacity 0.3s ease;
     }
+
     &.active,
     &.router-link-exact-active {
       pointer-events: none;
       color: var(--secondary-color);
+
       &::after {
         opacity: 1;
       }
+
       @media (max-width: $md2) {
         color: var(--third-color);
       }
     }
+
     @media (any-hover: hover) {
       &:hover {
         color: var(--secondary-color);
@@ -630,6 +700,7 @@ onBeforeUnmount(() => {
       min-height: 45px;
       border-radius: 8px;
       background-color: var(--bg-third-color);
+
       &:not(:last-child) {
         margin-bottom: 5px;
       }
@@ -639,6 +710,7 @@ onBeforeUnmount(() => {
 
 .balance {
   @include adaptiveValue('min-height', 50, 40, 1440, 992, 1);
+
   display: flex;
   align-items: center;
   gap: 10px;
@@ -654,63 +726,76 @@ onBeforeUnmount(() => {
     background-color: var(--hint-primary-color);
     color: var(--third-color);
     border-color: transparent;
+
     .balance__wallet {
       color: var(--third-color);
     }
+
     :deep(.price__value) {
       color: var(--third-color);
     }
+
     .balance__plus {
       color: var(--hint-primary-color);
       background-color: var(--third-color);
     }
   }
+
   @media (any-hover: hover) {
     &:hover {
       background-color: var(--hint-primary-color);
       color: var(--third-color);
       border-color: transparent;
+
       .balance__wallet {
         color: var(--third-color);
       }
+
       :deep(.price__value) {
         color: var(--third-color);
       }
+
       .balance__plus {
         color: var(--hint-primary-color);
         background-color: var(--third-color);
       }
     }
   }
+
   @media (min-width: $md7) {
     @include adaptiveValue('padding-left', 12, 10);
   }
+
   @media (max-width: $md7) {
     min-width: 40px;
-
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
   &__wallet {
     min-width: 18px;
     height: 17px;
     transition: color 0.3s ease 0s;
     color: var(--border-primary-color);
+
     @media (max-width: $md7) {
       color: var(--third-color);
     }
   }
+
   &__balance {
     margin-top: 3px;
+
     @media (max-width: $md7) {
       @include hide-item;
     }
   }
+
   &__plus {
     @include adaptiveValue('min-width', 50, 40, 1440, 992, 1);
+
     height: 100%;
-    display: flex;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -719,15 +804,18 @@ onBeforeUnmount(() => {
     border: 1px solid transparent;
     transition: all 0.3s ease 0s;
     border-radius: 8px;
+
     @media (max-width: $md7) {
       @include hide-item;
     }
+
     @media (any-hover: hover) {
       &:hover {
         color: var(--hint-primary-color);
         background-color: var(--third-color);
       }
     }
+
     &-icon {
       min-width: 14px;
       height: 14px;
@@ -738,7 +826,9 @@ onBeforeUnmount(() => {
 .link {
   width: fit-content;
   border-radius: 8px;
+
   @include adaptiveValue('min-width', 50, 40, 1440, 992, 1);
+
   height: inherit;
   display: flex;
   align-items: center;
@@ -754,17 +844,17 @@ onBeforeUnmount(() => {
     &:hover {
       background-color: var(--hint-primary-color);
       border-color: transparent;
+
       .link__count {
         background-color: var(--hint-primary-color);
       }
     }
   }
+
   &.router-link-active {
     background-color: var(--hint-primary-color);
     border-color: transparent;
-    .link__count {
-      background-color: var(--hint-primary-color);
-    }
+
     .link__count {
       background-color: var(--bg-third-color);
     }
@@ -800,6 +890,7 @@ onBeforeUnmount(() => {
     line-height: 15px;
     text-transform: uppercase;
     font-weight: 700;
+
     @media (max-width: $md7) {
       @include hide-item;
     }

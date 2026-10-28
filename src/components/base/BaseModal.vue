@@ -156,6 +156,10 @@ defineExpose({
   max-width: 546px;
 }
 
+.sign-in__inner {
+  max-width: 567px;
+}
+
 .withdraw-modal__inner,
 .top-up-modal__inner {
   max-width: 832px;
@@ -170,7 +174,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
 
-  background-color: rgb(11, 11, 18, 0.8);
+  background-color: rgb(3, 11, 23, 0.8);
   //backdrop-filter: 25px;
   //-webkit-backdrop-filter: 25px;
 
@@ -185,12 +189,12 @@ defineExpose({
     max-height: calc(100vh - 40px);
     overflow: auto;
     @include adaptiveValue('padding-top', 60, 25);
-    @include adaptiveValue('padding-bottom', 60, 25);
-    @include adaptiveValue('padding-left', 40, 10, 1440, 768, 1);
-    @include adaptiveValue('padding-right', 40, 10, 1440, 768, 1);
-    @include adaptiveValue('border-radius', 20, 10);
-    background-color: var(--bg-primary-color);
-    border: 1px solid var(--border-primary-color);
+    @include adaptiveValue('padding-bottom', 65, 25);
+    @include adaptiveValue('padding-left', 50, 10, 1440, 768, 1);
+    @include adaptiveValue('padding-right', 50, 10, 1440, 768, 1);
+    @include adaptiveValue('border-radius', 18, 8);
+    background-color: var(--bg-fourth-color);
+    border: 1px solid var(--border-third-color);
 
     @media (max-width: $md5) {
       max-height: 90vh;
@@ -209,18 +213,18 @@ defineExpose({
     justify-content: center;
     width: fit-content;
     @include adaptiveValue('border-radius', 10, 4);
-    @include adaptiveValue('min-width', 40, 30);
-    @include adaptiveValue('height', 40, 30);
+    @include adaptiveValue('min-width', 58, 30);
+    @include adaptiveValue('height', 58, 30);
     padding: 0;
     border: none;
     background-color: transparent;
-    color: var(--hint-primary-color);
+    color: var(--third-color);
 
     transition: all 0.3s ease 0s;
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        color: var(--hint-primary-color);
       }
     }
   }

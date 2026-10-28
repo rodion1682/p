@@ -198,14 +198,14 @@ onMounted(() => {
 
 .base-input {
   position: relative;
-  border: 1px solid var(--border-primary-color);
+  border: 1px solid rgb(153, 161, 176, 0.1);
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
   overflow: hidden;
-  background-color: var(--bg-secondary-color);
+  background-color: var(--bg-fifth-color);
   @include adaptiveValue('min-height', 50, 40);
-  @include adaptiveValue('border-radius', 20, 10);
+  border-radius: 8px;
   &.is-focused {
     border-color: var(--hint-primary-color);
     .base-input__placeholder {
@@ -250,12 +250,11 @@ onMounted(() => {
   }
   &__label {
     font-size: 16px;
-    line-height: 120%;
+    line-height: 150%;
     font-weight: 400;
     transition: color 0.3s ease 0s;
-    color: var(--secondary-color);
+    color: var(--border-primary-color);
     font-family: var(--font-inter);
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
     &:not(:last-child) {
       margin-bottom: 5px;
     }
@@ -302,7 +301,7 @@ onMounted(() => {
     font-size: 16px;
     overflow: hidden;
     font-family: var(--font-inter);
-    color: var(--primary-color);
+    color: var(--third-color);
     //padding-top: 13px;
     @include adaptiveValue('padding-left', 18, 15);
     @include adaptiveValue('padding-right', 18, 15);
@@ -345,7 +344,7 @@ onMounted(() => {
     font-size: 16px;
     overflow: hidden;
     font-family: var(--font-inter);
-    color: var(--secondary-color);
+    color: var(--border-primary-color);
     max-width: calc(100% - 45px);
     &.has-prefix {
       @include adaptiveValue('left', 18, 15);
@@ -360,9 +359,9 @@ onMounted(() => {
   }
   &__icon-btn {
     background-color: transparent;
-    @include adaptiveValue('min-height', 50, 40);
+    @include adaptiveValue('min-height', 46, 36);
     @include adaptiveValue('min-width', 50, 40);
-    @include adaptiveValue('border-radius', 20, 10);
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -392,11 +391,12 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    @include adaptiveValue('min-height', 50, 40);
+    @include adaptiveValue('min-height', 46, 36);
     @include adaptiveValue('min-width', 50, 40);
-    @include adaptiveValue('border-radius', 20, 10);
-    background-color: var(--hint-primary-color);
-    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: var(--bg-third-color);
+    border: 1px solid var(--third-color);
+
     pointer-events: auto;
     transition: all 0.3s ease 0s;
     &:disabled {
@@ -405,17 +405,17 @@ onMounted(() => {
     }
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--bg-primary-color);
-        border-color: var(--hint-primary-color);
+        background-color: var(--hint-primary-color);
+        border-color: transparent;
       }
     }
     &-icon {
       min-width: 16px;
       height: 16px;
-      color: var(--primary-color);
+      color: var(--third-color);
       :deep(svg) {
         path {
-          fill: var(--primary-color);
+          fill: var(--third-color);
         }
       }
     }

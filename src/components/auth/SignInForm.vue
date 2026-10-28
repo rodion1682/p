@@ -52,11 +52,11 @@
       </div>
 
       <BaseButton
-        variant="bordered"
+        variant="white-bordered"
         class="sign-in__switch"
         @click="router.push({ name: 'RegisterPage' })"
       >
-        {{ $t('Register') }}
+        {{ $t('Sign Up') }}
       </BaseButton>
     </div>
   </div>
@@ -156,15 +156,17 @@ const handleSignIn = async () => {
 .sign-in {
   position: relative;
   z-index: 1;
+  max-width: 468px;
   &_rest {
     text-align: center;
   }
   &__reset {
-    display: none !important;
   }
 
   &__title {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
+    text-align: center;
+    text-transform: none;
+    @include adaptiveValue('font-size', 30, 24);
 
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 18);
@@ -172,23 +174,17 @@ const handleSignIn = async () => {
   }
 
   &__subtitle {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
-    line-height: 120%;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 18);
-    }
   }
 
   &__form {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 100, 20);
+      @include adaptiveValue('margin-bottom', 90, 20);
     }
   }
 
   &__inputs {
     &:not(:last-child) {
-      margin-bottom: 20px;
+      @include adaptiveValue('margin-bottom', 15, 18);
     }
   }
 
@@ -202,13 +198,11 @@ const handleSignIn = async () => {
     flex: 0 1 50%;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 18);
+      @include adaptiveValue('margin-bottom', 15, 18);
     }
   }
 
   &__terms {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
-
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 20);
     }
@@ -216,16 +210,13 @@ const handleSignIn = async () => {
 
   &__forgot {
     margin-right: auto;
-
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 20);
     }
   }
 
   &__error {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
     text-align: center;
-
     &:not(:last-child) {
       margin-bottom: 8px;
     }
@@ -235,7 +226,7 @@ const handleSignIn = async () => {
     display: flex;
     flex-direction: column;
 
-    @include adaptiveValue('gap', 20, 10);
+    @include adaptiveValue('gap', 15, 10);
   }
 
   &__bottom {
@@ -251,7 +242,7 @@ const handleSignIn = async () => {
   }
 
   &__text {
-    text-shadow: 1px 1px 1px var(--bg-primary-color);
+    color: var(--border-primary-color);
 
     @media (min-width: $md7) {
       white-space: nowrap;
@@ -264,7 +255,7 @@ const handleSignIn = async () => {
 
   &__switch {
     @media (min-width: $md7) {
-      max-width: 250px;
+      max-width: 232px;
     }
 
     &_full {

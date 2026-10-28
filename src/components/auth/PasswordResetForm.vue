@@ -5,13 +5,14 @@
       class="sign-in__reset"
       type="button"
       @click="router.push({ name: 'LoginPage' })"
+      v-if="false"
     >
       <SvgIcon :icon="CloseIcon" class="sign-in__reset-icon" />
     </button>
     <div class="sign-in__title _h3">
       {{ $t('Forgot your password?') }}
     </div>
-    <div class="sign-in__subtitle">
+    <div v-if="false" class="sign-in__subtitle">
       {{ $t('Enter your E-Mail to get a reset link to your account.') }}
     </div>
     <form @submit.prevent="handlePasswordReset" class="sign-in__form">
@@ -22,7 +23,8 @@
           type="email"
           name="email"
           autocomplete="email"
-          :placeholder="$t('person@gmail.com ')"
+          :label="$t('Enter your E-Mail to get a reset link')"
+          :placeholder="$t('person@gmail.com')"
           required
           :error="errorMessage"
         />
@@ -45,8 +47,7 @@
           <span v-else>{{ $t('Send') }}</span>
         </BaseButton>
         <BaseButton
-          v-if="false"
-          variant="bordered"
+          variant="white-bordered"
           class="sign-in__switch sign-in__switch_full"
           type="button"
           @click="router.push({ name: 'LoginPage' })"
@@ -60,7 +61,7 @@
         {{ $t('Remember your password?') }}
       </div>
       <BaseButton
-        variant="bordered"
+        variant="white-bordered"
         class="sign-in__switch"
         type="button"
         @click="router.push({ name: 'LoginPage' })"
