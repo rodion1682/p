@@ -51,7 +51,9 @@
           </div>
 
           <div v-else class="products__status">
-            <p>{{ $t('No products found') }}</p>
+            <p>
+              {{ $t(`No products found`) }}
+            </p>
 
             <BaseButton variant="bordered" @click="resetFilters">
               {{ $t('Reset filters') }}
@@ -187,7 +189,9 @@ const onPageChange = async page => {
     align-items: center;
     justify-content: center;
     gap: 18px;
-    min-height: 280px;
+    max-width: 300px;
+
+    margin: auto;
     text-align: center;
     color: var(--fifth-color);
   }

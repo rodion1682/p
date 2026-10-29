@@ -3,24 +3,21 @@ import { useAuthStore } from '@/stores/auth'
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../pages/HomePage/HomePage.vue'
 // import ProductDetailsPage from '@/pages/ProductDetailsPage.vue'
-import FaqPage from '@/pages/FaqPage/FaqPage.vue'
-import StaticPage from '@/pages/StaticPage.vue'
-// import ContactPage from '@/pages/ContactPage.vue'
 import ForgotPasswordPage from '@/pages/Auth/ForgotPasswordPage.vue'
 import LoginPage from '@/pages/Auth/LoginPage.vue'
 import RegisterPage from '@/pages/Auth/RegisterPage.vue'
+import StaticPage from '@/pages/StaticPage.vue'
 
 import CartPage from '@/pages/CartPage/CartPage.vue'
-import ContactPage from '@/pages/ContactPage/ContactPage.vue'
 import EmailVerificationAlreadySuccessPage from '@/pages/Email/EmailVerificationAlreadySuccessPage.vue'
 import EmailVerificationPage from '@/pages/Email/EmailVerificationPage.vue'
 import EmailVerificationSuccessPage from '@/pages/Email/EmailVerificationSuccessPage.vue'
 import DetailedProduct from '@/pages/ProductsPage/DetailedProduct.vue'
 import ProductListPage from '@/pages/ProductsPage/ProductListPage.vue'
 import SellSkisnPage from '@/pages/SellSkin/SellSkisnPage.vue'
+import FailPaymentPage from '@/pages/StatusPages/FailPaymentPage.vue'
 import PendingPaymentPage from '@/pages/StatusPages/PendingPaymentPage.vue'
 import SuccessPaymentPage from '@/pages/StatusPages/SuccessPaymentPage.vue'
-import FailPaymentPage from '@/pages/StatusPages/FailPaymentPage.vue'
 
 // Global auth verification state
 let authVerificationPromise = null
@@ -109,7 +106,6 @@ const router = createRouter({
       path: '/fail-payment',
       name: 'FailPaymentPage',
       component: FailPaymentPage,
-
     },
     {
       path: '/pending-payment',
@@ -121,11 +117,11 @@ const router = createRouter({
       name: 'ProcessingPaymentPage',
       component: PendingPaymentPage,
     },
-    {
-      path: '/contact',
-      name: 'ContactPage',
-      component: ContactPage,
-    },
+    // {
+    //   path: '/contact',
+    //   name: 'ContactPage',
+    //   component: ContactPage,
+    // },
     {
       path: '/sale',
       name: 'SalePage',
@@ -243,14 +239,14 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: '/faq',
-      name: 'FAQ',
-      component: FaqPage,
-      meta: {
-        title: 'Frequently Asked Questions',
-      },
-    },
+    // {
+    //   path: '/faq',
+    //   name: 'FAQ',
+    //   component: FaqPage,
+    //   meta: {
+    //     title: 'Frequently Asked Questions',
+    //   },
+    // },
     {
       path: '/email-verification',
       name: 'EmailVerificationPage',
@@ -267,6 +263,7 @@ const router = createRouter({
       name: 'EmailVerificationAlreadySuccessPage',
       component: EmailVerificationAlreadySuccessPage,
     },
+
     {
       path: '/cart',
       name: 'CartPage',
