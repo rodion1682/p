@@ -34,7 +34,7 @@ const props = defineProps({
   hint: { type: Boolean, default: false },
   isOld: { type: Boolean, default: false },
   isBold: { type: Boolean, default: true },
-  size: { type: String, default: 'size-16' }, // size-16 | size-18 | size-32
+  size: { type: String, default: 'size-16' }, // size-13 | size-16
 
   currencySymbol: { type: String, default: '' },
   currencyCode: { type: String, default: '' },
@@ -143,7 +143,6 @@ const formattedPrice = computed(() => {
   }
   &__currency,
   &__value {
-    font-family: var(--font-inter);
     color: inherit;
     transition: color 0.3s ease 0s;
   }
@@ -152,6 +151,20 @@ const formattedPrice = computed(() => {
     opacity: 0.7;
     text-decoration: line-through;
   }
+  &.size-13 {
+    gap: 5px;
+    .price__currency,
+    .price__value {
+      font-size: 13px;
+      line-height: 100%;
+      font-weight: 900;
+      font-family: var(--font-orbitron);
+    }
+    .price__icon {
+      min-width: 10px;
+      height: 10px;
+    }
+  }
   &.size-16 {
     gap: 5px;
     .price__currency,
@@ -159,36 +172,11 @@ const formattedPrice = computed(() => {
       font-size: 16px;
       line-height: 100%;
       font-weight: 700;
+      font-family: var(--font-inter);
     }
     .price__icon {
-      min-width: 14px;
-      height: 14px;
-    }
-  }
-  &.size-18 {
-    gap: 5px;
-    .price__currency,
-    .price__value {
-      @include adaptiveValue('font-size', 18, 16);
-      line-height: 100%;
-      font-weight: 700;
-    }
-    .price__icon {
-      @include adaptiveValue('min-width', 16, 14);
-      @include adaptiveValue('height', 16, 14);
-    }
-  }
-  &.size-32 {
-    @include adaptiveValue('gap', 7, 6);
-    .price__currency,
-    .price__value {
-      @include adaptiveValue('font-size', 32, 26);
-      line-height: 100%;
-      font-weight: 700;
-    }
-    .price__icon {
-      @include adaptiveValue('min-width', 24, 20);
-      @include adaptiveValue('height', 16, 20);
+      min-width: 12px;
+      height: 12px;
     }
   }
 }

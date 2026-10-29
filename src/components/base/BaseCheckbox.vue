@@ -231,8 +231,8 @@ const capitalizeWords = text => {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 12px;
-    height: 9px;
+    width: 10px;
+    height: 7px;
     transform: translate(-50%, -50%);
     color: var(--third-color);
     opacity: 0;
@@ -259,13 +259,16 @@ const capitalizeWords = text => {
     flex: 1 1 100%;
     cursor: pointer;
     font-weight: 400;
-    font-size: 16px;
-    line-height: 150%;
+    font-size: 16px !important;
+    line-height: 150% !important;
     color: var(--border-primary-color);
     font-family: var(--font-inter);
 
     :deep(a) {
       display: inline;
+      font-size: 16px !important;
+      line-height: 150% !important;
+      text-transform: none !important;
       font-weight: 400 !important;
     }
   }

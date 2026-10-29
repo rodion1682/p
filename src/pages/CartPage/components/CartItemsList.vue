@@ -1,290 +1,307 @@
 <template>
-  <div class="list" v-bind="attrs">
-    <BaseButton
-      v-if="false"
-      type="button"
-      variant="transparent"
-      class="list__clear"
-      @click="clearCart"
-    >
-      {{ $t('Clear all cart') }}
-    </BaseButton>
-
-    <div class="list__list">
-      <div
-        v-for="item in cartStore.items"
-        :key="item?.item_id"
-        class="list__item"
+  <div class="cart-list">
+    <div class="cart-list__items">
+      <article
+        v-for="row in cartStore.items"
+        :key="row.item_id"
+        class="cart-list__item"
       >
-        <div class="list__about">
-          <div v-if="item.item?.img_url" class="list__img _ibg-contain">
-            <div class="list__bg _ibg-contain">
-              <img src="@/assets/img/card-bg.svg" />
-            </div>
-            <img
-              :src="getImageUrl(item.item.img_url)"
-              :alt="item.item?.title"
-            />
-          </div>
+        <div class="cart-list__media">
+          <img
+            v-if="getImageUrl(row.item?.img_url)"
+            :src="getImageUrl(row.item?.img_url)"
+            :alt="getItemName(row.item)"
+            loading="lazy"
+          />
 
-          <div class="list__meta">
-            <div
-              v-if="getItemWeapon(item.item) && false"
-              class="list__meta-sub"
-            >
-              {{ getItemWeapon(item.item) }}
-            </div>
-
-            <div class="list__meta-name">
-              {{ getItemName(item.item) }}
-            </div>
-
-            <CartQuantity
-              v-if="false"
-              :model-value="getItemQuantity(item)"
-              :loading="cartStore.isItemLoading(item?.item_id)"
-              class="list__quantity"
-              @change="quantity => updateItemQuantity(item?.item_id, quantity)"
-            />
-          </div>
+          <span v-else class="cart-list__placeholder">
+            {{ getGameName(row.item) || 'Skin' }}
+          </span>
         </div>
 
-        <div class="list__prices">
+        <div class="cart-list__information">
+          <div class="cart-list__name" :title="getItemName(row.item)">
+            {{ getItemName(row.item) }}
+          </div>
+
+          <div v-if="getGameName(row.item)" class="cart-list__game">
+            {{ getGameName(row.item) }}
+          </div>
+
           <PriceFormatter
-            reverse
-            class="list__coin"
-            :price="item?.item?.internal_price"
             skip-conversion
+            size="size-13"
+            class="cart-list__price"
+            :price="getRowPrice(row)"
           />
 
-          <PriceFormatter
-            v-if="false"
-            class="list__fiat"
-            :price="item?.item?.fiat_price"
-            is-currency
-            size="size-12"
-          />
+          <div
+            v-if="cartStore.getItemError(row.item_id)"
+            class="cart-list__error"
+          >
+            {{ cartStore.getItemError(row.item_id) }}
+          </div>
         </div>
 
-        <BaseButton
-          variant="delete"
+        <button
           type="button"
-          class="list__remove"
-          :disabled="cartStore.isItemLoading(item?.item_id)"
-          @click="removeItem(item?.item_id)"
+          class="cart-list__remove"
+          :disabled="cartStore.isItemLoading(row.item_id)"
+          :aria-label="`Remove ${getItemName(row.item)} from cart`"
+          @click="removeItem(row.item_id)"
         >
-          <SvgIcon :icon="TrashIcon" class="list__remove-icon" />
-        </BaseButton>
-      </div>
+          <SvgIcon :icon="TrashIcon" class="cart-list__remove-icon" />
+        </button>
+      </article>
     </div>
   </div>
 </template>
 
 <script setup>
-import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from 'vue-i18n'
+
+import PriceFormatter from '@/components/PriceFormatter.vue'
 import { TrashIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
-import PriceFormatter from '@/components/PriceFormatter.vue'
+import { useToast } from '@/composables/useToast'
 import { useCartStore } from '@/stores/cart'
-import { useAttrs } from 'vue'
-import CartQuantity from './CartQuantity.vue'
-
-defineOptions({
-  inheritAttrs: false,
-})
-
-defineEmits(['remove'])
-
-const attrs = useAttrs()
 
 const cartStore = useCartStore()
+const toast = useToast()
+const { t } = useI18n()
 
-const VITE_STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
+const STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
 
-const getImageUrl = url => {
-  return `${VITE_STATIC_DOMAIN}${url}`
-}
+const getImageUrl = image => {
+  const url = String(image || '').trim()
 
-const cleanTitle = title => {
-  return String(title || '')
-    .replace(/StatTrak™\s*/gi, '')
-    .replace(/Souvenir\s*/gi, '')
-    .replace(/★\s*/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
+  if (!url) return ''
 
-const getItemExterior = item => {
-  const title = item?.title || ''
-
-  const match = title.match(/\(([^)]+)\)\s*$/)
-
-  if (match) {
-    return `(${match[1].trim()})`
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) {
+    return url
   }
 
-  return item?.exterior ? `(${item.exterior})` : ''
+  const domain = STATIC_DOMAIN.replace(/\/+$/, '')
+  const path = url.replace(/^\/+/, '')
+
+  return domain ? `${domain}/${path}` : `/${path}`
 }
 
 const getItemName = item => {
-  const title = cleanTitle(item?.title || '')
-    .replace(/\s*\(([^)]+)\)\s*$/, '')
+  const title = String(item?.title || item?.name || '')
+    .replace(/StatTrak™\s*/gi, '')
+    .replace(/Souvenir\s*/gi, '')
+    .replace(/★\s*/g, '')
+    .replace(/\s*\([^)]*\)\s*$/, '')
     .trim()
 
-  const [, skinName] = title.split('|').map(part => part.trim())
+  const parts = title.split('|').map(value => value.trim())
 
-  return skinName || title
+  return parts.length > 1 ? parts.slice(1).join(' | ') : title
 }
 
-const getItemWeapon = item => {
-  const title = cleanTitle(item?.title || '')
-    .replace(/\s*\(([^)]+)\)\s*$/, '')
-    .trim()
+const getGameName = item => {
+  const category = String(
+    item?.category?.url_code || item?.category || item?.game_code || '',
+  )
+    .toLowerCase()
+    .replace(/[\s_-]/g, '')
 
-  const [weapon] = title.split('|').map(part => part.trim())
+  if (category === 'cs2' || category === 'csgo') return 'CS2'
+  if (category === 'dota2') return 'Dota 2'
 
-  return weapon || ''
+  return ''
 }
 
-const getItemQuantity = item => {
-  return cartStore.getQty(item?.item_id, item?.count || 1)
-}
+const getRowPrice = row => {
+  const price = Number(row.item?.internal_price ?? row.item?.price ?? 0)
+  const count = cartStore.getQty(row.item_id, row.count ?? 1)
 
-const updateItemQuantity = async (itemId, quantity) => {
-  if (!itemId) return
-
-  await cartStore.updateQuantity(itemId, quantity)
+  return Number.isFinite(price) ? Number((price * count).toFixed(2)) : 0
 }
 
 const removeItem = async itemId => {
-  await cartStore.removeFromCart(itemId)
-}
+  if (itemId == null || cartStore.isItemLoading(itemId)) return
 
-const clearCart = async () => {
-  await cartStore.clearCart()
+  const result = await cartStore.removeFromCart(itemId)
+
+  if (result?.success) {
+    toast.success(t('Item removed from cart'))
+  } else {
+    toast.error(result?.error || t('Failed to remove item'))
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
-@use '@/assets/styles/fonts' as *;
-@use '@/assets/styles/components/classes' as *;
 
-.list {
-  &__clear {
-    width: fit-content;
-    margin-left: auto;
-  }
+.cart-list {
+  width: 100%;
 
-  &__list {
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   &__item {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 14px;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 86px;
+    padding: 10px 15px;
+
+    border-radius: 10px;
+    background-color: #111821;
+    border: 1px solid transparent;
+
+    transition:
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: #151e2a;
+        border-color: rgba(153, 161, 176, 0.12);
+      }
+    }
+  }
+
+  &__media {
     display: flex;
     align-items: center;
-    column-gap: 20px;
-    row-gap: 10px;
-    justify-content: space-between;
-    border-radius: 20px;
-    @include adaptiveValue('padding-left', 30, 10, 1440, 992, 1);
-    @include adaptiveValue('padding-right', 30, 10, 1440, 992, 1);
-    @include adaptiveValue('padding-top', 20, 10);
-    @include adaptiveValue('padding-bottom', 20, 10);
-    border: 1px solid var(--border-primary-color);
-    background-color: var(--bg-third-color);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 4);
-    }
-    @media (max-width: $md2) {
-      flex-wrap: wrap;
-    }
-    @media (max-width: $md3) {
-      flex-wrap: nowrap;
-    }
-    @media (max-width: $md5) {
-      flex-wrap: wrap;
-    }
-  }
+    justify-content: center;
 
-  &__about {
-    flex: 0 1 50%;
-    display: flex;
+    width: 84px;
+    height: 62px;
     overflow: hidden;
 
-    @include adaptiveValue('gap', 30, 15, 1440, 992, 1);
-
-    @media (max-width: $md2) {
-      flex: 1 1 100%;
-    }
-
-    @media (max-width: $md3) {
-      flex: 0 1 50%;
-    }
-    @media (max-width: $md5) {
-      flex: 1 1 100%;
-    }
-  }
-
-  &__img {
-    flex: 0 0 80px;
-    min-width: 80px;
-    height: 60px;
-    position: relative;
-  }
-  &__bg {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 70px;
-    height: 56px;
-  }
-
-  &__meta {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    align-self: center;
-
-    &-name {
+    img {
       display: block;
       width: 100%;
-      min-width: 0;
-      overflow: hidden;
-
-      color: var(--primary-color);
-
-      white-space: nowrap;
-      text-overflow: ellipsis;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
     }
   }
 
-  &__quantity {
-    width: fit-content;
+  &__placeholder {
+    color: var(--fifth-color);
+    font-size: 11px;
   }
 
-  &__prices {
-    @media (max-width: $md5) {
-      display: flex;
-      gap: 15px;
-    }
+  &__information {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
   }
 
-  &__coin {
-    color: var(--primary-color);
+  &__name {
+    width: 100%;
+    color: #f4f6fb;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  &__fiat {
+  &__game {
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  &__price {
+    margin-top: 2px;
+    color: var(--third-color);
+  }
+
+  &__error {
+    color: var(--error-color);
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   &__remove {
-    width: fit-content;
-    @include adaptiveValue('min-width', 50, 40);
-    border-color: transparent !important;
-    &-icon {
-      min-width: 18px;
-      height: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 7px;
+
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #f04b58;
+    cursor: pointer;
+
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        background-color: rgba(240, 75, 88, 0.12);
+        color: #ff7580;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid #f04b58;
+      outline-offset: 2px;
+    }
+  }
+
+  &__remove-icon {
+    display: flex;
+    width: 18px;
+    height: 18px;
+
+    :deep(svg) {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__item {
+      grid-template-columns: 64px minmax(0, 1fr) 30px;
+      gap: 10px;
+      padding: 10px;
+      min-height: 76px;
+    }
+
+    &__media {
+      width: 64px;
+      height: 56px;
+    }
+
+    &__name {
+      font-size: 11px;
+    }
+
+    &__remove {
+      width: 30px;
+      height: 30px;
     }
   }
 }
