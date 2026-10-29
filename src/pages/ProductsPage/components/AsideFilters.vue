@@ -409,10 +409,11 @@ onBeforeUnmount(() => {
 
 .market-aside {
   width: 100%;
-  border: 1px solid rgba(153, 161, 176, 0.13);
-  border-radius: 10px;
+  border: 1px solidvar(--border-fourth-color);
+  @include adaptiveValue('border-radius', 12, 8);
   background: var(--bg-fourth-color);
   overflow: visible;
+  height: fit-content;
 
   &__head {
     display: flex;

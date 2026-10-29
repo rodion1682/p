@@ -290,7 +290,7 @@ defineExpose({
 
   &_sidebar {
     .base-dropdown__wrapper {
-      min-height: 42px;
+      min-height: 60px;
       padding: 12px 0;
       border: 0;
       border-top: 1px solid rgba(153, 161, 176, 0.1);
