@@ -84,34 +84,7 @@
         />
 
         <div v-else-if="activeSection === 'balance'" class="profile__section">
-          <div class="profile__balance-top">
-            <div class="profile__balance-summary">
-              <SvgIcon :icon="MyBalanceIcon" class="profile__balance-icon" />
-
-              <div class="profile__balance-info">
-                <div class="profile__balance-label">
-                  {{ $t('My Balance') }}
-                </div>
-
-                <PriceFormatter
-                  :price="userBalance ?? 0"
-                  skip-conversion
-                  class="profile__balance-value"
-                />
-              </div>
-            </div>
-
-            <BaseButton
-              v-if="canWithdraw"
-              class="profile__withdraw"
-              variant="bordered"
-              @click="openWithdrawModal"
-            >
-              {{ $t('Withdraw') }}
-            </BaseButton>
-          </div>
-
-          <MyBalance />
+          <MyBalance :canWithdraw="canWithdraw" />
         </div>
 
         <div
@@ -159,8 +132,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-import PriceFormatter from '@/components/PriceFormatter.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
 import {
   LogOutIcon,
   MyBalanceIcon,
@@ -204,8 +175,9 @@ const isOfferEnabled = computed(() => Boolean(settingsStore.isOfferEnabled))
 
 const canWithdraw = computed(
   () =>
-    isOfferEnabled.value &&
-    Boolean(settingsStore.settings?.payout_methods?.sepa),
+    (isOfferEnabled.value &&
+      Boolean(settingsStore.settings?.payout_methods?.sepa)) ||
+    true,
 )
 
 const pageTitle = computed(() => {
@@ -332,7 +304,6 @@ watch(isOfferEnabled, enabled => {
 
   &__inner {
     width: 100%;
-    max-width: 1140px;
   }
 
   &__title {

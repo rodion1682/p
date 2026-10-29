@@ -1,204 +1,216 @@
 <template>
   <BaseModal
     :show="show"
-    :wrapper-classes="['top-up-modal__inner']"
+    wrapper-classes="top-up-modal__inner"
+    :persistent="isSubmitting"
     @close="handleClose"
   >
     <div class="top-up">
-      <div class="top-up__title _h3">
-        {{ $t('Top up balance') }}
+      <h2 class="top-up__title _h3">
+        {{ $t('Top Up Balance') }}
+      </h2>
+
+      <div class="top-up__total">
+        <span class="top-up__total-label">
+          {{ $t('Total to pay:') }}
+        </span>
+
+        <span class="top-up__total-value">
+          {{ formattedTotal }}
+        </span>
       </div>
 
-      <div class="top-up__inputs">
-        <div class="top-up__box">
+      <form class="top-up__form" novalidate @submit.prevent>
+        <div class="top-up__fields">
           <BaseInput
-            v-if="IS_COMBINED_NAME_AND_SURNAME"
-            v-model="form.fullName"
-            :label="$t('Full name')"
-            :error="errors.fullName"
-            class="top-up__input"
-            name="fullName"
-            autocomplete="name"
+            v-model="form.name"
+            class="top-up__field"
+            name="name"
+            autocomplete="given-name"
+            :label="$t('Name')"
+            :placeholder="$t('Name')"
+            :error="errors.name"
             :disabled="isSubmitting"
-            @blur="validateField('fullName')"
+            @blur="validateField('name')"
           />
 
-          <template v-else>
-            <BaseInput
-              v-model="form.name"
-              :label="$t('Name')"
-              :error="errors.name"
-              class="top-up__input"
-              name="name"
-              autocomplete="given-name"
-              :disabled="isSubmitting"
-              @blur="validateField('name')"
-            />
-
-            <BaseInput
-              v-model="form.surname"
-              :label="$t('Surname')"
-              :error="errors.surname"
-              class="top-up__input"
-              name="surname"
-              autocomplete="family-name"
-              :disabled="isSubmitting"
-              @blur="validateField('surname')"
-            />
-          </template>
+          <BaseInput
+            v-model="form.surname"
+            class="top-up__field"
+            name="surname"
+            autocomplete="family-name"
+            :label="$t('Surname')"
+            :placeholder="$t('Surname')"
+            :error="errors.surname"
+            :disabled="isSubmitting"
+            @blur="validateField('surname')"
+          />
 
           <BaseInput
             v-model="form.email"
-            :label="$t('E-mail')"
+            class="top-up__field"
             type="email"
             name="email"
             autocomplete="email"
+            :label="$t('E-Mail')"
+            :placeholder="$t('person@gmail.com')"
             :error="errors.email"
-            class="top-up__input"
             :disabled="isSubmitting"
             @blur="validateField('email')"
           />
 
           <BaseInput
             v-model="form.phone"
-            :label="$t('Phone')"
+            class="top-up__field"
             type="tel"
             name="phone"
-            inputmode="tel"
             autocomplete="tel"
+            :label="$t('Phone')"
+            :placeholder="'+1 234 5678 9000'"
             :error="errors.phone"
-            class="top-up__input"
             :disabled="isSubmitting"
             @blur="validateField('phone')"
           />
         </div>
 
-        <div class="top-up__box">
+        <div class="top-up__divider"></div>
+
+        <div class="top-up__fields">
           <BaseSelect
             v-model="form.country"
+            class="top-up__field top-up__field_select"
             :options="countryOptions"
             option-label="title"
             option-value="id"
             :label="$t('Country')"
+            :placeholder="$t('Country')"
             :error="errors.country"
             :disabled="isSubmitting"
-            class="top-up__input"
           />
 
           <BaseInput
             v-model="form.city"
+            class="top-up__field"
+            name="city"
+            autocomplete="address-level2"
             :label="$t('City')"
+            :placeholder="$t('City')"
             :error="errors.city"
-            class="top-up__input"
             :disabled="isSubmitting"
             @blur="validateField('city')"
           />
 
           <BaseInput
             v-model="form.address"
+            class="top-up__field"
+            name="address"
+            autocomplete="street-address"
             :label="$t('Address')"
+            :placeholder="$t('Address')"
             :error="errors.address"
-            class="top-up__input"
             :disabled="isSubmitting"
             @blur="validateField('address')"
           />
 
           <BaseInput
             v-model="form.postCode"
+            class="top-up__field"
+            name="postCode"
+            autocomplete="postal-code"
             :label="$t('Postcode')"
+            :placeholder="$t('123456')"
             :error="errors.postCode"
-            class="top-up__input"
             :disabled="isSubmitting"
             @blur="validateField('postCode')"
           />
         </div>
-      </div>
-      <div class="top-up__info">
-        <BaseCheckbox
-          v-model="form.termsAccepted"
-          :error="errors.termsAccepted"
-          :disabled="isSubmitting"
-          class="top-up__checkbox"
-          terms
-        />
-        <div
-          v-if="formattedRequisites"
-          class="top-up__requisites"
-          v-html="formattedRequisites"
-        />
-      </div>
 
-      <div v-if="submitError" class="top-up__error _text-error">
-        {{ submitError }}
-      </div>
-
-      <div v-if="topupStore.error" class="top-up__error _text-error">
-        {{ topupStore.error }}
-      </div>
-
-      <div class="top-up__total">
-        <div class="top-up__total-label">{{ $t('Total to pay:') }}</div>
-        <div class="top-up__prices">
-          <PriceFormatter
-            :price="receiveCredits"
-            skip-conversion
-            reverse
-            class="top-up__coin"
+        <div class="top-up__agreements">
+          <BaseCheckbox
+            v-model="form.termsAccepted"
+            class="top-up__checkbox"
+            :error="errors.termsAccepted"
+            :disabled="isSubmitting"
+            terms
           />
-          <PriceFormatter
-            is-currency
-            raw-fiat
-            reverse
-            skip-conversion
-            :price="localFiatAmount"
-            :currency-code="currencyCode"
-            class="top-up__fiat"
-          />
-        </div>
-      </div>
 
-      <div class="top-up__methods">
-        <div
-          v-for="(method, index) in paymentMethods"
-          :key="method.code"
-          class="top-up__method"
-          :class="{
-            'top-up__method_full': index === 0,
-            'top-up__method_image': Boolean(method.image),
-          }"
-        >
-          <BaseButton
-            type="button"
-            :variant="index === 0 ? 'white-bordered' : 'white'"
-            class="top-up__submit"
-            :loading="isSubmitting && selectedPaymentMethod === method.code"
-            :disabled="isSubmitting || !canSubmit"
-            @click="submitWithMethod(method.code)"
+          <div
+            v-if="settingsStore.requisites && false"
+            class="top-up__requisites"
           >
-            <span v-if="method.image" class="top-up__submit-image _ibg-contain">
-              <img :src="method.image" :alt="method.title" />
-            </span>
-
-            <span v-else>
-              {{ method.title }}
-            </span>
-          </BaseButton>
+            {{ settingsStore.requisites }}
+          </div>
         </div>
-      </div>
+
+        <div
+          v-if="submitError || topupStore.error"
+          class="top-up__error _text-error"
+          role="alert"
+        >
+          {{ submitError || topupStore.error }}
+        </div>
+
+        <div class="top-up__methods">
+          <div
+            v-for="method in paymentMethods"
+            :key="method.code"
+            class="top-up__method"
+            :class="{
+              'top-up__method_card': isCard(method.code),
+              'top-up__method_light': isLightMethod(method.code),
+            }"
+          >
+            <BaseButton
+              type="button"
+              variant="white-bordered"
+              class="top-up__payment-button"
+              :disabled="isSubmitting || localFiatAmount <= 0"
+              @click="submitWithMethod(method.code)"
+            >
+              <span
+                v-if="isSubmitting && selectedPaymentMethod === method.code"
+              >
+                {{ $t('Processing') }}...
+              </span>
+
+              <img
+                v-else-if="getPaymentImage(method)"
+                :src="getPaymentImage(method)"
+                :alt="method.title || method.code"
+                class="top-up__payment-image"
+              />
+
+              <span v-else>
+                {{ method.title || method.code }}
+              </span>
+            </BaseButton>
+          </div>
+
+          <div
+            v-if="!paymentMethods.length && !settingsStore.loading"
+            class="top-up__empty-methods"
+          >
+            {{ $t('No payment methods available') }}
+          </div>
+        </div>
+      </form>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import PriceFormatter from '@/components/PriceFormatter.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
+
+import applePayImage from '@/assets/img/payment-methods/apple.svg'
+import cardPayImage from '@/assets/img/payment-methods/card.svg'
+import googlePayImage from '@/assets/img/payment-methods/google.svg'
 
 import { useStaticPages } from '@/composables/useStaticPages'
 import { useCountriesStore } from '@/stores/countries'
@@ -207,8 +219,6 @@ import { useSettingsStore } from '@/stores/settings'
 import { useTopUpStore } from '@/stores/topup'
 import { useUserStore } from '@/stores/user'
 
-const IS_COMBINED_NAME_AND_SURNAME = false
-
 const CHECKOUT_STORAGE_KEY = 'checkout_prefill_data'
 
 const props = defineProps({
@@ -216,7 +226,6 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-
   selectedAmount: {
     type: [String, Number],
     default: '',
@@ -234,11 +243,10 @@ const currencyStore = useCurrencyStore()
 const userStore = useUserStore()
 const countriesStore = useCountriesStore()
 
-const submitError = ref('')
 const selectedPaymentMethod = ref(null)
+const submitError = ref('')
 
 const form = reactive({
-  fullName: '',
   name: '',
   surname: '',
   email: '',
@@ -251,7 +259,6 @@ const form = reactive({
 })
 
 const errors = reactive({
-  fullName: '',
   name: '',
   surname: '',
   email: '',
@@ -263,228 +270,138 @@ const errors = reactive({
   termsAccepted: '',
 })
 
-const norm = value => String(value ?? '').trim()
-
-const emailRe = /^\S+@\S+\.\S+$/
-const nameRe = /^[\p{L}][\p{L}\p{M}' -]*$/u
-
 const savedFields = ['country', 'city', 'address', 'postCode']
 
-const isSubmitting = computed(() => {
-  return topupStore.isLoading
-})
+const norm = value => String(value ?? '').trim()
 
-const formattedRequisites = computed(() => {
-  return settingsStore.requisites
-    ? settingsStore.requisites.replace(/\n/g, '<br>')
-    : ''
-})
+const nameRegex = /^[\p{L}][\p{L}\p{M}' -]*$/u
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const currency = computed(() => {
-  return currencyStore.currentCurrency || {}
-})
+const isSubmitting = computed(() => topupStore.isLoading)
 
 const currencyCode = computed(() => {
-  return currency.value?.code || currencyStore.currentCurrencyCode || 'EUR'
+  return (
+    currencyStore.currentCurrencyCode ||
+    currencyStore.currentCurrency?.code ||
+    'EUR'
+  )
+})
+
+const currencySymbol = computed(() => {
+  return (
+    currencyStore.currentCurrencySymbol ||
+    currencyStore.currentCurrency?.symbol ||
+    '€'
+  )
 })
 
 const localFiatAmount = computed(() => {
-  const value = Number(props.selectedAmount || 0)
+  const amount = Number(props.selectedAmount)
 
-  return Number.isFinite(value) ? value : 0
+  return Number.isFinite(amount) && amount > 0 ? amount : 0
+})
+
+const formattedTotal = computed(() => {
+  const amount = currencyStore.formatFiat(
+    localFiatAmount.value,
+    currencyCode.value,
+  )
+
+  return `${amount} ${currencySymbol.value}`
 })
 
 const receiveCredits = computed(() => {
-  const amount = localFiatAmount.value
-  const currencyValue = Number(currency.value?.value || 1)
+  const currencyValue = Number(currencyStore.currentCurrency?.value ?? 1)
 
   if (!Number.isFinite(currencyValue) || currencyValue <= 0) {
     return 0
   }
 
-  return Number((amount / currencyValue).toFixed(2))
+  return Number((localFiatAmount.value / currencyValue).toFixed(2))
 })
 
 const countryOptions = computed(() => {
   return countriesStore.countries || []
 })
 
-const splitFullName = fullName => {
-  const parts = norm(fullName).split(/\s+/).filter(Boolean)
-
-  return {
-    name: parts[0] || '',
-    surname: parts.slice(1).join(' ') || '',
-  }
-}
-
-const getNameData = () => {
-  if (IS_COMBINED_NAME_AND_SURNAME) {
-    return splitFullName(form.fullName)
-  }
-
-  return {
-    name: norm(form.name),
-    surname: norm(form.surname),
-  }
-}
-
-const getCheckoutStorageData = () => {
-  try {
-    return JSON.parse(localStorage.getItem(CHECKOUT_STORAGE_KEY)) || {}
-  } catch {
-    return {}
-  }
-}
-
-const saveCheckoutStorageData = () => {
-  const data = getCheckoutStorageData()
-
-  savedFields.forEach(field => {
-    data[field] = form[field]
-  })
-
-  localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(data))
-}
-
-const getProfileValue = (user, field) => {
-  if (!user) return ''
-
-  const map = {
-    country: user.country?.id || user.country_id || user.country,
-
-    city: user.city,
-    address: user.address,
-
-    postCode: user.zip || user.post_code || user.postCode,
-  }
-
-  return map[field] ?? ''
-}
-
-const getUserOrSavedValue = (user, field) => {
-  const profileValue = getProfileValue(user, field)
-
-  if (norm(profileValue)) {
-    return profileValue
-  }
-
-  const savedData = getCheckoutStorageData()
-
-  return savedData[field] ?? ''
-}
-
-const isPlaceholderValue = (value, key) => {
-  const currentValue = norm(value).toLowerCase()
-  const placeholder = norm(t(key)).toLowerCase()
-
-  return Boolean(currentValue && currentValue === placeholder)
-}
-
-const isLegacyPlaceholder = (value, type) => {
-  const currentValue = norm(value).toLowerCase()
-
-  if (type === 'name') {
-    return currentValue === 'name'
-  }
-
-  if (type === 'surname') {
-    return currentValue === 'surname'
-  }
-
-  return false
-}
-
-const sanitizeName = value => {
-  if (isPlaceholderValue(value, 'Name') || isLegacyPlaceholder(value, 'name')) {
-    return ''
-  }
-
-  return norm(value)
-}
-
-const sanitizeSurname = value => {
-  if (
-    isPlaceholderValue(value, 'Surname') ||
-    isLegacyPlaceholder(value, 'surname')
-  ) {
-    return ''
-  }
-
-  return norm(value)
-}
-
-const normCode = code => {
-  return String(code || '')
-    .toLowerCase()
+const normalizeCode = value => {
+  return String(value || '')
     .trim()
-}
-
-const isApplePay = code => {
-  return ['apple_pay', 'apple-pay', 'applepay'].includes(normCode(code))
-}
-
-const isGooglePay = code => {
-  return ['google_pay', 'google-pay', 'googlepay'].includes(normCode(code))
+    .toLowerCase()
 }
 
 const isCard = code => {
-  return normCode(code) === 'creditdebit-card'
+  return ['creditdebit-card', 'credit-card', 'credit_card', 'card'].includes(
+    normalizeCode(code),
+  )
+}
+
+const isApplePay = code => {
+  return ['apple_pay', 'apple-pay', 'applepay'].includes(normalizeCode(code))
+}
+
+const isGooglePay = code => {
+  return ['google_pay', 'google-pay', 'googlepay'].includes(normalizeCode(code))
+}
+
+const isLightMethod = code => {
+  return isApplePay(code) || isGooglePay(code)
+}
+
+const getPaymentImage = method => {
+  if (isCard(method.code)) return cardPayImage
+  if (isApplePay(method.code)) return applePayImage
+  if (isGooglePay(method.code)) return googlePayImage
+
+  return method.image || ''
+}
+
+const paymentPriority = code => {
+  if (isCard(code)) return 1
+  if (isApplePay(code)) return 2
+  if (isGooglePay(code)) return 3
+
+  return 4
 }
 
 const paymentMethods = computed(() => {
-  const methods =
-    settingsStore.paymentMethods ||
-    settingsStore.settings?.payment_methods ||
-    []
+  const methods = settingsStore.paymentMethods || []
+  const selectedCurrency = currencyCode.value.toUpperCase()
 
-  const currentCurrency = currencyCode.value
+  return methods
+    .filter(method => {
+      if (normalizeCode(method.code) === 'balance') {
+        return false
+      }
 
-  const filtered = methods.filter(method => {
-    if (!method.currencies?.length) {
-      return true
-    }
+      if (!method.currencies?.length) {
+        return true
+      }
 
-    return method.currencies.includes(currentCurrency)
-  })
+      return method.currencies.some(currency => {
+        const code = typeof currency === 'string' ? currency : currency?.code
 
-  const card = filtered.filter(method => {
-    return isCard(method.code)
-  })
-
-  const apple = filtered.filter(method => {
-    return isApplePay(method.code)
-  })
-
-  const google = filtered.filter(method => {
-    return isGooglePay(method.code)
-  })
-
-  const rest = filtered.filter(method => {
-    return ![
-      'balance',
-      'creditdebit-card',
-      'google-pay',
-      'google_pay',
-      'googlepay',
-      'apple-pay',
-      'apple_pay',
-      'applepay',
-    ].includes(normCode(method.code))
-  })
-
-  return [...card, ...apple, ...google, ...rest]
+        return String(code || '').toUpperCase() === selectedCurrency
+      })
+    })
+    .sort((a, b) => {
+      return paymentPriority(a.code) - paymentPriority(b.code)
+    })
 })
 
-const isValidPhone = phone => {
-  const normalizedPhone = norm(phone)
-  const digits = normalizedPhone.replace(/\D/g, '')
+const isValidPhone = value => {
+  const phone = norm(value)
+  const digits = phone.replace(/\D/g, '')
 
-  if (digits.length < 7 || digits.length > 15) {
-    return false
-  }
+  return (
+    digits.length >= 7 && digits.length <= 15 && /^[+0-9()\-\s]+$/.test(phone)
+  )
+}
 
-  return /^[+0-9()\-\s]+$/.test(normalizedPhone)
+const isPlaceholderName = (value, field) => {
+  const input = norm(value).toLowerCase()
+
+  return input === field.toLowerCase() || input === norm(t(field)).toLowerCase()
 }
 
 const clearErrors = () => {
@@ -493,66 +410,35 @@ const clearErrors = () => {
   })
 
   submitError.value = ''
+  topupStore.clearError?.()
 }
 
 const validateField = field => {
   errors[field] = ''
 
-  if (field === 'fullName') {
-    const { name, surname } = splitFullName(form.fullName)
+  const value = norm(form[field])
 
-    if (!name || !surname) {
-      errors.fullName = t('Please enter your full name')
+  if (field === 'name' || field === 'surname') {
+    if (!value || isPlaceholderName(value, field)) {
+      errors[field] =
+        field === 'name'
+          ? t('First name is required')
+          : t('Last name is required')
 
       return
     }
 
-    if (!nameRe.test(name) || !nameRe.test(surname)) {
-      errors.fullName = t('Invalid full name')
-    }
-
-    return
-  }
-
-  if (field === 'name') {
-    const name = norm(form.name)
-
-    if (!name) {
-      errors.name = t('First name is required')
-      return
-    }
-
-    if (!nameRe.test(name)) {
-      errors.name = t('Invalid name')
-    }
-
-    return
-  }
-
-  if (field === 'surname') {
-    const surname = norm(form.surname)
-
-    if (!surname) {
-      errors.surname = t('Last name is required')
-      return
-    }
-
-    if (!nameRe.test(surname)) {
-      errors.surname = t('Invalid surname')
+    if (!nameRegex.test(value)) {
+      errors[field] = t('Invalid name')
     }
 
     return
   }
 
   if (field === 'email') {
-    const email = norm(form.email)
-
-    if (!email) {
+    if (!value) {
       errors.email = t('Email is required')
-      return
-    }
-
-    if (!emailRe.test(email)) {
+    } else if (!emailRegex.test(value)) {
       errors.email = t('Invalid email format')
     }
 
@@ -560,13 +446,9 @@ const validateField = field => {
   }
 
   if (field === 'phone') {
-    if (!norm(form.phone)) {
+    if (!value) {
       errors.phone = t('Phone number is required')
-
-      return
-    }
-
-    if (!isValidPhone(form.phone)) {
+    } else if (!isValidPhone(value)) {
       errors.phone = t('Invalid phone number')
     }
 
@@ -577,15 +459,15 @@ const validateField = field => {
     errors.country = t('Country is required')
   }
 
-  if (field === 'city' && !norm(form.city)) {
+  if (field === 'city' && !value) {
     errors.city = t('City is required')
   }
 
-  if (field === 'address' && !norm(form.address)) {
+  if (field === 'address' && !value) {
     errors.address = t('Address is required')
   }
 
-  if (field === 'postCode' && !norm(form.postCode)) {
+  if (field === 'postCode' && !value) {
     errors.postCode = t('Post Code is required')
   }
 
@@ -597,30 +479,16 @@ const validateField = field => {
 const validateForm = () => {
   clearErrors()
 
-  if (IS_COMBINED_NAME_AND_SURNAME) {
-    validateField('fullName')
-  } else {
-    validateField('name')
-    validateField('surname')
-  }
+  Object.keys(errors).forEach(field => {
+    validateField(field)
+  })
 
-  validateField('email')
-  validateField('phone')
-  validateField('country')
-  validateField('city')
-  validateField('address')
-  validateField('postCode')
-  validateField('termsAccepted')
-
-  if (!localFiatAmount.value || localFiatAmount.value <= 0) {
+  if (localFiatAmount.value <= 0) {
     submitError.value = t('Invalid top up amount')
-
     return false
   }
 
-  const hasErrors = Object.values(errors).some(Boolean)
-
-  if (hasErrors) {
+  if (Object.values(errors).some(Boolean)) {
     submitError.value = t('Please fill in all required fields correctly.')
 
     return false
@@ -629,56 +497,59 @@ const validateForm = () => {
   return true
 }
 
-const isNameComplete = computed(() => {
-  if (IS_COMBINED_NAME_AND_SURNAME) {
-    const { name, surname } = splitFullName(form.fullName)
+const getSavedCheckoutData = () => {
+  try {
+    const data = JSON.parse(localStorage.getItem(CHECKOUT_STORAGE_KEY) || '{}')
 
-    return Boolean(name && surname && nameRe.test(name) && nameRe.test(surname))
+    return data && typeof data === 'object' ? data : {}
+  } catch {
+    return {}
   }
+}
 
-  return Boolean(
-    nameRe.test(norm(form.name)) && nameRe.test(norm(form.surname)),
-  )
-})
+const saveCheckoutData = () => {
+  try {
+    const data = getSavedCheckoutData()
 
-const canSubmit = computed(() => {
-  return Boolean(
-    localFiatAmount.value > 0 &&
-    isNameComplete.value &&
-    emailRe.test(norm(form.email)) &&
-    isValidPhone(form.phone) &&
-    form.country &&
-    norm(form.city) &&
-    norm(form.address) &&
-    norm(form.postCode) &&
-    form.termsAccepted,
-  )
-})
+    savedFields.forEach(field => {
+      data[field] = form[field]
+    })
+
+    localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(data))
+  } catch (error) {
+    console.error('Failed to save checkout data:', error)
+  }
+}
+
+const getCountryValue = user => {
+  const saved = getSavedCheckoutData()
+
+  const country =
+    user?.country?.id ??
+    user?.country_id ??
+    (typeof user?.country === 'string' ? user.country : null)
+
+  return country || saved.country || ''
+}
 
 const prefillForm = () => {
   const user = userStore.user || {}
-  const savedData = getCheckoutStorageData()
+  const saved = getSavedCheckoutData()
 
-  const name = sanitizeName(user.name || savedData.name || '')
+  form.name = isPlaceholderName(user.name, 'Name') ? '' : norm(user.name)
 
-  const surname = sanitizeSurname(user.surname || savedData.surname || '')
+  form.surname = isPlaceholderName(user.surname, 'Surname')
+    ? ''
+    : norm(user.surname)
 
-  form.name = name
-  form.surname = surname
+  form.email = user.email || ''
+  form.phone = user.phone || ''
 
-  form.fullName = [name, surname].filter(Boolean).join(' ')
-
-  form.email = user.email || savedData.email || ''
-
-  form.phone = user.phone || savedData.phone || ''
-
-  form.country = getUserOrSavedValue(user, 'country')
-
-  form.city = getUserOrSavedValue(user, 'city')
-
-  form.address = getUserOrSavedValue(user, 'address')
-
-  form.postCode = getUserOrSavedValue(user, 'postCode')
+  form.country = getCountryValue(user)
+  form.city = user.city || saved.city || ''
+  form.address = user.address || saved.address || ''
+  form.postCode =
+    user.zip || user.post_code || user.postCode || saved.postCode || ''
 
   form.termsAccepted = false
 
@@ -691,27 +562,21 @@ const submitWithMethod = async methodCode => {
 
   selectedPaymentMethod.value = methodCode
 
-  saveCheckoutStorageData()
+  saveCheckoutData()
 
-  topupStore.clearError?.()
-  topupStore.setAmount?.(receiveCredits.value)
-  topupStore.setPaymentType?.(methodCode)
-
-  const { name, surname } = getNameData()
+  topupStore.setAmount(receiveCredits.value)
+  topupStore.setPaymentType(methodCode)
 
   try {
     const response = await topupStore.checkout({
-      name: sanitizeName(name),
-      surname: sanitizeSurname(surname),
-
+      name: norm(form.name),
+      surname: norm(form.surname),
       email: norm(form.email),
       phone: norm(form.phone),
-
       country: form.country,
       city: norm(form.city),
       address: norm(form.address),
       postCode: norm(form.postCode),
-
       currency: currencyCode.value,
       amount: localFiatAmount.value,
       paymentType: methodCode,
@@ -719,7 +584,6 @@ const submitWithMethod = async methodCode => {
 
     if (response?.redirect_url) {
       window.location.href = response.redirect_url
-
       return
     }
 
@@ -734,54 +598,119 @@ const submitWithMethod = async methodCode => {
   }
 }
 
-const initTopUp = async () => {
-  await Promise.all([
-    ensurePages(),
-    settingsStore.fetchSettings?.(),
-    countriesStore.fetchCountries?.(),
-  ])
-
-  prefillForm()
-}
-
 const handleClose = () => {
   if (isSubmitting.value) return
 
+  clearErrors()
   emit('close')
+}
+
+const initializeModal = async () => {
+  const tasks = [ensurePages()]
+
+  if (!settingsStore.settings) {
+    tasks.push(settingsStore.fetchSettings())
+  }
+
+  if (!countriesStore.countries?.length) {
+    tasks.push(countriesStore.fetchCountries())
+  }
+
+  if (!userStore.user?.email) {
+    tasks.push(userStore.fetchProfile())
+  }
+
+  await Promise.allSettled(tasks)
+
+  if (props.show) {
+    prefillForm()
+  }
 }
 
 watch(
   () => props.show,
-  async isOpen => {
-    if (!isOpen) return
-
-    await initTopUp()
+  isOpen => {
+    if (isOpen) {
+      initializeModal()
+    } else {
+      clearErrors()
+      form.termsAccepted = false
+    }
   },
+  { immediate: true },
 )
 
-watch(() => savedFields.map(field => form[field]), saveCheckoutStorageData)
-
 watch(
-  () => form.country,
+  () => savedFields.map(field => form[field]),
   () => {
-    if (form.country) {
-      errors.country = ''
+    if (props.show) {
+      saveCheckoutData()
     }
   },
 )
 
 watch(
-  () => form.termsAccepted,
-  () => {
-    validateField('termsAccepted')
+  () => form.country,
+  value => {
+    if (value) errors.country = ''
   },
 )
 
-onMounted(async () => {
-  if (props.show) {
-    await initTopUp()
-  }
-})
+watch(
+  () => form.termsAccepted,
+  value => {
+    if (value) errors.termsAccepted = ''
+  },
+)
+
+watch(
+  () => form.name,
+  () => {
+    errors.name = ''
+  },
+)
+
+watch(
+  () => form.surname,
+  () => {
+    errors.surname = ''
+  },
+)
+
+watch(
+  () => form.email,
+  () => {
+    errors.email = ''
+  },
+)
+
+watch(
+  () => form.phone,
+  () => {
+    errors.phone = ''
+  },
+)
+
+watch(
+  () => form.city,
+  () => {
+    errors.city = ''
+  },
+)
+
+watch(
+  () => form.address,
+  () => {
+    errors.address = ''
+  },
+)
+
+watch(
+  () => form.postCode,
+  () => {
+    errors.postCode = ''
+  },
+)
 </script>
 
 <style lang="scss" scoped>
@@ -789,154 +718,509 @@ onMounted(async () => {
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
+:global(.modal .modal__inner.top-up-modal__inner) {
+  width: min(832px, calc(100% - 32px));
+  max-width: 832px;
+  max-height: calc(100dvh - 32px);
+
+  padding: 58px 49px 63px;
+
+  border: 1px solid #344050;
+  border-radius: 18px;
+
+  background: #111821;
+  background-image: none;
+
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+:global(.modal .modal__inner.top-up-modal__inner .modal__close) {
+  top: 14px;
+  right: 14px;
+
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+
+  padding: 0;
+  border-radius: 6px;
+
+  color: #f4f6fb;
+  background: transparent;
+}
+
+:global(.modal .modal__inner.top-up-modal__inner .modal__close:hover) {
+  color: #1a73ff;
+}
+
 .top-up {
+  width: 100%;
+  min-width: 0;
+
   &__title {
+    margin: 0;
+
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.3;
+
     text-align: center;
+    text-transform: none;
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 18);
+      @include adaptiveValue('margin-bottom', 32, 22);
     }
-  }
-
-  &__inputs {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-  }
-
-  &__box {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    @include adaptiveValue('gap', 20, 18);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 18);
-    }
-    @media (max-width: $md5) {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  }
-
-  &__input {
-  }
-
-  &__info {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    @include adaptiveValue('gap', 20, 10);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-    @media (max-width: $md5) {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  }
-
-  &__checkbox {
-  }
-
-  &__requisites {
-    line-height: 170%;
-    color: var(--third-color);
-  }
-
-  &__error {
-    margin-bottom: 8px;
   }
 
   &__total {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 20px;
+
+    width: 100%;
+    min-width: 0;
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-    &-label {
+      @include adaptiveValue('margin-bottom', 32, 24);
     }
   }
 
-  &__prices {
-    line-height: 120% !important;
+  &__total-label {
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
   }
 
-  &__coin {
-    color: var(--primary-color);
-    &:not(:last-child) {
-      margin-bottom: 10px;
+  &__total-value {
+    color: #f4f6fb;
+    font-family: var(--font-inter);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+    row-gap: 18px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__field {
+    width: 100%;
+    min-width: 0;
+
+    :deep(.base-input__label),
+    :deep(.base-select__field-label) {
+      margin-bottom: 7px;
+
+      color: #99a1b0;
+      font-family: var(--font-inter);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    :deep(.base-input),
+    :deep(.base-select) {
+      width: 100%;
+      min-height: 50px;
+      height: 50px;
+
+      border: 1px solid rgba(153, 161, 176, 0.12);
+      border-radius: 8px;
+
+      background-color: #222934;
+      color: #f4f6fb;
+
+      transition:
+        border-color 0.25s ease,
+        background-color 0.25s ease;
+    }
+
+    :deep(.base-input.is-focused),
+    :deep(.base-input:focus-within),
+    :deep(.base-select.is-open),
+    :deep(.base-select:focus-visible) {
+      border-color: #1a73ff;
+    }
+
+    :deep(.base-input.has-error),
+    :deep(.base-select.has-error) {
+      border-color: var(--error-color);
+    }
+
+    :deep(.base-input__control),
+    :deep(.base-select__value-text) {
+      color: #f4f6fb;
+      font-family: var(--font-inter);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    :deep(.base-input__placeholder),
+    :deep(.base-select__placeholder) {
+      color: #b6c0ce;
+      font-family: var(--font-inter);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    :deep(.base-input__error),
+    :deep(.base-select__error) {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    :deep(.base-select__dropdown) {
+      z-index: 30;
+
+      background-color: #222934;
+      border: 1px solid #344050;
+      border-radius: 8px;
+
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    :deep(.base-select__option) {
+      color: #f4f6fb;
+      border-radius: 6px;
+    }
+
+    :deep(.base-select__option.is-selected) {
+      background-color: #1a73ff;
     }
   }
 
-  &__fiat {
+  &__divider {
+    width: 100%;
+    height: 1px;
+
+    margin-top: 29px;
+    margin-bottom: 20px;
+
+    background-color: rgba(153, 161, 176, 0.12);
+  }
+
+  &__agreements {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    margin-top: 24px;
+  }
+
+  &__checkbox {
+    width: 100%;
+
+    :deep(.base-checkbox__row) {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    :deep(.base-checkbox__box) {
+      width: 16px;
+      min-width: 16px;
+      height: 16px;
+      margin-top: 2px;
+
+      border: 1px solid #4c5a6c;
+      border-radius: 3px;
+
+      background-color: #222934;
+    }
+
+    :deep(.base-checkbox__label) {
+      color: #99a1b0;
+      font-family: var(--font-inter);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    :deep(.base-checkbox__label a) {
+      color: #f4f6fb;
+      text-decoration: none;
+
+      @media (any-hover: hover) {
+        &:hover {
+          color: #65a7ff;
+        }
+      }
+    }
+
+    :deep(.base-checkbox__error) {
+      margin-top: 7px;
+      font-size: 12px;
+    }
+  }
+
+  &__requisites {
+    white-space: pre-line;
+
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  &__error {
+    margin-top: 18px;
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
   }
 
   &__methods {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+
     width: 100%;
+    min-width: 0;
 
-    display: flex;
-    flex-wrap: wrap;
-
-    @include adaptiveValue('row-gap', 20, 10);
-    @include adaptiveValue('margin-left', -10, -5);
-    @include adaptiveValue('margin-right', -10, -5);
+    margin-top: 40px;
   }
 
   &__method {
-    position: relative;
-
-    flex: 0 1 33.333%;
-
+    display: flex;
+    min-width: 0;
     width: 100%;
-    height: fit-content;
 
-    @include adaptiveValue('padding-left', 10, 5);
-    @include adaptiveValue('padding-right', 10, 5);
-
-    &_full {
-    }
-    @media (max-width: $md3) {
-      flex: 0 1 50%;
-    }
-    @media (max-width: $md5) {
-      flex: 1 1 100%;
-    }
-
-    &_image {
-      :deep(.top-up__submit) {
-        position: relative;
-        overflow: hidden;
-      }
-
-      :deep(.top-up__submit .btn__text) {
-        position: absolute;
-
-        inset: 0;
-
-        width: 100%;
-        height: 100%;
-      }
-    }
-
-    @media (max-width: $md6) {
-      flex: 1 1 100%;
+    &_card {
+      grid-column: 1 / -1;
     }
   }
 
-  &__submit {
+  &__payment-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     width: 100%;
+    min-width: 0;
+    min-height: 50px;
+    height: 50px;
+    padding: 9px 15px;
 
-    &-image {
-      position: absolute;
+    border: 1px solid #b7c4d4 !important;
+    border-radius: 8px !important;
 
-      inset: 0;
+    background-color: transparent !important;
+    color: #f4f6fb !important;
+
+    font-family: var(--font-inter);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease,
+      color 0.25s ease;
+
+    :deep(.btn__text) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       width: 100%;
       height: 100%;
+    }
 
-      img {
-        width: 100%;
-        height: 100%;
-
-        object-fit: contain;
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        border-color: #1a73ff !important;
+        background-color: rgba(26, 115, 255, 0.08) !important;
       }
     }
+
+    &:focus-visible {
+      outline: 2px solid #1a73ff;
+      outline-offset: 3px;
+    }
+  }
+
+  &__method_light &__payment-button {
+    border-color: #f1f2f5 !important;
+    background-color: #f1f2f5 !important;
+    color: #101722 !important;
+
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        border-color: #dce4f0 !important;
+        background-color: #dce4f0 !important;
+      }
+    }
+  }
+
+  &__payment-image {
+    display: block;
+
+    width: auto;
+    max-width: 120px;
+    max-height: 27px;
+
+    object-fit: contain;
+    object-position: center;
+  }
+
+  &__empty-methods {
+    grid-column: 1 / -1;
+
+    padding: 18px;
+    border: 1px solid #344050;
+    border-radius: 8px;
+
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  @media (max-width: $md3) {
+    &__title {
+      font-size: 27px;
+    }
+
+    &__fields {
+      column-gap: 15px;
+      row-gap: 15px;
+    }
+
+    &__methods {
+      gap: 14px;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__title {
+      font-size: 24px;
+    }
+
+    &__total-label,
+    &__total-value {
+      font-size: 14px;
+    }
+
+    &__fields {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 14px;
+    }
+
+    &__field {
+      :deep(.base-input__label),
+      :deep(.base-select__field-label) {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+
+      :deep(.base-input),
+      :deep(.base-select) {
+        min-height: 45px;
+        height: 45px;
+      }
+
+      :deep(.base-input__control),
+      :deep(.base-input__placeholder),
+      :deep(.base-select__value-text),
+      :deep(.base-select__placeholder) {
+        font-size: 14px;
+      }
+    }
+
+    &__divider {
+      margin-top: 22px;
+      margin-bottom: 18px;
+    }
+
+    &__agreements {
+      margin-top: 22px;
+    }
+
+    &__checkbox {
+      :deep(.base-checkbox__label) {
+        font-size: 12px;
+      }
+    }
+
+    &__methods {
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    &__payment-button {
+      min-height: 45px;
+      height: 45px;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    &__payment-image {
+      max-width: 100px;
+      max-height: 23px;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__methods {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__method_card {
+      grid-column: auto;
+    }
+  }
+}
+
+@media (max-width: $md3) {
+  :global(.modal .modal__inner.top-up-modal__inner) {
+    padding: 52px 28px 35px;
+  }
+}
+
+@media (max-width: $md5) {
+  :global(.modal .modal__inner.top-up-modal__inner) {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
+
+    padding: 48px 20px 25px;
+
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+@media (max-width: $md7) {
+  :global(.modal .modal__inner.top-up-modal__inner) {
+    padding-left: 15px;
+    padding-right: 15px;
   }
 }
 </style>
