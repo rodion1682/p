@@ -14,7 +14,7 @@ const topupStore = useTopUpStore()
 
 const isTopUp = computed(() => route.query.type === 'topup')
 
-const goToOrders = () => router.push({ name: 'account-order-history' })
+const goToOrders = () => router.push({ name: 'account-payment-history' })
 const goToTransactions = () => router.push({ name: 'account-payment-history' })
 const goHome = () => router.push('/')
 const goToProducts = () => router.push({ name: 'ProductListPage' })
