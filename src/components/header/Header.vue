@@ -333,8 +333,18 @@ const openResetPassword = () => {
 
 const openContactModal = () => {
   closeMobileMenu()
+
+  if (!IS_CONTACT_MODAL_ACTIVE) {
+    router.push({ name: 'ContactPage' })
+    return
+  }
+
   isContactModalOpen.value = true
 }
+
+defineExpose({
+  openContactModal,
+})
 
 const goToCS2 = () => {
   closeMobileMenu()

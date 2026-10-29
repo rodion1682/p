@@ -27,10 +27,6 @@
           </div>
 
           <div class="banner__heading-content">
-            <div class="banner__label">
-              {{ $t('PRIVACY PREFERENCES') }}
-            </div>
-
             <h2 class="banner__title">
               {{ $t('Cookies in Use') }}
             </h2>
@@ -54,7 +50,7 @@
             class="cookie__desc-link"
             @click="closeModal"
           >
-            {{ cookiePage?.title || $t('Cookie Notice') }} </RouterLink
+            {{ cookiePage?.title }} </RouterLink
           >.
         </div>
 
@@ -97,30 +93,9 @@
   >
     <div class="cookie__modal">
       <div class="cookie__top">
-        <div class="cookie__label">
-          {{ $t('MANAGE YOUR PRIVACY') }}
-        </div>
-
         <h2 class="cookie__title _h3">
           {{ $t('Cookie Preferences') }}
         </h2>
-
-        <p class="cookie__desc">
-          {{
-            $t(
-              'Choose which cookies Relic Forge can use. Essential cookies are always enabled to keep the marketplace secure and functioning correctly.',
-            )
-          }}
-        </p>
-
-        <RouterLink
-          v-if="cookiePageLink"
-          :to="cookiePageLink"
-          class="cookie__desc-link"
-          target="_blank"
-        >
-          {{ $t('Read our Cookie Notice') }}
-        </RouterLink>
       </div>
 
       <div class="cookie__list">
@@ -573,19 +548,18 @@ defineExpose({
   }
 
   &__desc-link {
-    display: inline;
-    color: #65a7ff;
+    display: inline-block;
+    margin-left: 2px;
+    color: var(--link-color);
     font-family: var(--font-inter);
-    font-size: inherit;
-    font-weight: 600;
-    line-height: inherit;
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    line-height: inherit !important;
     text-decoration: underline;
-    text-underline-offset: 3px;
-    transition: color 0.25s ease;
-
+    transition: color 0.3s ease 0s;
     @media (any-hover: hover) {
       &:hover {
-        color: #a9ceff;
+        color: var(--third-color);
       }
     }
   }

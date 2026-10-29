@@ -51,9 +51,13 @@
         <RouterLink v-if="false" :to="{ name: 'FAQ' }" class="footer__link">
           {{ $t('FAQ') }}
         </RouterLink>
-        <RouterLink :to="{ name: 'ContactPage' }" class="footer__link">
+        <button
+          type="button"
+          class="footer__link"
+          @click="emit('open-contact')"
+        >
           {{ $t('Contact us') }}
-        </RouterLink>
+        </button>
         <RouterLink
           v-if="false"
           :to="{ name: 'HomePage' }"
@@ -140,7 +144,7 @@ import { initDynamicAdapt } from '@/utils/dynamic_adapt.js'
 
 const SHOW_SELL_SKIN_MODAL = false
 
-const emit = defineEmits(['open-cookie-settings'])
+const emit = defineEmits(['open-cookie-settings', 'open-contact'])
 
 const route = useRoute()
 const router = useRouter()

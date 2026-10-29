@@ -10,9 +10,14 @@ import { useStaticPages } from '@/composables/useStaticPages'
 
 const router = useRouter()
 
+const headerRef = ref(null)
 const cookieModalRef = ref(null)
 
 const { cookiePage, ensurePages, getPageUrl } = useStaticPages()
+
+const openContactFromFooter = () => {
+  headerRef.value?.openContactModal?.()
+}
 
 const openCookieSettings = async () => {
   await ensurePages()
@@ -39,13 +44,16 @@ const openCookieSettings = async () => {
 
 <template>
   <div class="layout">
-    <Header />
+    <Header ref="headerRef" />
 
     <main class="layout__main">
       <slot />
     </main>
 
-    <Footer @open-cookie-settings="openCookieSettings" />
+    <Footer
+      @open-cookie-settings="openCookieSettings"
+      @open-contact="openContactFromFooter"
+    />
 
     <CookieModal ref="cookieModalRef" />
   </div>
@@ -57,17 +65,18 @@ const openCookieSettings = async () => {
 @use '@/assets/styles/components/classes' as *;
 
 .layout {
-  min-height: 100vh;
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-
-  // @include header-indent;
+  min-height: 100vh;
+  width: 100%;
 
   &__main {
-    flex: 1 1 100%;
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
+    width: 100%;
+    min-width: 0;
   }
 }
 </style>
