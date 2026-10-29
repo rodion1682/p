@@ -128,6 +128,7 @@
     <ContactInfoModal
       v-model:show="isWithdrawModalOpen"
       mode="balance"
+      :balance="userBalance"
       @close="closeWithdrawModal"
     />
 

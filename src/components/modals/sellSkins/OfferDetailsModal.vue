@@ -1,160 +1,143 @@
 <template>
   <BaseModal
     :show="show"
+    wrapper-classes="offer-details-modal__inner"
+    :persistent="isSubmitting"
     @close="close"
-    :wrapperClasses="['details-modal__inner']"
   >
-    <div class="details">
-      <LoadingSpinner v-if="isLoading" class="details__loading" />
+    <div class="offer-details">
+      <LoadingSpinner
+        v-if="isLoading && !offer"
+        class="offer-details__loading"
+      />
 
-      <div v-else-if="resultState && false" class="details__result result">
-        <SvgIcon
-          v-if="false"
-          :icon="resultState === 'accepted' ? CheckIcon : CloseIcon"
-          class="result__icon"
-          :class="{
-            'is-success': resultState === 'accepted',
-            'is-danger': resultState === 'declined',
-          }"
-        />
-
-        <div
-          class="result__title _h4"
-          :class="{
-            'is-success': resultState === 'accepted',
-            'is-danger': resultState === 'declined',
-          }"
-        >
-          <template v-if="resultState === 'accepted'">
-            {{ $t('Your request has been received successfully.') }}
-          </template>
-          <template v-else>
-            {{ $t('We couldn’t submit your request.') }}
-          </template>
-        </div>
-
-        <div class="result__text">
-          <template v-if="resultState === 'accepted'">
-            {{ $t('We’ll update you on its status within 3 business days.') }}
-          </template>
-          <template v-else>{{
-            $t('Please try again or contact support if the issue continues.')
-          }}</template>
-        </div>
-      </div>
-
-      <div v-else-if="offer" class="details__content">
-        <div class="details__title _h3">
+      <template v-else-if="offer">
+        <h2 class="offer-details__title">
           {{ $t('Offer Details') }}
-          <div v-if="false" class="details__title-id">{{ offerId }}</div>
-        </div>
+        </h2>
 
-        <div class="details__body">
-          <div class="details__items">
-            <div class="details__item">
-              <div class="details__label">{{ $t('ID') }}</div>
-              <div class="details__value">#{{ offerId }}</div>
-            </div>
+        <div class="offer-details__body">
+          <div class="offer-details__list">
+            <div class="offer-details__row">
+              <span class="offer-details__label"> {{ $t('Game') }}: </span>
 
-            <div class="details__item">
-              <div class="details__label">{{ $t('Name') }}</div>
-              <div class="details__value">{{ offerTitle }}</div>
-            </div>
-
-            <div v-if="offerGame && false" class="details__item">
-              <div class="details__label">{{ $t('Game') }}</div>
-              <div class="details__value details__value_bold">
+              <span class="offer-details__value">
                 {{ offerGame }}
-              </div>
+              </span>
             </div>
-            <div class="details__item">
-              <div class="details__label">{{ $t('Desired price') }}</div>
-              <div class="details__value">
-                {{ desiredPrice }}{{ offerCurrencySymbol }}
-              </div>
+
+            <div class="offer-details__row">
+              <span class="offer-details__label"> {{ $t('ID') }}: </span>
+
+              <span class="offer-details__value">
+                {{ offerId }}
+              </span>
             </div>
-            <div v-if="offeredPrice > 0" class="details__item">
-              <div class="details__label">{{ $t('Offer price') }}</div>
-              <div class="details__value">
-                {{ offeredPrice }} {{ offerCurrencySymbol }}
-              </div>
+
+            <div class="offer-details__row">
+              <span class="offer-details__label"> {{ $t('Skin name') }}: </span>
+
+              <span class="offer-details__value">
+                {{ offerTitle }}
+              </span>
+            </div>
+
+            <div class="offer-details__row">
+              <span class="offer-details__label">
+                {{ $t('Desired price') }}:
+              </span>
+
+              <span class="offer-details__value offer-details__value_price">
+                {{ desiredPrice }}
+              </span>
+            </div>
+
+            <div class="offer-details__row">
+              <span class="offer-details__label">
+                {{ $t('Offered price') }}:
+              </span>
+
+              <span class="offer-details__value offer-details__value_price">
+                {{ offeredPrice }}
+              </span>
             </div>
           </div>
 
           <div
             v-if="statusKey === 'awaiting_item' && companyTradeUrl"
-            class="details__item details__item_link"
+            class="offer-details__trade"
           >
-            <div class="details__label">
+            <div class="offer-details__trade-label">
               {{ $t('Send your item') }}
             </div>
 
             <a
               :href="companyTradeUrl"
+              class="offer-details__trade-link"
               target="_blank"
               rel="noopener noreferrer"
-              class="details__trade-link _link"
             >
               {{ companyTradeUrl }}
             </a>
           </div>
 
-          <div v-if="false" class="details__summary">
-            <div class="details__summary-label">
-              {{ $t('Offered price') }}
-            </div>
-
-            <div class="details__summary-price">
-              {{ offeredPrice }} {{ offerCurrencySymbol }}
-            </div>
-          </div>
-
-          <div
-            v-if="hasCounterOffer && statusKey === 'offer'"
-            class="details__actions"
-          >
+          <div class="offer-details__actions">
             <BaseButton
+              v-if="canAccept"
+              type="button"
               variant="primary"
-              class="details__button"
+              class="offer-details__button offer-details__button_accept"
               :disabled="isSubmitting"
               @click="handleOfferAccept"
             >
-              {{ $t('Accept') }}
+              {{ isSubmitting ? `${$t('Loading')}...` : $t('Accept') }}
             </BaseButton>
+
             <BaseButton
               type="button"
-              variant="gray"
-              class="details__button"
+              variant="bordered"
+              class="offer-details__button offer-details__button_back"
               :disabled="isSubmitting"
-              @click="handleOfferDecline"
+              @click="close"
             >
-              {{ $t('Decline') }}
+              {{ $t('Back') }}
             </BaseButton>
           </div>
         </div>
-      </div>
+      </template>
 
-      <div v-else class="details__empty _h3">
-        {{ $t('Offer details not found') }}
+      <div v-else class="offer-details__empty">
+        <h2 class="offer-details__title">
+          {{ $t('Offer Details') }}
+        </h2>
+
+        <p class="offer-details__empty-text">
+          {{ $t('Offer details not found') }}
+        </p>
+
+        <BaseButton
+          type="button"
+          variant="bordered"
+          class="offer-details__button offer-details__button_back"
+          @click="close"
+        >
+          {{ $t('Back') }}
+        </BaseButton>
       </div>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
-import { CheckIcon, CloseIcon } from '@/components/icons'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 import { useToast } from '@/composables/useToast'
 import { useOfferFlowStore } from '@/stores/offerFlow'
-
-const SHOW_RESULT_MODAL_AFTER_SUBMIT = true
 
 const props = defineProps({
   show: {
@@ -166,20 +149,13 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { t } = useI18n()
+
 const toast = useToast()
 const offerFlowStore = useOfferFlowStore()
 
 const isSubmitting = ref(false)
 
-const resultState = ref(null) // 'accepted', 'declined'
-const closeTimer = ref(null)
-
-const isLoading = computed(() => {
-  if (resultState.value) return false
-  return !!offerFlowStore.isLoading || !!offerFlowStore.loading
-})
-
-const offer = computed(() => {
+const rawOffer = computed(() => {
   return (
     offerFlowStore.selectedOfferDetails ||
     offerFlowStore.offerDetails ||
@@ -188,301 +164,560 @@ const offer = computed(() => {
   )
 })
 
+const offer = computed(() => {
+  const value = rawOffer.value
+
+  if (!value) return null
+
+  if (
+    value.payload &&
+    typeof value.payload === 'object' &&
+    !Array.isArray(value.payload)
+  ) {
+    return {
+      ...value,
+      ...value.payload,
+    }
+  }
+
+  if (
+    value.data &&
+    typeof value.data === 'object' &&
+    !Array.isArray(value.data)
+  ) {
+    return {
+      ...value,
+      ...value.data,
+    }
+  }
+
+  return value
+})
+
+const isLoading = computed(() => {
+  return Boolean(offerFlowStore.isLoading || offerFlowStore.loading)
+})
+
 const offerId = computed(() => {
-  return offer.value?.order_nr || offer.value?.id || '—'
+  return offer.value?.order_nr ?? offer.value?.id ?? '—'
+})
+
+const offerTitle = computed(() => {
+  const title = String(offer.value?.title || offer.value?.name || '')
+    .replace(/StatTrak™?\s*/gi, '')
+    .replace(/Souvenir\s*/gi, '')
+    .replace(/★\s*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return title || '—'
+})
+
+const offerGame = computed(() => {
+  const game = String(
+    offer.value?.type || offer.value?.game || offer.value?.category || '',
+  )
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_-]+/g, '')
+
+  if (game === 'cs2' || game === 'csgo') {
+    return 'CS2'
+  }
+
+  if (game === 'dota2') {
+    return 'Dota 2'
+  }
+
+  return '—'
 })
 
 const statusKey = computed(() => {
   return String(offer.value?.status || '')
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '_')
-})
-
-const companyTradeUrl = computed(() => {
-  return offer.value?.company_trade_url || ''
+    .replace(/[\s-]+/g, '_')
 })
 
 const offerCurrency = computed(() => {
-  return offer.value?.currency || offer.value?.fiat_currency || 'EUR'
+  return String(offer.value?.fiat_currency || offer.value?.currency || 'EUR')
+    .trim()
+    .toUpperCase()
 })
 
 const offerCurrencySymbol = computed(() => {
-  if (offerCurrency.value === 'EUR') return '€'
-  if (offerCurrency.value === 'USD') return '$'
-  if (offerCurrency.value === 'GBP') return '£'
+  const symbols = {
+    EUR: '€',
+    USD: '$',
+    GBP: '£',
+  }
 
-  return offerCurrency.value
+  return symbols[offerCurrency.value] || offerCurrency.value
 })
 
-const offerTitle = computed(() => {
-  return String(offer.value?.title || '—')
-    .replace(/StatTrak™?\s*/gi, '')
-    .replace(/Souvenir\s*/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-})
+const formatPrice = value => {
+  if (value === null || value === undefined || value === '') {
+    return '—'
+  }
 
-const offerGame = computed(() => {
-  const type = String(
-    offer.value?.type || offer.value?.game || offer.value?.category || '',
-  ).toLowerCase()
+  const amount = Number(value)
 
-  if (type === 'cs2') return t('CS2')
-  if (type === 'dota2') return t('Dota 2')
+  if (!Number.isFinite(amount)) {
+    return '—'
+  }
 
-  return ''
-})
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true,
+  }).format(amount)
+
+  return `${formatted} ${offerCurrencySymbol.value}`
+}
 
 const desiredPrice = computed(() => {
-  return Number(
+  const value =
     offer.value?.user_price ??
-      offer.value?.user_fiat_price ??
-      offer.value?.price ??
-      0,
-  ).toFixed(2)
+    offer.value?.user_fiat_price ??
+    offer.value?.price
+
+  return formatPrice(value)
+})
+
+const offeredPriceValue = computed(() => {
+  return (
+    offer.value?.service_price ??
+    offer.value?.service_fiat_price ??
+    offer.value?.fiat_price ??
+    null
+  )
 })
 
 const offeredPrice = computed(() => {
-  return Number(
-    offer.value?.service_price ??
-      offer.value?.service_fiat_price ??
-      offer.value?.fiat_price ??
-      0,
-  ).toFixed(2)
+  return formatPrice(offeredPriceValue.value)
 })
 
-const hasCounterOffer = computed(() => {
-  return Number(offeredPrice.value) > 0
+const canAccept = computed(() => {
+  const price = Number(offeredPriceValue.value)
+
+  return (
+    statusKey.value === 'offer' &&
+    offeredPriceValue.value != null &&
+    Number.isFinite(price) &&
+    price > 0
+  )
 })
 
-const clearCloseTimer = () => {
-  if (!closeTimer.value) return
+const companyTradeUrl = computed(() => {
+  const url = String(offer.value?.company_trade_url || '').trim()
 
-  clearTimeout(closeTimer.value)
-  closeTimer.value = null
-}
+  if (!url) return ''
 
-const showResultAndClose = state => {
-  resultState.value = state
-  clearCloseTimer()
+  try {
+    const parsed = new URL(url)
 
-  closeTimer.value = setTimeout(() => {
-    resultState.value = null
-    emit('close')
-  }, 4000)
-}
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return ''
+    }
 
-const showToastAndClose = state => {
-  const message =
-    state === 'accepted'
-      ? t('Offer was accepted successfully')
-      : t('Offer was declined successfully')
-
-  toast.success(message)
-  emit('close')
-}
-
-const handleSubmitResult = state => {
-  if (SHOW_RESULT_MODAL_AFTER_SUBMIT) {
-    showResultAndClose(state)
-    return
+    return parsed.href
+  } catch {
+    return ''
   }
-
-  showToastAndClose(state)
-}
+})
 
 const close = () => {
   if (isSubmitting.value) return
 
-  clearCloseTimer()
-  resultState.value = null
   emit('close')
 }
 
 const handleOfferAccept = async () => {
-  if (!offer.value?.id || isSubmitting.value) return
+  const id = offer.value?.id
+
+  if (!id || !canAccept.value || isSubmitting.value) {
+    return
+  }
+
+  isSubmitting.value = true
 
   try {
-    isSubmitting.value = true
+    const success = await offerFlowStore.acceptOffer(id)
 
-    let success = false
-
-    if (offerFlowStore.acceptOffer) {
-      success = await offerFlowStore.acceptOffer(offer.value.id)
-    } else if (offerFlowStore.acceptCounterOffer) {
-      success = await offerFlowStore.acceptCounterOffer(offer.value.id)
+    if (!success) {
+      return
     }
 
-    if (!success) return
-
-    await offerFlowStore.fetchOfferDetails(offer.value.id)
+    await offerFlowStore.fetchOfferDetails(id)
 
     toast.success(t('Offer was accepted successfully'))
+
+    emit('close')
   } catch (error) {
+    console.error('Failed to accept offer:', error)
+
     toast.error(error?.message || t('Failed to accept offer'))
   } finally {
     isSubmitting.value = false
   }
 }
-
-const handleOfferDecline = async () => {
-  if (!offer.value?.id || isSubmitting.value) return
-
-  try {
-    isSubmitting.value = true
-
-    if (offerFlowStore.declineOffer) {
-      await offerFlowStore.declineOffer(offer.value.id)
-    } else if (offerFlowStore.declineCounterOffer) {
-      await offerFlowStore.declineCounterOffer(offer.value.id)
-    }
-
-    handleSubmitResult('declined')
-  } catch (error) {
-    toast.error(error?.message || t('Failed to decline offer'))
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-watch(
-  () => props.show,
-  value => {
-    if (value) return
-
-    clearCloseTimer()
-    resultState.value = null
-    isSubmitting.value = false
-  },
-)
-
-onBeforeUnmount(() => {
-  clearCloseTimer()
-})
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
+@use '@/assets/styles/components/classes' as *;
 
-.details {
+:global(.modal .modal__inner.offer-details-modal__inner) {
+  width: min(566px, calc(100% - 32px));
+  max-width: 566px;
+  max-height: calc(100dvh - 32px);
+
+  padding: 58px 49px 63px;
+
+  border: 1px solid #344050;
+  border-radius: 18px;
+
+  background: #111821;
+  background-image: none;
+
+  box-shadow: 0 20px 65px rgba(0, 0, 0, 0.3);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+:global(.modal .modal__inner.offer-details-modal__inner .modal__close) {
+  top: 17px;
+  right: 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+
+  color: #f4f6fb;
+
+  transition: color 0.25s ease;
+}
+
+:global(.modal .modal__inner.offer-details-modal__inner .modal__close:hover) {
+  color: #65a7ff;
+}
+
+.offer-details {
+  display: flex;
+  flex-direction: column;
+
   width: 100%;
+  min-width: 0;
 
-  &__loading,
-  &__empty {
+  &__loading {
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin: auto;
-    text-align: center;
-  }
+    justify-content: center;
 
-  &__content {
+    width: 100%;
+    min-height: 300px;
   }
 
   &__title {
+    margin: 0;
+
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: clamp(24px, 2.5vw, 30px);
+    font-weight: 700;
+    line-height: 1.3;
     text-align: center;
+    text-transform: none;
+    overflow-wrap: anywhere;
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
+      margin-bottom: 22px;
     }
   }
 
   &__body {
-  }
-
-  &__items {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 20);
-    }
-  }
-
-  &__item {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-    @include adaptiveValue('padding', 20, 10);
-    @include adaptiveValue('border-radius', 20, 10);
-    &:nth-child(even) {
-      background-color: var(--bg-secondary-color);
-    }
-    line-height: 120%;
-    font-weight: 400 !important;
-    &_link {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+
+    gap: 20px;
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    padding: 15px 0;
+
+    border-bottom: 1px solid rgba(153, 161, 176, 0.09);
+
+    &:last-child {
+      border-bottom: 0;
     }
   }
 
   &__label {
-    color: var(--secondary-color);
+    flex: 0 0 auto;
+
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+
+    text-align: left;
   }
 
   &__value {
-    color: var(--primary-color);
+    flex: 1 1 auto;
+    min-width: 0;
+
+    color: #f4f6fb;
+    font-family: var(--font-inter);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+
+    text-align: right;
+    overflow-wrap: anywhere;
+    word-break: normal;
+
+    &_price {
+      white-space: nowrap;
+    }
+  }
+
+  &__trade {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    width: 100%;
+    min-width: 0;
+
+    margin-top: 18px;
+    padding: 16px;
+
+    border: 1px solid #303948;
+    border-radius: 8px;
+    background-color: #19212c;
+  }
+
+  &__trade-label {
+    color: #f4f6fb;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
   }
 
   &__trade-link {
-    display: inline;
-    border: none;
+    display: block;
+
+    color: #65a7ff;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+
     text-decoration: underline;
-    color: var(--link-color);
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--primary-color);
-      }
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+
+    transition: color 0.25s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: #f4f6fb;
     }
   }
 
   &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    width: 100%;
+    min-width: 0;
+    margin-top: 24px;
   }
 
   &__button {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+    height: 50px;
+
+    padding: 10px 15px;
+
+    border-radius: 8px !important;
+
+    font-family: var(--font-inter);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+
+    &_accept {
+      border: 1px solid #1a73ff !important;
+      background-color: #1a73ff !important;
+      color: #ffffff !important;
+
+      @media (any-hover: hover) {
+        &:not(:disabled):hover {
+          border-color: #005fe8 !important;
+          background-color: #005fe8 !important;
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    &_back {
+      border: 1px solid #8794a6 !important;
+      background-color: transparent !important;
+      color: #f4f6fb !important;
+
+      @media (any-hover: hover) {
+        &:not(:disabled):hover {
+          border-color: #1a73ff !important;
+          background-color: rgba(26, 115, 255, 0.1) !important;
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #65a7ff;
+      outline-offset: 3px;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
+    min-width: 0;
+
+    text-align: center;
+  }
+
+  &__empty-text {
+    margin: 0 0 30px;
+
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  @media (max-width: $md5) {
+    &__title {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    &__row {
+      min-height: 58px;
+      gap: 12px;
+      padding: 13px 0;
+    }
+
+    &__label {
+      font-size: 13px;
+    }
+
+    &__value {
+      font-size: 13px;
+    }
+
+    &__actions {
+      margin-top: 23px;
+      gap: 10px;
+    }
+
+    &__button {
+      min-height: 45px;
+      height: 45px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__row {
+      align-items: flex-start;
+    }
+
+    &__label {
+      flex: 0 0 40%;
+    }
+
+    &__value {
+      flex: 1 1 auto;
+    }
+
+    &__value_price {
+      white-space: normal;
     }
   }
 }
 
-.result {
-  text-align: center;
-  &__icon {
-    min-width: 28px;
-    height: 20px;
+@media (max-width: $md5) {
+  :global(.modal .modal__inner.offer-details-modal__inner) {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 20);
-    }
+    padding: 55px 22px 30px;
 
-    &.is-success {
-      color: #4cff7b;
-    }
-
-    &.is-danger {
-      color: #ff4d4d;
-    }
+    border-radius: 16px 16px 0 0;
   }
+}
 
-  &__title {
-    text-align: center;
-    font-weight: 600;
-    &.is-success {
-      color: var(--success-color);
-    }
-
-    &.is-danger {
-      color: var(--error-color);
-    }
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
-    }
-  }
-
-  &__text {
-    text-align: center;
-    font-size: 12px;
-    line-height: 120%;
+@media (max-width: $md7) {
+  :global(.modal .modal__inner.offer-details-modal__inner) {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 }
 </style>
