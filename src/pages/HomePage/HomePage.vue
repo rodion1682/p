@@ -20,7 +20,9 @@ import WhySection from './components/WhySection.vue'
       <HowSection />
       <GamesSection />
     </div>
-    <FaqListSection />
+    <div id="faq">
+      <FaqListSection />
+    </div>
     <ReadySection />
   </div>
 </template>

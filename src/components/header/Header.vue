@@ -75,14 +75,17 @@
           {{ $t('Sell Skin') }}
         </button>
 
-        <RouterLink
-          :to="{ name: 'FAQ' }"
-          class="nav__link"
-          :class="{ isHome: route.name === 'HomePage' }"
-          @click="closeMobileMenu"
+        <button
+          type="button"
+          class="nav__link nav__link_faq"
+          :class="{
+            active: route.name === 'HomePage' && route.hash === '#faq',
+            isHome: route.name === 'HomePage',
+          }"
+          @click="goToFaq"
         >
           {{ $t('FAQ') }}
-        </RouterLink>
+        </button>
 
         <button
           v-if="IS_CONTACT_MODAL_ACTIVE"
@@ -355,6 +358,38 @@ const goToDota2 = () => {
   })
 }
 
+const scrollToFaq = () => {
+  const faq = document.getElementById('faq')
+
+  if (!faq) return
+
+  const headerHeight =
+    document.querySelector('.header')?.getBoundingClientRect().height || 50
+
+  const top =
+    faq.getBoundingClientRect().top + window.scrollY - headerHeight - 8
+
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: 'smooth',
+  })
+}
+
+const goToFaq = async () => {
+  closeMobileMenu()
+
+  if (route.name === 'HomePage' && route.hash === '#faq') {
+    await nextTick()
+    scrollToFaq()
+    return
+  }
+
+  await router.push({
+    name: 'HomePage',
+    hash: '#faq',
+  })
+}
+
 const toggleMobileMenu = () => {
   isMobileMenuVisible.value = !isMobileMenuVisible.value
 }
@@ -477,6 +512,18 @@ onBeforeUnmount(() => {
 
   &.scrolled {
     background-color: var(--bg-primary-color);
+
+    .nav__link {
+      &.active,
+      &.router-link-exact-active {
+        color: var(--third-color);
+      }
+      @media (any-hover: hover) {
+        &:hover {
+          color: var(--third-color);
+        }
+      }
+    }
 
     @media (min-width: $md3) {
       .header__inner {
@@ -722,6 +769,11 @@ onBeforeUnmount(() => {
 
       @media (max-width: $md2) {
         color: var(--third-color);
+      }
+    }
+    &_faq {
+      &.active {
+        pointer-events: auto;
       }
     }
 
