@@ -24,7 +24,7 @@ export const DEFAULT_FILTERS = {
   sort: 'desc',
   priceRange: { min: null, max: null },
   page: 1,
-  perPage: 25,
+  perPage: 24,
   type: [],
   quality: [],
   subcategories: [],

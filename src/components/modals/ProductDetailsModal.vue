@@ -1,125 +1,170 @@
 <template>
   <BaseModal
     :show="show"
-    :wrapperClasses="['product-modal__inner']"
+    :wrapper-classes="
+      isImagePreviewOpen ? 'product-image__dialog' : 'product-details__dialog'
+    "
     @close="handleClose"
   >
     <div
       v-if="product"
-      class="product-modal"
-      :style="{
-        '--card-color': cardColor,
-        '--card-color-rgb': cardColorRgb,
-      }"
+      class="product-details"
+      :class="{ 'product-details_preview': isImagePreviewOpen }"
     >
-      <div class="product-modal__card">
-        <div v-if="productWeapon" class="product-modal__weapon">
-          {{ productWeapon }}
-        </div>
-
-        <div v-if="productImage" class="product-modal__image-wrapper">
-          <div class="product-modal__bg _ibg-contain">
-            <img src="@/assets/img/card-bg.svg" alt="" />
-          </div>
-
-          <div class="product-modal__image _ibg-contain">
-            <img :src="productImage" :alt="productName || productWeapon" />
-          </div>
-        </div>
-
-        <div class="product-modal__content">
-          <div v-if="productName" class="product-modal__name _h3">
-            {{ productName }}
-          </div>
-
-          <div v-if="hasInfo" class="product-modal__info">
-            <div v-if="product.type" class="product-modal__row">
-              <span class="product-modal__label">
-                {{ $t('Type:') }}
-              </span>
-
-              <span class="product-modal__value">
-                {{ product.type }}
-              </span>
-            </div>
-            <div v-if="productExterior" class="product-modal__row">
-              <span class="product-modal__label">
-                {{ $t('Quality:') }}
-              </span>
-
-              <span class="product-modal__value">
-                {{ productExterior }}
-              </span>
-            </div>
-            <div v-if="product.quality && false" class="product-modal__row">
-              <span class="product-modal__label">
-                {{ $t('Rarity') }}
-              </span>
-
-              <span
-                class="product-modal__value product-modal__value_quality"
-                :style="{ color: qualityColor }"
-              >
-                {{ product.quality }}
-              </span>
-            </div>
-          </div>
-
-          <div class="product-modal__bottom">
-            <PriceFormatter
-              v-if="price"
-              :price="price"
-              skip-conversion
-              reverse
-              size="size-32"
-              class="product-modal__price"
+      <template v-if="!isImagePreviewOpen">
+        <div class="product-details__main">
+          <button
+            type="button"
+            class="product-details__media"
+            :disabled="!productImage"
+            :aria-label="$t('View Item')"
+            @click="openImagePreview"
+          >
+            <img
+              v-if="productImage"
+              :src="productImage"
+              :alt="productName"
+              class="product-details__image"
             />
 
-            <BaseButton
-              type="button"
-              class="product-modal__button"
-              :variant="isInCart ? 'delete' : 'primary'"
-              :disabled="isLoading"
-              @click="handleCartAction"
-            >
-              <template v-if="isLoading"> ... </template>
+            <span v-else class="product-details__placeholder">
+              {{ gameLabel }}
+            </span>
+          </button>
 
-              <template v-else-if="isInCart">
-                {{ $t('Remove') }}
-              </template>
+          <div class="product-details__content">
+            <h2 class="product-details__title">
+              {{ productName }}
+            </h2>
 
-              <template v-else>
-                {{ $t('Add') }}
-              </template>
-            </BaseButton>
+            <div class="product-details__information">
+              <div v-if="gameLabel" class="product-details__row">
+                <span class="product-details__label"> {{ $t('Game') }}: </span>
+
+                <span
+                  class="product-details__value product-details__value_blue"
+                >
+                  {{ gameLabel }}
+                </span>
+              </div>
+
+              <div v-if="productType" class="product-details__row">
+                <span class="product-details__label">
+                  {{ $t('Item type') }}:
+                </span>
+
+                <span
+                  class="product-details__value product-details__value_blue"
+                >
+                  {{ productType }}
+                </span>
+              </div>
+
+              <div v-if="productRarity" class="product-details__row">
+                <span class="product-details__label">
+                  {{ $t('Rarity') }}:
+                </span>
+
+                <span
+                  class="product-details__value product-details__value_rarity"
+                  :style="{ color: rarityColor }"
+                >
+                  {{ productRarity }}
+                </span>
+              </div>
+            </div>
+
+            <PriceFormatter
+              v-if="price !== null"
+              :price="price"
+              skip-conversion
+              size="size-32"
+              class="product-details__price"
+            />
           </div>
         </div>
+
+        <div class="product-details__actions">
+          <BaseButton
+            type="button"
+            variant="bordered"
+            class="product-details__button product-details__button_view"
+            :disabled="!productImage"
+            @click="openImagePreview"
+          >
+            {{ $t('View Item') }}
+          </BaseButton>
+
+          <BaseButton
+            type="button"
+            class="product-details__button product-details__button_buy"
+            :disabled="isLoading"
+            @click="handleCartAction"
+          >
+            <span v-if="isLoading"> {{ $t('Loading') }}... </span>
+
+            <span v-else-if="forceCartMode">
+              {{ $t('Remove') }}
+            </span>
+
+            <span v-else-if="isInCart">
+              {{ $t('Go to Cart') }}
+            </span>
+
+            <span v-else>
+              {{ $t('Buy Now') }}
+            </span>
+          </BaseButton>
+        </div>
+      </template>
+
+      <div v-else class="product-details__preview">
+        <img
+          v-if="productImage"
+          :src="productImage"
+          :alt="productName"
+          class="product-details__preview-image"
+        />
       </div>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import PriceFormatter from '@/components/PriceFormatter.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
+
 import { useToast } from '@/composables/useToast'
 import { useCartStore } from '@/stores/cart'
 
 const VITE_STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN || ''
 
-const CARD_COLORS = [
-  '#3F9088',
-  '#CAA327',
-  '#B5442F',
-  '#7B4C8D',
-  '#F0EAE0',
-  '#C1587B',
-]
+const RARITY_COLORS = {
+  'consumer grade': '#B0C3D9',
+  'industrial grade': '#5E98D9',
+  'mil-spec grade': '#4B69FF',
+  restricted: '#8847FF',
+  classified: '#D32CE6',
+  covert: '#EB4B4B',
+  contraband: '#E4AE39',
+  'base grade': '#B0C3D9',
+  'high grade': '#4B69FF',
+  remarkable: '#8847FF',
+  exotic: '#D32CE6',
+  extraordinary: '#EB4B4B',
+  common: '#B0C3D9',
+  uncommon: '#5E98D9',
+  rare: '#368DFF',
+  mythical: '#A66AFF',
+  legendary: '#DD4AA6',
+  immortal: '#F2DA00',
+  arcana: '#7AD76E',
+}
 
 const props = defineProps({
   show: {
@@ -146,38 +191,20 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'update:show'])
 
+const router = useRouter()
 const cartStore = useCartStore()
 const toast = useToast()
-const router = useRouter()
-
 const { t } = useI18n()
 
 const isLoading = ref(false)
+const isImagePreviewOpen = ref(false)
 
-const qualityColorMap = {
-  'Consumer Grade': '#b0c3d9',
-  'Mil-Spec Grade': '#4b69ff',
-  'Industrial Grade': '#5e98d9',
-  Restricted: '#8847ff',
-  'High Grade': '#4b69ff',
-  Classified: '#d32ce6',
-  Covert: '#eb4b4b',
-  'Base Grade': '#b0c3d9',
-  Remarkable: '#8847ff',
-  Extraordinary: '#eb4b4b',
-  Superior: '#d32ce6',
-  Distinguished: '#4b69ff',
-  Exotic: '#d32ce6',
-  Exceptional: '#8847ff',
-  Master: '#eb4b4b',
-  Contraband: '#e4ae39',
-  Arcana: '#ade55c',
-  Immortal: '#e4ae39',
-  Legendary: '#d32ce6',
-  Mythical: '#8847ff',
-  Rare: '#4b69ff',
-  Uncommon: '#5e98d9',
-  Common: '#b0c3d9',
+const formatText = value => {
+  return String(value || '')
+    .trim()
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b\w/g, letter => letter.toUpperCase())
 }
 
 const cleanProductTitle = value => {
@@ -190,115 +217,94 @@ const cleanProductTitle = value => {
     .trim()
 }
 
-const hexToRgb = hex => {
-  const normalized = String(hex || '')
-    .replace('#', '')
+const productGame = computed(() => {
+  const category =
+    props.product?.category?.url_code ||
+    props.product?.category ||
+    props.product?.game_code ||
+    props.product?.gameCode ||
+    ''
+
+  return String(category)
     .trim()
-
-  if (!/^[0-9a-f]{6}$/i.test(normalized)) {
-    return '63, 144, 136'
-  }
-
-  const number = Number.parseInt(normalized, 16)
-
-  return [(number >> 16) & 255, (number >> 8) & 255, number & 255].join(', ')
-}
-
-const fallbackColor = computed(() => {
-  const source = String(
-    props.product?.title || props.product?.name || props.product?.id || '',
-  )
-
-  let hash = 0
-
-  for (let i = 0; i < source.length; i += 1) {
-    hash = (hash * 31 + source.charCodeAt(i)) >>> 0
-  }
-
-  return CARD_COLORS[hash % CARD_COLORS.length]
+    .toLowerCase()
+    .replace(/[\s_-]/g, '')
 })
 
-const cardColor = computed(() => {
-  return props.accentColor || fallbackColor.value
-})
-
-const cardColorRgb = computed(() => {
-  return hexToRgb(cardColor.value)
-})
-
-const productImage = computed(() => {
-  const image = props.product?.img_url || ''
-
-  if (!image) {
-    return ''
+const gameLabel = computed(() => {
+  if (productGame.value === 'cs2' || productGame.value === 'csgo') {
+    return 'CS2'
   }
 
-  if (/^https?:\/\//i.test(image)) {
-    return image
+  if (productGame.value === 'dota2') {
+    return 'Dota 2'
   }
 
-  return `${VITE_STATIC_DOMAIN}${image}`
-})
-
-const productWeapon = computed(() => {
-  const title = cleanProductTitle(props.product?.title)
-
-  if (!title) {
-    return ''
-  }
-
-  const [weapon] = title.split('|').map(part => part.trim())
-
-  return weapon || ''
+  return formatText(productGame.value)
 })
 
 const productName = computed(() => {
-  const title = cleanProductTitle(props.product?.title)
+  const title = cleanProductTitle(props.product?.title || props.product?.name)
 
-  if (!title) {
-    return ''
-  }
+  if (!title) return ''
 
   const parts = title.split('|').map(part => part.trim())
 
-  if (parts.length > 1) {
-    return parts.slice(1).join(' | ')
-  }
-
-  return title
+  return parts.length > 1 ? parts.slice(1).join(' | ') : title
 })
 
-const productExterior = computed(() => {
-  const exterior =
-    props.product?.exterior_name ||
-    props.product?.exterior ||
-    props.product?.exteriorName ||
-    ''
+const productType = computed(() => {
+  return formatText(
+    props.product?.type ||
+      props.product?.item_type ||
+      props.product?.itemType ||
+      '',
+  )
+})
 
-  if (exterior) {
-    return String(exterior).trim().replace(/_/g, ' ')
+const productRarity = computed(() => {
+  return formatText(
+    props.product?.quality ||
+      props.product?.rarity ||
+      props.product?.exterior_name ||
+      props.product?.exterior ||
+      '',
+  )
+})
+
+const rarityColor = computed(() => {
+  return RARITY_COLORS[productRarity.value.toLowerCase()] || '#B0C3D9'
+})
+
+const productImage = computed(() => {
+  const image = String(props.product?.img_url || '').trim()
+
+  if (!image) return ''
+
+  if (
+    /^(https?:)?\/\//i.test(image) ||
+    image.startsWith('data:') ||
+    image.startsWith('blob:')
+  ) {
+    return image
   }
 
-  const title = String(props.product?.title || '')
-  const match = title.match(/\(([^)]+)\)\s*$/)
+  const domain = VITE_STATIC_DOMAIN.replace(/\/+$/, '')
+  const path = image.replace(/^\/+/, '')
 
-  return match?.[1]?.trim() || ''
+  return domain ? `${domain}/${path}` : `/${path}`
 })
 
 const price = computed(() => {
-  const value = Number(props.product?.internal_price ?? 0)
+  const rawPrice = props.product?.internal_price ?? props.product?.price
 
-  return Number.isFinite(value) ? value : 0
-})
+  if (rawPrice === null || rawPrice === undefined || rawPrice === '') {
+    return null
+  }
 
-const qualityColor = computed(() => {
-  return qualityColorMap[props.product?.quality] || 'var(--hint-primary-color)'
-})
+  const value = Number(rawPrice)
 
-const hasInfo = computed(() => {
-  return Boolean(
-    productExterior.value || props.product?.type || props.product?.quality,
-  )
+  return Number.isFinite(value) ? value : null
 })
 
 const cartActionId = computed(() => {
@@ -306,57 +312,69 @@ const cartActionId = computed(() => {
 })
 
 const isInCart = computed(() => {
-  if (props.forceCartMode) {
-    return true
-  }
+  if (props.forceCartMode) return true
 
-  if (!props.product?.id) {
-    return false
-  }
+  const id = props.product?.id
 
-  return cartStore.isItemInCart(props.product.id)
+  if (id == null) return false
+
+  return cartStore.isItemInCart(id)
 })
 
+const openImagePreview = () => {
+  if (!productImage.value) return
+
+  isImagePreviewOpen.value = true
+}
+
+const closeImagePreview = () => {
+  isImagePreviewOpen.value = false
+}
+
 const handleClose = () => {
+  if (isImagePreviewOpen.value) {
+    closeImagePreview()
+    return
+  }
+
   emit('close')
   emit('update:show', false)
 }
 
-const handleCartAction = async () => {
-  if (isLoading.value) {
+const closeModal = () => {
+  isImagePreviewOpen.value = false
+  emit('close')
+  emit('update:show', false)
+}
+
+const handleRemoveFromCart = async () => {
+  const itemId = cartActionId.value
+
+  if (itemId == null) {
+    toast.error(t('Failed to remove item'))
     return
   }
 
-  if (isInCart.value) {
-    const itemId = cartActionId.value
+  isLoading.value = true
 
-    if (itemId == null) {
-      toast.error(t('Failed to remove item'))
+  try {
+    const { success, error } = await cartStore.removeFromCart(itemId)
+
+    if (!success) {
+      toast.error(error || t('Failed to remove item'))
       return
     }
 
-    try {
-      isLoading.value = true
-
-      const { success, error: errorMessage } =
-        await cartStore.removeFromCart(itemId)
-
-      if (success) {
-        toast.success(t('Item removed from cart'))
-        handleClose()
-        return
-      }
-
-      toast.error(errorMessage || t('Failed to remove item'))
-    } catch (error) {
-      toast.error(error?.message || t('Failed to remove item'))
-    } finally {
-      isLoading.value = false
-    }
-
-    return
+    toast.success(t('Item removed from cart'))
+    closeModal()
+  } catch (error) {
+    toast.error(error?.message || t('Failed to remove item'))
+  } finally {
+    isLoading.value = false
   }
+}
 
+const handleBuyNow = async () => {
   const productId = props.product?.id
 
   if (productId == null) {
@@ -364,21 +382,30 @@ const handleCartAction = async () => {
     return
   }
 
-  try {
-    isLoading.value = true
+  isLoading.value = true
 
-    const { success, isAlreadyInCart, message, isUnauthorized } =
+  try {
+    const { success, isAlreadyInCart, isUnauthorized, message } =
       await cartStore.addToCart(productId)
 
-    if (success) {
-      toast.success(t('Item added to cart'))
+    if (success || isAlreadyInCart) {
+      if (success) {
+        toast.success(t('Item added to cart'))
+      }
+
+      closeModal()
+
+      await router.push({
+        name: 'CartPage',
+      })
+
       return
     }
 
     if (isUnauthorized) {
       toast.warning(t('Please login to add items to cart'))
 
-      handleClose()
+      closeModal()
 
       await router.push({
         name: 'LoginPage',
@@ -390,12 +417,6 @@ const handleCartAction = async () => {
       return
     }
 
-    if (isAlreadyInCart) {
-      toast.warning(message || t('Item is already in cart'))
-
-      return
-    }
-
     toast.error(message || t('Failed to add item'))
   } catch (error) {
     toast.error(error?.message || t('Failed to add item to cart'))
@@ -403,6 +424,43 @@ const handleCartAction = async () => {
     isLoading.value = false
   }
 }
+
+const handleCartAction = async () => {
+  if (isLoading.value) return
+
+  if (props.forceCartMode) {
+    await handleRemoveFromCart()
+    return
+  }
+
+  if (isInCart.value) {
+    closeModal()
+
+    await router.push({
+      name: 'CartPage',
+    })
+
+    return
+  }
+
+  await handleBuyNow()
+}
+
+watch(
+  () => props.show,
+  value => {
+    if (!value) {
+      isImagePreviewOpen.value = false
+    }
+  },
+)
+
+watch(
+  () => props.product?.id,
+  () => {
+    isImagePreviewOpen.value = false
+  },
+)
 </script>
 
 <style lang="scss" scoped>
@@ -410,156 +468,367 @@ const handleCartAction = async () => {
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.product-modal {
+:global(.modal .modal__inner.product-details__dialog) {
+  width: min(700px, calc(100% - 32px));
+  max-width: 700px;
+  padding: 56px 45px 58px;
+  border: 1px solid #343d4d;
+  border-radius: 16px;
+  background-color: #121820;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+
+:global(.modal .modal__inner.product-image__dialog) {
+  width: min(885px, calc(100% - 32px));
+  max-width: 885px;
+  padding: 32px;
+  border: 1px solid #343d4d;
+  border-radius: 16px;
+  background-color: #121820;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+
+.product-details {
   width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
+  min-width: 0;
 
-  &__card {
-    width: 100%;
+  &__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
   }
 
-  &__weapon {
-    width: 100%;
-    min-width: 0;
-    text-align: center;
-    font-family: var(--font-inter);
-    font-size: 16px;
-    line-height: 150%;
-    font-weight: 400;
-
-    color: var(--secondary-color);
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
-    }
-  }
-
-  &__image-wrapper {
-    position: relative;
-
-    width: 100%;
-
+  &__media {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    min-width: 0;
+    height: 305px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
 
-    overflow: hidden;
+    &:disabled {
+      cursor: default;
+    }
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 25, 18);
+    &:focus-visible {
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: 3px;
+      border-radius: 8px;
     }
   }
 
-  &__bg {
-    position: absolute;
-
-    left: 50%;
-    top: 50%;
-
-    transform: translate(-50%, -50%);
-
+  &__image {
+    display: block;
     width: 100%;
-    max-width: 200px;
     height: 100%;
-    max-height: 205px;
+    object-fit: contain;
+    object-position: center;
+    transition: transform 0.3s ease;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        transform: scale(1.035);
+      }
+    }
   }
 
-  &__image {
-    position: relative;
-    z-index: 1;
-
-    width: 100%;
-    max-width: 280px;
-    aspect-ratio: 1 / 0.75;
-
-    margin: 0 auto;
+  &__placeholder {
+    color: var(--fifth-color);
+    font-family: var(--font-inter);
+    font-size: 16px;
   }
 
   &__content {
     min-width: 0;
   }
 
-  &__name {
-    width: 100%;
-    min-width: 0;
-    text-align: center;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
-    }
+  &__title {
+    margin: 0 0 22px;
+    padding: 0;
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: clamp(18px, 2vw, 23px);
+    line-height: 1.3;
+    font-weight: 700;
+    overflow-wrap: anywhere;
   }
 
-  &__info {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
-    }
+  &__information {
+    width: 100%;
   }
 
   &__row {
-    width: 100%;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    gap: 20px;
+    gap: 12px;
+    min-height: 59px;
+    padding: 12px 0;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
+      border-bottom: 1px solid rgba(153, 161, 176, 0.09);
     }
-  }
-
-  &__label,
-  &__value {
-    min-width: 0;
-    color: var(--secondary-color);
-    font-family: var(--font-inter);
-    font-size: 16px;
-    line-height: 150%;
-    font-weight: 400;
   }
 
   &__label {
     flex: 0 0 auto;
+    color: #99a1b0;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.4;
   }
 
   &__value {
-    flex: 1 1 auto;
-
+    min-width: 0;
+    color: #b0c3d9;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
     text-align: right;
-    text-transform: capitalize;
+    overflow-wrap: anywhere;
 
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &_quality {
-      font-weight: 500;
+    &_blue {
+      color: #65a7ff;
     }
-  }
 
-  &__bottom {
+    &_rarity {
+      font-weight: 600;
+    }
   }
 
   &__price {
-    color: var(--primary-color);
-    margin: 0 auto;
-    justify-content: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    margin-top: 38px;
+    color: #f4f6fb;
+
+    :deep(.price__value) {
+      color: #f4f6fb;
+      font-family: var(--font-orbitron);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    :deep(.price__icon) {
+      width: 20px;
+      min-width: 20px;
+      height: 20px;
     }
   }
 
+  &__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+    margin-top: 20px;
+  }
+
   &__button {
+    min-width: 0;
+    min-height: 46px;
+    height: 46px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease;
+
+    &_view {
+      background-color: transparent !important;
+      color: #f4f6fb !important;
+      border: 1px solid #8998ac !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.06) !important;
+          border-color: #f4f6fb !important;
+        }
+      }
+    }
+
+    &_buy {
+      background-color: #1a73ff !important;
+      border: 1px solid #1a73ff !important;
+      color: #ffffff !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          background-color: #005fe8 !important;
+          border-color: #005fe8 !important;
+        }
+      }
+    }
+  }
+
+  &__preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 510px;
+    padding: 25px 20px;
+  }
+
+  &__preview-image {
+    display: block;
+    width: 100%;
+    max-width: 680px;
+    height: auto;
+    max-height: 460px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  @media (max-width: $md3) {
+    &__main {
+      gap: 22px;
+    }
+
+    &__media {
+      height: 265px;
+    }
+
+    &__title {
+      margin-bottom: 16px;
+      font-size: 19px;
+    }
+
+    &__row {
+      min-height: 52px;
+      gap: 8px;
+    }
+
+    &__label,
+    &__value {
+      font-size: 12px;
+    }
+
+    &__price {
+      margin-top: 24px;
+
+      :deep(.price__value) {
+        font-size: 21px;
+      }
+    }
+
+    &__actions {
+      margin-top: 25px;
+      gap: 12px;
+    }
+
+    &__preview {
+      min-height: 420px;
+      padding: 20px 12px;
+    }
+
+    &__preview-image {
+      max-height: 380px;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__main {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    &__media {
+      height: 220px;
+    }
+
+    &__title {
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 19px;
+    }
+
+    &__row {
+      min-height: 44px;
+      padding: 10px 0;
+    }
+
+    &__price {
+      justify-content: center;
+      margin: 22px auto 0;
+    }
+
+    &__actions {
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    &__button {
+      min-height: 42px;
+      height: 42px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    &__preview {
+      min-height: 320px;
+      padding: 30px 0;
+    }
+
+    &__preview-image {
+      max-height: 320px;
+    }
+  }
+
+  @media (max-width: $md7) {
+    &__media {
+      height: 175px;
+    }
+
+    &__title {
+      font-size: 17px;
+    }
+
+    &__label,
+    &__value {
+      font-size: 12px;
+    }
+  }
+}
+
+@media (max-width: $md3) {
+  :global(.modal .modal__inner.product-details__dialog) {
+    padding: 48px 25px 30px;
+  }
+
+  :global(.modal .modal__inner.product-image__dialog) {
+    padding: 35px 25px;
+  }
+}
+
+@media (max-width: $md5) {
+  :global(.modal .modal__inner.product-details__dialog) {
+    width: 100%;
+    max-width: 100%;
+    padding: 45px 20px 24px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  :global(.modal .modal__inner.product-image__dialog) {
+    width: 100%;
+    max-width: 100%;
+    padding: 45px 18px 20px;
+    border-radius: 16px 16px 0 0;
   }
 }
 </style>

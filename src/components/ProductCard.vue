@@ -427,7 +427,7 @@ const handlePrimaryAction = async () => {
 @use '@/assets/styles/components/classes' as *;
 
 .card {
-  --card-surface: #121923;
+  --card-surface: #10161F;
 
   position: relative;
   z-index: 1;

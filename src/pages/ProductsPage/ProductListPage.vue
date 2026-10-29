@@ -124,8 +124,8 @@ const onPageChange = async page => {
 @use '@/assets/styles/media' as *;
 
 .products {
-  padding-top: clamp(105px, 8vw, 150px);
-  @include adaptiveValue('padding-bottom', 130, 50);
+  @include adaptiveValue('padding-top', 150, 80);
+  @include adaptiveValue('padding-bottom', 100, 30);
 
   background-color: var(--bg-primary-color);
   display: flex;
