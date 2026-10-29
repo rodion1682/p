@@ -1,17 +1,52 @@
 <template>
-  <div v-if="showInitialBanner" class="cookie banner">
-    <div class="banner__inner _cnt">
+  <div
+    v-if="showInitialBanner"
+    class="cookie banner"
+    role="region"
+    aria-label="Cookie consent"
+  >
+    <div class="banner__inner">
       <div class="banner__body">
-        <div class="banner__title _h4">
-          {{ $t('Cookies in Use') }}
+        <div class="banner__heading">
+          <div class="banner__icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 2.5L20 6V11.5C20 16.6 16.6 20 12 22C7.4 20 4 16.6 4 11.5V6L12 2.5Z"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M9 12L11 14L15.5 9.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+
+          <div class="banner__heading-content">
+            <div class="banner__label">
+              {{ $t('PRIVACY PREFERENCES') }}
+            </div>
+
+            <h2 class="banner__title">
+              {{ $t('Cookies in Use') }}
+            </h2>
+          </div>
         </div>
 
         <div class="banner__text">
           {{
             $t(
-              'High Skins uses cookies to ensure that it`s website operates properly andto enhance your browsing experience. Strictly necessary cookies areenabled automatically because they are required for the   website tofunction. High Skins will only use non-essential ookies with yourconsent, and they are turned off by default; you may switch them on atany time in COOKIE SETTINGS. To learn more, please see our ',
+              'Relic Forge uses cookies to keep the website secure, remember your preferences, and improve your browsing experience. Essential cookies are always active. Optional cookies are disabled by default and will only be used with your consent.',
             )
           }}
+
+          <span>
+            {{ $t('Learn more in our') }}
+          </span>
 
           <RouterLink
             v-if="cookiePageLink"
@@ -19,35 +54,36 @@
             class="cookie__desc-link"
             @click="closeModal"
           >
-            {{ cookiePage?.title }}
-          </RouterLink>
-
-          {{ $t('.') }}
+            {{ cookiePage?.title || $t('Cookie Notice') }} </RouterLink
+          >.
         </div>
 
         <div class="banner__actions">
           <BaseButton
-            variant="primary"
-            class="banner__button"
-            @click="acceptAllCookies"
-          >
-            {{ $t('ACCEPT ALL COOKIES') }}
-          </BaseButton>
-
-          <BaseButton
+            type="button"
             variant="bordered"
-            class="banner__button"
+            class="banner__button banner__button_reject"
             @click="rejectNonEssentialCookies"
           >
-            {{ $t('REJECT NON-ESSENTIAL COOKIES') }}
+            {{ $t('Reject Optional') }}
           </BaseButton>
 
           <BaseButton
+            type="button"
             variant="bordered"
-            class="banner__button"
+            class="banner__button banner__button_settings"
             @click="openCookieSettings"
           >
-            {{ $t('COOKIE SETTINGS') }}
+            {{ $t('Cookie Settings') }}
+          </BaseButton>
+
+          <BaseButton
+            type="button"
+            variant="primary"
+            class="banner__button banner__button_accept"
+            @click="acceptAllCookies"
+          >
+            {{ $t('Accept All Cookies') }}
           </BaseButton>
         </div>
       </div>
@@ -60,23 +96,56 @@
     @close="handleDetailedModalClose"
   >
     <div class="cookie__modal">
+      <div class="cookie__top">
+        <div class="cookie__label">
+          {{ $t('MANAGE YOUR PRIVACY') }}
+        </div>
+
+        <h2 class="cookie__title _h3">
+          {{ $t('Cookie Preferences') }}
+        </h2>
+
+        <p class="cookie__desc">
+          {{
+            $t(
+              'Choose which cookies Relic Forge can use. Essential cookies are always enabled to keep the marketplace secure and functioning correctly.',
+            )
+          }}
+        </p>
+
+        <RouterLink
+          v-if="cookiePageLink"
+          :to="cookiePageLink"
+          class="cookie__desc-link"
+          target="_blank"
+        >
+          {{ $t('Read our Cookie Notice') }}
+        </RouterLink>
+      </div>
+
       <div class="cookie__list">
-        <div class="cookie__item" @click="toggleCategory('essential')">
+        <div class="cookie__item cookie__item_required">
           <div class="cookie__info">
-            <div class="cookie__subtitle">
-              {{ $t('Essential Cookies (Always Active):') }}
+            <div class="cookie__item-heading">
+              <h3 class="cookie__subtitle">
+                {{ $t('Essential Cookies') }}
+              </h3>
+
+              <span class="cookie__required">
+                {{ $t('Always Active') }}
+              </span>
             </div>
 
-            <div class="cookie__text _text-secondary">
+            <p class="cookie__text">
               {{
                 $t(
                   'These cookies are technically required for our Website to operate securely and correctly. They enable core features like user login, page security, and privacy preferences, and cannot be turned off.',
                 )
               }}
-            </div>
+            </p>
           </div>
 
-          <div class="cookie__control" @click.stop>
+          <div class="cookie__control">
             <BaseCheckbox
               :model-value="true"
               :disabled="true"
@@ -85,22 +154,30 @@
           </div>
         </div>
 
-        <div class="cookie__item" @click="toggleCategory('functional')">
-          <div class="cookie__info">
-            <div class="cookie__subtitle">
-              {{ $t('Functional (Preference) Cookies:') }}
-            </div>
+        <div
+          class="cookie__item"
+          :class="{ 'is-enabled': cookieCategories.functional }"
+        >
+          <button
+            type="button"
+            class="cookie__info-button"
+            :aria-pressed="cookieCategories.functional"
+            @click="toggleCategory('functional')"
+          >
+            <span class="cookie__subtitle">
+              {{ $t('Functional (Preference) Cookies') }}
+            </span>
 
-            <div class="cookie__text _text-secondary">
+            <span class="cookie__text">
               {{
                 $t(
                   'These cookies personalize your browsing experience by remembering your custom preferences, such as your preferred language and regional settings, so you do not have to re-enter them on future visits.',
                 )
               }}
-            </div>
-          </div>
+            </span>
+          </button>
 
-          <div class="cookie__control" @click.stop>
+          <div class="cookie__control">
             <BaseCheckbox
               v-model="cookieCategories.functional"
               class="cookie__checkbox"
@@ -108,22 +185,30 @@
           </div>
         </div>
 
-        <div class="cookie__item" @click="toggleCategory('analytics')">
-          <div class="cookie__info">
-            <div class="cookie__subtitle">
-              {{ $t('Performance (Analytics) Cookies:') }}
-            </div>
+        <div
+          class="cookie__item"
+          :class="{ 'is-enabled': cookieCategories.analytics }"
+        >
+          <button
+            type="button"
+            class="cookie__info-button"
+            :aria-pressed="cookieCategories.analytics"
+            @click="toggleCategory('analytics')"
+          >
+            <span class="cookie__subtitle">
+              {{ $t('Performance (Analytics) Cookies') }}
+            </span>
 
-            <div class="cookie__text _text-secondary">
+            <span class="cookie__text">
               {{
                 $t(
                   'These cookies collect information about how visitors use our Website. We use this information to measure page performance, diagnose technical errors, and improve our services.',
                 )
               }}
-            </div>
-          </div>
+            </span>
+          </button>
 
-          <div class="cookie__control" @click.stop>
+          <div class="cookie__control">
             <BaseCheckbox
               v-model="cookieCategories.analytics"
               class="cookie__checkbox"
@@ -131,22 +216,30 @@
           </div>
         </div>
 
-        <div class="cookie__item" @click="toggleCategory('advertising')">
-          <div class="cookie__info">
-            <div class="cookie__subtitle">
-              {{ $t('Advertising/Targeting Cookies:') }}
-            </div>
+        <div
+          class="cookie__item"
+          :class="{ 'is-enabled': cookieCategories.advertising }"
+        >
+          <button
+            type="button"
+            class="cookie__info-button"
+            :aria-pressed="cookieCategories.advertising"
+            @click="toggleCategory('advertising')"
+          >
+            <span class="cookie__subtitle">
+              {{ $t('Advertising / Targeting Cookies') }}
+            </span>
 
-            <div class="cookie__text _text-secondary">
+            <span class="cookie__text">
               {{
                 $t(
                   'These cookies are used to deliver more relevant content or advertising and to measure the effectiveness of campaigns.',
                 )
               }}
-            </div>
-          </div>
+            </span>
+          </button>
 
-          <div class="cookie__control" @click.stop>
+          <div class="cookie__control">
             <BaseCheckbox
               v-model="cookieCategories.advertising"
               class="cookie__checkbox"
@@ -155,22 +248,37 @@
         </div>
       </div>
 
-      <div class="cookie__actions">
-        <div class="cookie__actions-row">
+      <div class="cookie__bottom">
+        <p class="cookie__bottom-text">
+          {{ $t('You can update your cookie preferences at any time.') }}
+        </p>
+
+        <div class="cookie__actions">
           <BaseButton
+            type="button"
             variant="bordered"
-            class="cookie__button"
+            class="cookie__button cookie__button_reject"
             @click="rejectNonEssentialCookies"
           >
-            {{ $t('Reject All Nonessential Cookies') }}
+            {{ $t('Reject Optional') }}
           </BaseButton>
 
           <BaseButton
-            variant="primary"
-            class="cookie__button"
+            type="button"
+            variant="bordered"
+            class="cookie__button cookie__button_save"
             @click="acceptSelectedCookies"
           >
-            {{ $t('Save & Exit') }}
+            {{ $t('Save Preferences') }}
+          </BaseButton>
+
+          <BaseButton
+            type="button"
+            variant="primary"
+            class="cookie__button cookie__button_accept"
+            @click="acceptAllCookies"
+          >
+            {{ $t('Accept All') }}
           </BaseButton>
         </div>
       </div>
@@ -210,23 +318,8 @@ const cookieCategories = ref(getDefaultCategories())
 const currentConsent = ref(getDefaultCategories())
 const consentLog = ref([])
 
-/*
- * Cookie Policy link comes from the static pages API.
- *
- * Example:
- * {
- *   id: 11,
- *   slug: 'cookie-policy',
- *   title: 'COOKIE POLICY',
- *   is_cookie: 1
- * }
- *
- * Nothing is hardcoded to "/cookie-policy".
- */
 const cookiePageLink = computed(() => {
-  if (!cookiePage.value?.slug) {
-    return null
-  }
+  if (!cookiePage.value?.slug) return null
 
   return {
     name: 'StaticPageBySlug',
@@ -237,17 +330,13 @@ const cookiePageLink = computed(() => {
 })
 
 const setCookieValue = (key, value, expires = null) => {
-  if (!$cookies) {
-    return
-  }
+  if (!$cookies) return
 
   $cookies.set(key, JSON.stringify(value), expires || '1y')
 }
 
 const getCookieValue = key => {
-  if (!$cookies || !$cookies.isKey(key)) {
-    return null
-  }
+  if (!$cookies || !$cookies.isKey(key)) return null
 
   try {
     return JSON.parse($cookies.get(key))
@@ -257,9 +346,7 @@ const getCookieValue = key => {
 }
 
 const hasCookie = key => {
-  if (!$cookies) {
-    return false
-  }
+  if (!$cookies) return false
 
   return $cookies.isKey(key)
 }
@@ -296,18 +383,10 @@ const loadConsent = () => {
   consentLog.value = Array.isArray(log) ? log : []
 }
 
-const capitalizeTitle = value => {
-  if (!value) return ''
-
-  return value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase())
-}
-
 const logConsent = action => {
   const logEntry = {
     timestamp: new Date().toISOString(),
-
     action,
-
     categories: normalizeCategories(cookieCategories.value),
   }
 
@@ -328,7 +407,6 @@ const saveConsent = action => {
   }
 
   setCookieValue(CONSENT_KEY, true)
-
   setCookieValue(CATEGORIES_KEY, categories)
 
   logConsent(action)
@@ -386,9 +464,6 @@ const openCookieBanner = () => {
 }
 
 const handleDetailedModalClose = () => {
-  /*
-   * Discard any changes that were not saved.
-   */
   cookieCategories.value = {
     ...currentConsent.value,
     essential: true,
@@ -396,10 +471,6 @@ const handleDetailedModalClose = () => {
 
   showDetailedModal.value = false
 
-  /*
-   * If the user has never made a cookie choice,
-   * return them to the initial consent banner.
-   */
   if (!hasInitialConsent.value) {
     showInitialBanner.value = true
   }
@@ -410,36 +481,23 @@ const closeModal = () => {
 }
 
 const toggleCategory = category => {
-  /*
-   * Essential cookies are always required
-   * and cannot be disabled.
-   */
-  if (category === 'essential') {
-    return
-  }
-
-  if (!(category in cookieCategories.value)) {
-    return
-  }
+  if (category === 'essential') return
+  if (!(category in cookieCategories.value)) return
 
   cookieCategories.value[category] = !cookieCategories.value[category]
 }
 
 onMounted(async () => {
-  /*
-   * Load static pages first so cookiePage is
-   * available from the API.
-   */
-  await ensurePages()
-
   loadConsent()
 
-  /*
-   * Show the banner until the visitor has
-   * made an initial cookie choice.
-   */
   if (!hasCookie(CONSENT_KEY)) {
     showInitialBanner.value = true
+  }
+
+  try {
+    await ensurePages()
+  } catch (error) {
+    console.error('Failed to load cookie notice:', error)
   }
 })
 
@@ -449,72 +507,85 @@ defineExpose({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
 .cookie {
-  &__modal-wrap {
-    max-width: 710px;
-    padding-top: 40px !important;
-  }
-
   &__modal {
     width: 100%;
-    text-align: left;
+    min-width: 0;
+    color: #f4f6fb;
   }
 
   &__top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
     text-align: center;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 15);
+      @include adaptiveValue('margin-bottom', 28, 20);
     }
   }
 
+  &__label {
+    margin-bottom: 12px;
+    color: #65a7ff;
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   &__title {
-    color: var(--primary-color);
+    margin: 0;
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: clamp(23px, 2.6vw, 30px);
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    text-transform: none;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 15, 10);
+      @include adaptiveValue('margin-bottom', 18, 12);
     }
   }
 
   &__desc {
-    color: var(--secondary-color);
-
+    max-width: 580px;
+    margin: 0;
+    color: #99a1b0;
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 400;
-    line-height: 150%;
+    line-height: 1.65;
+    text-align: center;
+
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
   }
 
   &__desc-link {
     display: inline;
-
-    padding: 0;
-
-    background: transparent;
-    border: 0;
-
-    color: var(--hint-primary-color);
-
-    font: inherit;
+    color: #65a7ff;
+    font-family: var(--font-inter);
+    font-size: inherit;
     font-weight: 600;
-
+    line-height: inherit;
     text-decoration: underline;
     text-underline-offset: 3px;
-
-    cursor: pointer;
-
-    transition:
-      color 0.3s ease,
-      opacity 0.3s ease;
+    transition: color 0.25s ease;
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
+        color: #a9ceff;
       }
     }
   }
@@ -522,221 +593,523 @@ defineExpose({
   &__list {
     display: flex;
     flex-direction: column;
-
+    width: 100%;
     gap: 10px;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 20);
-    }
   }
 
   &__item {
-    position: relative;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 20px;
-
     width: 100%;
+    min-width: 0;
+    padding: 19px 20px;
 
-    @include adaptiveValue('padding', 18, 12);
-    @include adaptiveValue('border-radius', 10, 4);
-
-    background-color: var(--bg-primary-color);
-
-    border: 1px solid var(--bg-third-color);
-
-    cursor: pointer;
+    border: 1px solid #303948;
+    border-radius: 10px;
+    background-color: #19212c;
 
     transition:
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      box-shadow 0.3s ease;
+      border-color 0.25s ease,
+      background-color 0.25s ease;
 
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-fourth-color);
-        border-color: var(--hint-primary-color);
-      }
+    &.is-enabled {
+      border-color: rgba(26, 115, 255, 0.45);
     }
 
-    @media (max-width: $md6) {
-      align-items: flex-start;
-      gap: 10px;
+    &_required {
+      background-color: #151f2b;
+    }
+
+    @media (any-hover: hover) {
+      &:hover:not(.cookie__item_required) {
+        border-color: rgba(26, 115, 255, 0.65);
+      }
     }
   }
 
-  &__info {
+  &__info,
+  &__info-button {
+    display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
     min-width: 0;
+    gap: 8px;
+    margin: 0;
+    text-align: left;
+  }
+
+  &__info-button {
+    padding: 0;
+    border: 0;
+    outline-offset: 5px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #1a73ff;
+      border-radius: 3px;
+    }
+  }
+
+  &__item-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
   }
 
   &__subtitle {
     display: block;
-
-    color: var(--primary-color);
-
+    margin: 0;
+    color: #f4f6fb;
     font-family: var(--font-inter);
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 120%;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
 
-    &:not(:last-child) {
-      margin-bottom: 6px;
-    }
+  &__required {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(26, 115, 255, 0.12);
+    color: #65a7ff;
+    font-family: var(--font-inter);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
   }
 
   &__text {
     display: block;
-
-    margin-left: 0;
-
-    color: var(--secondary-color);
-
+    margin: 0;
+    color: #99a1b0;
     font-family: var(--font-inter);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
-    line-height: 150%;
+    line-height: 1.6;
+    text-align: left;
+    overflow-wrap: anywhere;
   }
 
   &__control {
-    flex: 0 0 auto;
+    display: flex;
+    flex: 0 0 20px;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    min-width: 20px;
+    align-self: center;
+  }
 
+  &__checkbox {
     display: flex;
     align-items: center;
     justify-content: center;
 
-    align-self: center;
-
-    @media (max-width: $md6) {
-      align-self: flex-start;
-    }
-  }
-
-  &__checkbox {
-    &_disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-  }
-
-  &__actions {
-    width: 100%;
-
-    &-row {
+    :deep(.base-checkbox__row) {
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      gap: 0;
+      cursor: pointer;
+    }
 
-      width: 100%;
+    :deep(.base-checkbox__box) {
+      width: 20px;
+      min-width: 20px;
+      height: 20px;
+      border: 1px solid #4c5a6c;
+      border-radius: 5px;
+      background-color: #222934;
+    }
 
-      gap: 10px;
+    :deep(.base-checkbox__box.is-checked) {
+      border-color: #1a73ff;
+      background-color: #1a73ff;
+    }
 
-      @media (max-width: $md6) {
-        flex-direction: column;
+    :deep(.base-checkbox__check) {
+      color: #ffffff;
+    }
+
+    &_disabled {
+      opacity: 1;
+
+      :deep(.base-checkbox__box) {
+        border-color: #1a73ff;
+        background-color: #1a73ff;
       }
     }
   }
 
-  &__button {
-    width: fit-content;
-    min-width: 180px;
+  &__bottom {
+    margin-top: 25px;
+    padding-top: 23px;
+    border-top: 1px solid rgba(153, 161, 176, 0.12);
+  }
 
-    @media (max-width: $md6) {
-      width: 100%;
-      min-width: 0;
+  &__bottom-text {
+    margin: 0 0 18px;
+    color: #8995a7;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  &__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+  }
+
+  &__button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    height: 46px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+
+    &_reject,
+    &_save {
+      border: 1px solid #8794a6 !important;
+      background-color: transparent !important;
+      color: #f4f6fb !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          border-color: #1a73ff !important;
+          background-color: rgba(26, 115, 255, 0.12) !important;
+        }
+      }
+    }
+
+    &_accept {
+      border: 1px solid #1a73ff !important;
+      background-color: #1a73ff !important;
+      color: #ffffff !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          border-color: #005fe8 !important;
+          background-color: #005fe8 !important;
+        }
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid #65a7ff;
+      outline-offset: 3px;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__top {
+      padding-top: 5px;
+    }
+
+    &__desc {
+      font-size: 13px;
+    }
+
+    &__item {
+      gap: 12px;
+      padding: 15px 13px;
+    }
+
+    &__subtitle {
+      font-size: 13px;
+    }
+
+    &__text {
+      font-size: 12px;
+    }
+
+    &__actions {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 9px;
+    }
+
+    &__button {
+      min-height: 43px;
+      height: 43px;
+      font-size: 12px;
     }
   }
 }
 
 .banner {
   position: fixed;
-
-  right: 50%;
-  bottom: 0;
-
+  left: 50%;
+  bottom: 20px;
   z-index: var(--modal-z-index);
 
-  transform: translateX(50%);
+  width: min(940px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 26px 30px;
 
-  width: calc(100% - 30px);
-  max-width: 710px;
+  transform: translateX(-50%);
 
-  background-color: var(--bg-secondary-color);
+  border: 1px solid #344050;
+  border-radius: 16px;
+  background:
+    radial-gradient(
+      ellipse at 0% 0%,
+      rgba(26, 115, 255, 0.07),
+      transparent 60%
+    ),
+    #111821;
 
-  border: 1px solid var(--bg-third-color);
-  border-bottom: 0;
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.45);
 
-  @include adaptiveValue('padding-top', 25, 15);
-  @include adaptiveValue('padding-bottom', 25, 15);
-  @include adaptiveValue('border-radius', 20, 4);
+  overflow-x: hidden;
+  overflow-y: auto;
 
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-
-  &__inner {
+  &__inner,
+  &__body {
     width: 100%;
+    min-width: 0;
   }
 
   &__body {
     display: flex;
     flex-direction: column;
+    gap: 18px;
+  }
 
-    @include adaptiveValue('gap', 20, 15);
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+  }
+
+  &__icon {
+    display: flex;
+    flex: 0 0 50px;
+    align-items: center;
+    justify-content: center;
+
+    width: 50px;
+    height: 50px;
+
+    border: 1px solid rgba(26, 115, 255, 0.45);
+    border-radius: 10px;
+
+    background-color: rgba(26, 115, 255, 0.1);
+    color: #65a7ff;
+
+    svg {
+      display: block;
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  &__heading-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  &__label {
+    color: #65a7ff;
+    font-family: var(--font-inter);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
   }
 
   &__title {
-    color: var(--primary-color);
+    margin: 0;
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: clamp(18px, 2vw, 23px);
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: none;
   }
 
   &__text {
-    color: var(--secondary-color);
-
+    color: #aeb8c8;
     font-family: var(--font-inter);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
-    line-height: 150%;
+    line-height: 1.7;
+    text-align: left;
 
-    @media (max-width: $md5) {
-      text-align: center;
-    }
-
-    .cookie__desc-link {
-      color: var(--hint-primary-color);
-      border-bottom: 1px solid transparent;
-
-      transition: border 0.3s ease 0s;
-
-      @media (any-hover: hover) {
-        &:hover {
-          border-color: inherit;
-        }
-      }
+    span {
+      margin-left: 4px;
     }
   }
 
   &__actions {
-    display: flex;
-    flex-wrap: wrap;
-
-    gap: 10px;
-
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
     width: 100%;
   }
 
   &__button {
-    min-height: 45px !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    height: 46px;
+    padding: 8px 12px;
 
-    flex: 0 1 calc(50% - 5px);
+    border-radius: 8px;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
 
-    &:first-child {
-      flex: 1 1 100%;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+
+    &_reject,
+    &_settings {
+      border: 1px solid #8794a6 !important;
+      background-color: transparent !important;
+      color: #f4f6fb !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          border-color: #1a73ff !important;
+          background-color: rgba(26, 115, 255, 0.12) !important;
+        }
+      }
     }
 
-    @media (max-width: $md6) {
-      flex: 1 1 100%;
+    &_accept {
+      border: 1px solid #1a73ff !important;
+      background-color: #1a73ff !important;
+      color: #ffffff !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          border-color: #005fe8 !important;
+          background-color: #005fe8 !important;
+        }
+      }
     }
+
+    &:focus-visible {
+      outline: 2px solid #65a7ff;
+      outline-offset: 3px;
+    }
+  }
+
+  @media (max-width: $md5) {
+    bottom: 10px;
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 20px);
+    padding: 20px 18px;
+    border-radius: 12px;
+
+    &__heading {
+      gap: 12px;
+    }
+
+    &__icon {
+      flex-basis: 42px;
+      width: 42px;
+      height: 42px;
+
+      svg {
+        width: 23px;
+        height: 23px;
+      }
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__text {
+      font-size: 12px;
+    }
+
+    &__actions {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 9px;
+    }
+
+    &__button {
+      min-height: 42px;
+      height: 42px;
+      font-size: 12px;
+    }
+  }
+}
+
+:global(.modal .modal__inner.cookie__modal-wrap) {
+  width: min(730px, calc(100% - 32px));
+  max-width: 730px;
+  max-height: calc(100dvh - 32px);
+
+  padding: 50px 35px 34px;
+
+  border: 1px solid #344050;
+  border-radius: 18px;
+
+  background-color: #111821;
+  background-image: none;
+
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+:global(.modal .modal__inner.cookie__modal-wrap .modal__close) {
+  top: 12px;
+  right: 12px;
+
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+
+  border-radius: 6px;
+  background-color: transparent;
+  color: #f4f6fb;
+}
+
+:global(.modal .modal__inner.cookie__modal-wrap .modal__close:hover) {
+  color: #1a73ff;
+}
+
+@media (max-width: $md5) {
+  :global(.modal .modal__inner.cookie__modal-wrap) {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
+
+    padding: 48px 17px 25px;
+
+    border-radius: 16px 16px 0 0;
   }
 }
 </style>
