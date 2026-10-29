@@ -175,6 +175,7 @@ const goToCS2 = () => {
     justify-content: center;
     @include adaptiveValue('min-width', 65, 45);
     @include adaptiveValue('height', 65, 45);
+    text-shadow: none;
     color: var(--third-color);
     font-weight: 900;
     font-family: var(--font-orbitron);
