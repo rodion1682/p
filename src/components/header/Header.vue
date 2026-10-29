@@ -38,6 +38,7 @@
         <RouterLink
           :to="{ name: 'HomePage' }"
           class="nav__link"
+          :class="{ isHome: route.name === 'HomePage' }"
           @click="closeMobileMenu"
         >
           {{ $t('Home') }}
@@ -46,7 +47,7 @@
         <button
           type="button"
           class="nav__link"
-          :class="{ active: isCS2Active }"
+          :class="{ active: isCS2Active, isHome: route.name === 'HomePage' }"
           @click="goToCS2"
         >
           {{ $t('CS2 Skins') }}
@@ -55,7 +56,7 @@
         <button
           type="button"
           class="nav__link"
-          :class="{ active: isDota2Active }"
+          :class="{ active: isDota2Active, isHome: route.name === 'HomePage' }"
           @click="goToDota2"
         >
           {{ $t('Dota 2 Skins') }}
@@ -65,7 +66,10 @@
           v-if="isOfferEnabled && isAuthenticated"
           type="button"
           class="nav__link"
-          :class="{ active: isSellSkinActive }"
+          :class="{
+            active: isSellSkinActive,
+            isHome: route.name === 'HomePage',
+          }"
           @click="openSellSkinsFromNav"
         >
           {{ $t('Sell Skin') }}
@@ -74,6 +78,7 @@
         <RouterLink
           :to="{ name: 'FAQ' }"
           class="nav__link"
+          :class="{ isHome: route.name === 'HomePage' }"
           @click="closeMobileMenu"
         >
           {{ $t('FAQ') }}
@@ -82,6 +87,7 @@
         <RouterLink
           :to="{ name: 'ContactPage' }"
           class="nav__link"
+          :class="{ isHome: route.name === 'HomePage' }"
           @click="closeMobileMenu"
         >
           {{ $t('Contact us') }}
@@ -210,10 +216,10 @@ import { useCartStore } from '@/stores/cart'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 
-import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
 import PasswordResetModal from '@/pages/Auth/modals/PasswordResetModal.vue'
-import SignUpModal from '@/pages/Auth/modals/SignUpModal.vue'
 import SignInModal from '@/pages/Auth/modals/SignInModal.vue'
+import SignUpModal from '@/pages/Auth/modals/SignUpModal.vue'
+import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
 
 defineOptions({
   name: 'AppHeader',
@@ -677,8 +683,10 @@ onBeforeUnmount(() => {
     &.active,
     &.router-link-exact-active {
       pointer-events: none;
-      color: var(--secondary-color);
-
+      color: var(--third-color);
+      &.isHome {
+        color: var(--secondary-color);
+      }
       &::after {
         opacity: 1;
       }
@@ -690,7 +698,12 @@ onBeforeUnmount(() => {
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--secondary-color);
+        color: var(--third-color);
+      }
+      &.isHome {
+        &:hover {
+          color: var(--secondary-color);
+        }
       }
     }
 
@@ -844,7 +857,6 @@ onBeforeUnmount(() => {
     &:hover {
       background-color: var(--hint-primary-color);
       border-color: transparent;
-
       .link__count {
         background-color: var(--hint-primary-color);
       }

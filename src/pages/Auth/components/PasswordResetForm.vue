@@ -1,14 +1,10 @@
-
 <template>
   <div class="sign-in sign-in_rest">
     <div class="sign-in__title _h3">
       {{ $t('Forgot your password?') }}
     </div>
 
-    <form
-      class="sign-in__form"
-      @submit.prevent="handlePasswordReset"
-    >
+    <form class="sign-in__form" @submit.prevent="handlePasswordReset">
       <div class="sign-in__inputs">
         <BaseInput
           v-model="email"
@@ -23,17 +19,11 @@
         />
       </div>
 
-      <div
-        v-if="serverMessage"
-        class="sign-in__success _text-success"
-      >
+      <div v-if="serverMessage" class="sign-in__success _text-success">
         {{ serverMessage }}
       </div>
 
-      <div
-        v-if="errorMessage"
-        class="sign-in__error _text-error"
-      >
+      <div v-if="errorMessage" class="sign-in__error _text-error">
         {{ errorMessage }}
       </div>
 
@@ -43,9 +33,7 @@
           :disabled="isLoading"
           class="sign-in__submit sign-in__submit_reset"
         >
-          <span v-if="isLoading">
-            {{ $t('Sending') }}...
-          </span>
+          <span v-if="isLoading"> {{ $t('Sending') }}... </span>
           <span v-else>
             {{ $t('Send') }}
           </span>
@@ -57,7 +45,7 @@
           type="button"
           @click="handleBackToSignIn"
         >
-          {{ $t('back') }}
+          {{ $t('Back') }}
         </BaseButton>
       </div>
     </form>

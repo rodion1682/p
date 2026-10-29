@@ -252,11 +252,15 @@ onMounted(() => {
     font-size: 16px;
     line-height: 150%;
     font-weight: 400;
+    text-align: left;
     transition: color 0.3s ease 0s;
     color: var(--border-primary-color);
     font-family: var(--font-inter);
     &:not(:last-child) {
       margin-bottom: 5px;
+    }
+    &::after {
+      content: ':';
     }
     &.error {
       color: var(--error-color);

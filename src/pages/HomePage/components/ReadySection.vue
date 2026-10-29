@@ -3,8 +3,9 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import BaseButton from '@/components/base/BaseButton.vue'
-import SignInModal from '@/components/modals/auth/SignInModal.vue'
-import SignUpModal from '@/components/modals/auth/SignUpModal.vue'
+import PasswordResetModal from '@/pages/Auth/modals/PasswordResetModal.vue'
+import SignInModal from '@/pages/Auth/modals/SignInModal.vue'
+import SignUpModal from '@/pages/Auth/modals/SignUpModal.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -14,6 +15,13 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const isSignUpOpen = ref(false)
 const isSignInOpen = ref(false)
+const isResetPasswordOpen = ref(false)
+
+const closeAuthModals = () => {
+  isSignUpOpen.value = false
+  isSignInOpen.value = false
+  isResetPasswordOpen.value = false
+}
 
 const goToCS2 = () => {
   router.push({
@@ -32,21 +40,27 @@ const goToDota2 = () => {
 const openSignUp = () => {
   if (isAuthenticated.value) return
 
-  isSignInOpen.value = false
+  closeAuthModals()
   isSignUpOpen.value = true
 }
 
 const openSignIn = () => {
   if (isAuthenticated.value) return
 
-  isSignUpOpen.value = false
+  closeAuthModals()
   isSignInOpen.value = true
+}
+
+const openResetPassword = () => {
+  if (isAuthenticated.value) return
+
+  closeAuthModals()
+  isResetPasswordOpen.value = true
 }
 
 watch(isAuthenticated, value => {
   if (value) {
-    isSignUpOpen.value = false
-    isSignInOpen.value = false
+    closeAuthModals()
   }
 })
 </script>
@@ -112,7 +126,16 @@ watch(isAuthenticated, value => {
 
   <SignUpModal v-model="isSignUpOpen" @switch-to-sign-in="openSignIn" />
 
-  <SignInModal v-model="isSignInOpen" @switch-to-sign-up="openSignUp" />
+  <SignInModal
+    v-model="isSignInOpen"
+    @switch-to-sign-up="openSignUp"
+    @switch-to-reset-password="openResetPassword"
+  />
+
+  <PasswordResetModal
+    v-model="isResetPasswordOpen"
+    @switch-to-sign-in="openSignIn"
+  />
 </template>
 
 <style lang="scss" scoped>
@@ -123,16 +146,20 @@ watch(isAuthenticated, value => {
 .ready {
   @include adaptiveValue('padding-top', 180, 60);
   @include adaptiveValue('padding-bottom', 160, 30);
+
   overflow: hidden;
+
   &__inner {
     @include adaptiveValue('padding-top', 65, 18);
     @include adaptiveValue('padding-bottom', 75, 18);
+
     position: relative;
   }
 
   &__image {
     position: absolute;
     z-index: 2;
+
     &_left {
       left: 0;
       top: 0;
@@ -167,6 +194,7 @@ watch(isAuthenticated, value => {
   &__label {
     text-transform: uppercase;
     color: var(--sixth-color);
+
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 20, 18);
     }
@@ -174,6 +202,7 @@ watch(isAuthenticated, value => {
 
   &__title {
     color: var(--secondary-color);
+
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 20, 18);
     }
@@ -183,6 +212,7 @@ watch(isAuthenticated, value => {
     max-width: 601px;
     margin: 0 auto;
     color: var(--fourth-color);
+
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 20);
     }
@@ -192,6 +222,7 @@ watch(isAuthenticated, value => {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+
     @include adaptiveValue('gap', 20, 10);
   }
 

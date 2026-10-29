@@ -32,7 +32,6 @@
 
           <div class="body__main">
             <TopFilters
-              v-if="false"
               v-model:filters-open="isAsideFiltersOpen"
               class="products__top-filters"
               :filters="filters"
