@@ -344,12 +344,44 @@ watch([offersList, selectedGame], () => {
 
 .offers {
   display: flex;
-  flex: 1 1 100%;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
+
   &__button {
-    min-height: 32px;
-    padding: 8px;
-    font-size: 10px;
+    width: 100%;
+    min-width: 65px;
+    min-height: 30px;
+    height: 30px;
+    padding: 4px 10px;
+
+    border: 1px solid #8794a6 !important;
+    border-radius: 5px !important;
+    background: transparent !important;
+
+    color: #f4f6fb !important;
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+
+    transition:
+      color 0.25s ease,
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        border-color: #1a73ff !important;
+        background: rgba(26, 115, 255, 0.12) !important;
+        color: #65a7ff !important;
+      }
+    }
+
+    &_payout {
+      border-color: #1a73ff !important;
+      color: #65a7ff !important;
+    }
   }
 }
 </style>

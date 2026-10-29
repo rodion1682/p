@@ -92,26 +92,36 @@
 
         <div
           v-else-if="activeSection === 'payment-history'"
-          class="profile__section"
+          class="profile__history"
         >
-          <PaymentHistory />
-          <OrderHistory />
+          <div class="profile__history-group">
+            <h2 class="profile__history-title">{{ $t('Payment History') }}:</h2>
+
+            <PaymentHistory />
+          </div>
+
+          <div class="profile__history-group">
+            <h2 class="profile__history-title">{{ $t('Order History') }}:</h2>
+
+            <OrderHistory />
+          </div>
         </div>
 
         <div
           v-else-if="activeSection === 'order-history'"
-          class="profile__section"
+          class="profile__history"
         >
-          <PaymentHistory />
-          <OrderHistory />
+          <div class="profile__history-group">
+            <h2 class="profile__history-title">{{ $t('Order History') }}:</h2>
+
+            <OrderHistory />
+          </div>
         </div>
 
-        <div
+        <MyOffers
           v-else-if="activeSection === 'offers' && isOfferEnabled"
-          class="profile__section"
-        >
-          <MyOffers />
-        </div>
+          class="profile__offers"
+        />
       </div>
     </div>
 
@@ -180,9 +190,8 @@ const isOfferEnabled = computed(() => Boolean(settingsStore.isOfferEnabled))
 
 const canWithdraw = computed(
   () =>
-    (isOfferEnabled.value &&
-      Boolean(settingsStore.settings?.payout_methods?.sepa)) ||
-    true,
+    isOfferEnabled.value &&
+    Boolean(settingsStore.settings?.payout_methods?.sepa),
 )
 
 const pageTitle = computed(() => {
@@ -426,6 +435,36 @@ watch(isOfferEnabled, enabled => {
     border: 1px solid rgba(153, 161, 176, 0.18);
     border-radius: 10px;
     background-color: #111821;
+  }
+
+  &__history {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(28px, 4vw, 42px);
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__history-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__history-title {
+    margin: 0 0 14px;
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: none;
+  }
+
+  &__offers {
+    width: 100%;
+    min-width: 0;
   }
 
   &__balance-top {
