@@ -84,7 +84,21 @@
           {{ $t('FAQ') }}
         </RouterLink>
 
+        <button
+          v-if="IS_CONTACT_MODAL_ACTIVE"
+          type="button"
+          class="nav__link"
+          :class="{
+            active: isContactModalOpen,
+            isHome: route.name === 'HomePage',
+          }"
+          @click="openContactModal"
+        >
+          {{ $t('Contact us') }}
+        </button>
+
         <RouterLink
+          v-else
           :to="{ name: 'ContactPage' }"
           class="nav__link"
           :class="{ isHome: route.name === 'HomePage' }"
@@ -127,6 +141,7 @@
 
           <RouterLink :to="{ name: 'CartPage' }" class="header__link link">
             <SvgIcon :icon="CartIcon" class="link__icon" />
+
             <span v-if="cartCount" class="link__count">
               {{ cartCount }}
             </span>
@@ -181,6 +196,8 @@
     @switch-to-sign-in="openSignIn"
   />
 
+  <ContactModal v-if="IS_CONTACT_MODAL_ACTIVE" v-model="isContactModalOpen" />
+
   <SellSkinsModal
     v-if="SHOW_SELL_SKIN_MODAL && isSellSkinsOpen && isAuthenticated"
     v-model="isSellSkinsOpen"
@@ -219,6 +236,8 @@ import { useUserStore } from '@/stores/user'
 import PasswordResetModal from '@/pages/Auth/modals/PasswordResetModal.vue'
 import SignInModal from '@/pages/Auth/modals/SignInModal.vue'
 import SignUpModal from '@/pages/Auth/modals/SignUpModal.vue'
+import ContactModal from '@/pages/ContactPage/modals/ContactModal.vue'
+
 import { destroyDynamicAdapt, initDynamicAdapt } from '@/utils/dynamic_adapt.js'
 
 defineOptions({
@@ -226,6 +245,7 @@ defineOptions({
 })
 
 const SHOW_SELL_SKIN_MODAL = false
+const IS_CONTACT_MODAL_ACTIVE = true
 
 const route = useRoute()
 const router = useRouter()
@@ -247,6 +267,7 @@ const isCartOpen = ref(false)
 const isSignInOpen = ref(false)
 const isSignUpOpen = ref(false)
 const isResetPasswordOpen = ref(false)
+const isContactModalOpen = ref(false)
 
 const isOfferEnabled = computed(() => settingsStore.isOfferEnabled)
 
@@ -305,6 +326,11 @@ const openResetPassword = () => {
   closeAuthModals()
 
   isResetPasswordOpen.value = true
+}
+
+const openContactModal = () => {
+  closeMobileMenu()
+  isContactModalOpen.value = true
 }
 
 const goToCS2 = () => {
@@ -385,6 +411,7 @@ watch(
   () => {
     closeMobileMenu()
     closeAuthModals()
+    isContactModalOpen.value = false
   },
 )
 
@@ -399,9 +426,9 @@ watch(isAuthenticated, async value => {
 })
 
 watch(
-  [isMobileMenuVisible, isSellSkinsOpen, isCartOpen],
-  ([menuOpen, sellModalOpen, cartModalOpen]) => {
-    if (menuOpen || sellModalOpen || cartModalOpen) {
+  [isMobileMenuVisible, isSellSkinsOpen, isCartOpen, isContactModalOpen],
+  ([menuOpen, sellModalOpen, cartModalOpen, contactModalOpen]) => {
+    if (menuOpen || sellModalOpen || cartModalOpen || contactModalOpen) {
       lockBodyScroll()
     } else {
       unlockBodyScroll()
@@ -684,9 +711,11 @@ onBeforeUnmount(() => {
     &.router-link-exact-active {
       pointer-events: none;
       color: var(--third-color);
+
       &.isHome {
         color: var(--secondary-color);
       }
+
       &::after {
         opacity: 1;
       }
@@ -700,6 +729,7 @@ onBeforeUnmount(() => {
       &:hover {
         color: var(--third-color);
       }
+
       &.isHome {
         &:hover {
           color: var(--secondary-color);
@@ -857,6 +887,7 @@ onBeforeUnmount(() => {
     &:hover {
       background-color: var(--hint-primary-color);
       border-color: transparent;
+
       .link__count {
         background-color: var(--hint-primary-color);
       }

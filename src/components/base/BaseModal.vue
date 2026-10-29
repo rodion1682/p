@@ -156,6 +156,7 @@ defineExpose({
   max-width: 546px;
 }
 
+.contact-modal__inner,
 .sign-in__inner {
   max-width: 567px;
 }
