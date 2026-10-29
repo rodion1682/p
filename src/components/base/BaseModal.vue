@@ -149,13 +149,14 @@ defineExpose({
   max-width: 466px;
 }
 
-.payment-modal__inner,
+
 .details-modal__inner,
 .password-change-modal__inner,
 .reset__inner {
   max-width: 546px;
 }
 
+.payment-modal__inner,
 .contact-modal__inner,
 .sign-in__inner {
   max-width: 567px;

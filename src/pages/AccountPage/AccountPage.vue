@@ -83,21 +83,26 @@
           class="profile__settings"
         />
 
-        <div v-else-if="activeSection === 'balance'" class="profile__section">
-          <MyBalance :canWithdraw="canWithdraw" />
-        </div>
+        <MyBalance
+          v-else-if="activeSection === 'balance'"
+          class="profile__balance"
+          :can-withdraw="canWithdraw"
+          @withdraw="openWithdrawModal"
+        />
 
         <div
           v-else-if="activeSection === 'payment-history'"
           class="profile__section"
         >
           <PaymentHistory />
+          <OrderHistory />
         </div>
 
         <div
           v-else-if="activeSection === 'order-history'"
           class="profile__section"
         >
+          <PaymentHistory />
           <OrderHistory />
         </div>
 
