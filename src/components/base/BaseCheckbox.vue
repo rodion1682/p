@@ -155,7 +155,6 @@ const capitalizeWords = text => {
 
     .base-checkbox__box {
       &.is-checked {
-        border-color: var(--link-color);
       }
     }
   }
@@ -197,12 +196,12 @@ const capitalizeWords = text => {
     position: relative;
     cursor: pointer;
     flex-shrink: 0;
-    min-width: 20px;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    background: var(--bg-secondary-color);
-    border: 1px solid var(--border-secondary-color);
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--bg-fifth-color);
+    border: 1px solid var(--border-fourth-color);
     transition: all 0.3s ease 0s;
 
     &.has-error {
@@ -235,7 +234,7 @@ const capitalizeWords = text => {
     width: 12px;
     height: 9px;
     transform: translate(-50%, -50%);
-    color: var(--link-color);
+    color: var(--third-color);
     opacity: 0;
     transition: opacity 0.3s ease 0s;
   }
@@ -244,10 +243,10 @@ const capitalizeWords = text => {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--link-color);
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background-color: var(--border-primary-color);
     opacity: 0;
     transform: translate(-50%, -50%) scale(0);
     transition:
@@ -262,7 +261,7 @@ const capitalizeWords = text => {
     font-weight: 400;
     font-size: 16px;
     line-height: 150%;
-    color: var(--secondary-color);
+    color: var(--border-primary-color);
     font-family: var(--font-inter);
 
     :deep(a) {

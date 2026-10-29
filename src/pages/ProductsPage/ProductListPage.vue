@@ -1,89 +1,77 @@
 <template>
-  <div class="products">
+  <section class="products">
     <div class="products__inner _cnt">
-      <div class="products__title _h2">
+      <h1 class="products__title _h2">
         {{ $t('Market') }}
-      </div>
-      <div class="products__body body">
-        <div v-if="error" class="body__empty">
-          <div class="body__empty-error _text-error">
-            {{ error }}
-          </div>
+      </h1>
 
-          <BaseButton
-            class="body__empty-button"
-            @click="fetchProductsImmediate"
-          >
-            {{ $t('Try again') }}
-          </BaseButton>
-        </div>
+      <div class="products__layout">
+        <AsideFilters
+          class="products__aside"
+          :class="{ 'is-open': isAsideFiltersOpen }"
+          :filters="filters"
+          :available-filters="availableFilters"
+          :current-game="currentGame"
+          :update-filters="updateFilters"
+          :reset-filters="resetFilters"
+        />
 
-        <div v-else class="body__content" :class="{ open: isAsideFiltersOpen }">
-          <AsideFilters
-            class="body__aside"
-            :class="{ open: isAsideFiltersOpen }"
+        <div class="products__main">
+          <TopFilters
+            v-model:filters-open="isAsideFiltersOpen"
+            class="products__top"
             :filters="filters"
-            :available-filters="availableFilters"
             :current-game="currentGame"
             :sort-options="SORT_OPTIONS"
             :update-filters="updateFilters"
-            :reset-filters="resetFilters"
+            :set-category="setCategory"
           />
 
-          <div class="body__main">
-            <TopFilters
-              v-model:filters-open="isAsideFiltersOpen"
-              class="products__top-filters"
-              :filters="filters"
-              :available-filters="availableFilters"
-              :current-game="currentGame"
-              :sort-options="SORT_OPTIONS"
-              :update-filters="updateFilters"
-              :reset-filters="resetFilters"
-              :set-category="setCategory"
+          <div v-if="error" class="products__status">
+            <p class="_text-error">{{ error }}</p>
+
+            <BaseButton @click="fetchProductsImmediate">
+              {{ $t('Try again') }}
+            </BaseButton>
+          </div>
+
+          <LoadingSpinner
+            v-else-if="!ready || loading"
+            class="products__loading"
+          />
+
+          <div v-else-if="products.length" class="products__items">
+            <div
+              v-for="product in products"
+              :key="product.id"
+              class="products__item"
+            >
+              <ProductCard :product="product" />
+            </div>
+          </div>
+
+          <div v-else class="products__status">
+            <p>{{ $t('No products found') }}</p>
+
+            <BaseButton variant="bordered" @click="resetFilters">
+              {{ $t('Reset filters') }}
+            </BaseButton>
+          </div>
+
+          <div
+            v-if="!loading && !error && totalPages > 1"
+            class="products__bottom"
+          >
+            <PaginationComponent
+              :total-pages="totalPages"
+              :current-page="Number(filters.page)"
+              @update:current-page="onPageChange"
             />
-
-            <LoadingSpinner v-if="!ready || loading" class="body__loading" />
-
-            <div v-else-if="products.length" class="body__items">
-              <div
-                v-for="product in products"
-                :key="product.id"
-                class="body__item"
-                :class="{ open: isAsideFiltersOpen }"
-              >
-                <ProductCard :product="product" />
-              </div>
-            </div>
-
-            <div v-else class="body__empty">
-              <div class="body__empty-text _l">
-                {{ $t('No products found') }}
-              </div>
-
-              <BaseButton
-                variant="bordered"
-                class="body__empty-button"
-                @click="resetFilters"
-              >
-                {{ $t('Reset filters') }}
-              </BaseButton>
-            </div>
-
-            <div v-if="!loading && products.length" class="body__bottom">
-              <PaginationComponent
-                v-if="pagination.total > filters.perPage"
-                class="body__pagination"
-                :total-pages="totalPages"
-                :current-page="Number(filters.page)"
-                @update:current-page="onPageChange"
-              />
-            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -93,10 +81,9 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import ProductCard from '@/components/ProductCard.vue'
+import { useProductList } from '@/composables/useProductList'
 import AsideFilters from '@/pages/ProductsPage/components/AsideFilters.vue'
 import TopFilters from '@/pages/ProductsPage/components/TopFilters.vue'
-
-import { useProductList } from '@/composables/useProductList'
 
 const {
   SORT_OPTIONS,
@@ -117,7 +104,9 @@ const {
 const isAsideFiltersOpen = ref(false)
 
 const totalPages = computed(() => {
-  return Math.ceil(pagination.total / filters.perPage)
+  const perPage = Number(filters.perPage) || 25
+
+  return Math.ceil(Number(pagination.total || 0) / perPage)
 })
 
 const onPageChange = async page => {
@@ -133,131 +122,151 @@ const onPageChange = async page => {
 <style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
-@use '@/assets/styles/components/classes' as *;
 
 .products {
-  @include adaptiveValue('padding-top', 20, 25);
-  @include adaptiveValue('margin-bottom', 130, 25);
-  position: relative;
-  &__title {
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 18);
-    }
-  }
+  padding-top: clamp(105px, 8vw, 150px);
+  @include adaptiveValue('padding-bottom', 130, 50);
+
+  background-color: var(--bg-primary-color);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 100%;
   &__inner {
-    position: relative;
-
     width: 100%;
-    flex: 1 1 100%;
-
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__top-filters {
-  }
-
-  &__body {
     display: flex;
     flex-direction: column;
     flex: 1 1 100%;
   }
-}
 
-.body {
-  &__main {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-width: 0;
+  &__title {
+    margin-bottom: clamp(35px, 4vw, 55px);
+    color: var(--third-color);
+    text-align: center;
+    text-transform: uppercase;
   }
 
-  &__content {
-    @media (min-width: $md3) {
-      display: flex;
-      align-items: flex-start;
-
-      @include adaptiveValue('gap', 20, 10);
-    }
+  &__layout {
+    display: grid;
+    grid-template-columns:
+      minmax(195px, 238px)
+      minmax(0, 1fr);
+    gap: 16px;
+    height: inherit;
+    min-height: inherit;
   }
 
   &__aside {
-    @media (min-width: $md3) {
-      @include adaptiveValue('max-width', 363, 160);
-      @include adaptiveValue('min-width', 363, 160);
-    }
-    @media (max-width: $md3) {
-      &:not(:last-child) {
-        margin-bottom: 18px;
-      }
-    }
-  }
-  &__items {
-    flex: 1 1 auto;
     min-width: 0;
+  }
 
+  &__main {
+    min-width: 0;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex: 1 1 100%;
+  }
 
-    @include adaptiveValue('row-gap', 20, 4);
-    @include adaptiveValue('margin-left', -10, -2);
-    @include adaptiveValue('margin-right', -10, -2);
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-    @media (max-width: $md6) {
-      margin-left: -12px;
-      margin-right: -12px;
-    }
+  &__items {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
   }
 
   &__item {
-    flex: 0 1 20%;
-    max-width: 20%;
-    @include adaptiveValue('padding-left', 10, 2);
-    @include adaptiveValue('padding-right', 10, 2);
-    @media (max-width: 1399.98px) {
-      flex: 0 1 25%;
-      max-width: 25%;
-    }
-    @media (max-width: 1199.98px) {
-      flex: 0 1 33.333%;
-      max-width: 33.333%;
-    }
-    @media (max-width: $md4) {
-      flex: 0 1 50%;
-      max-width: 50%;
+    min-width: 0;
+    height: 100%;
+
+    :deep(.card) {
+      height: 100%;
     }
   }
 
-  &__loading,
-  &__empty {
-    margin-top: 15vh;
-    margin-bottom: 15vh;
-    margin-left: auto;
-    margin-right: auto;
+  &__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    min-height: 280px;
+    text-align: center;
+    color: var(--fifth-color);
   }
 
-  &__empty {
-    width: 100%;
-
-    &-error,
-    &-text {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    &-button {
-      max-width: 209px;
-      margin: 0 auto;
-    }
+  &__loading {
+    margin: auto;
   }
 
   &__bottom {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    margin-top: clamp(30px, 4vw, 50px);
+  }
+
+  @media (max-width: 1150px) {
+    &__items {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 1050px) {
+    &__items {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: $md3) {
+    &__layout {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    &__top {
+      order: 0;
+    }
+
+    &__aside {
+      order: 1;
+      display: none;
+      width: 100%;
+      margin-bottom: 18px;
+
+      &.is-open {
+        display: block;
+      }
+    }
+
+    &__main {
+      display: contents;
+    }
+
+    &__items,
+    &__bottom,
+    &__status,
+    &__loading {
+      order: 2;
+      width: 100%;
+    }
+
+    &__bottom {
+      order: 3;
+    }
+
+    &__items {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 800px) {
+    &__items {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 540px) {
+    &__items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 }
 </style>

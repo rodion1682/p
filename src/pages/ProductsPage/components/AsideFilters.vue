@@ -1,258 +1,177 @@
 <template>
-  <aside class="aside">
-    <div class="aside__title _h4">
-      <span>{{ $t('Filters') }}</span>
-    </div>
-    <div class="aside__control">
-      <BaseInput
-        v-model="searchValue"
-        class="aside__search"
-        :placeholder="$t('Search ...')"
-        autocomplete="off"
-      >
-        <template #suffix>
-          <SvgIcon class="aside__search-icon" :icon="SearchIcon" />
-        </template>
-      </BaseInput>
-    </div>
-    <div class="aside__control">
-      <BaseDdropdown
-        class="aside__dropdown"
-        :label="sortDropdownLabel"
-        absolute
-      >
-        <BaseCheckbox
-          v-for="option in sortOptions"
-          :key="option.value"
-          class="aside__checkbox"
-          :model-value="safeFilters.sort === option.value"
-          @update:model-value="selectSort(option.value)"
-        >
-          {{ option.label }}
-        </BaseCheckbox>
-      </BaseDdropdown>
-    </div>
-    <div class="aside__control">
-      <div class="aside__subtitle">
-        {{ $t('Price') }}
+  <aside class="market-aside">
+    <div class="market-aside__head">
+      <div class="market-aside__heading">
+        <SvgIcon :icon="FilterIcon" class="market-aside__filter-icon" />
+        <span>{{ $t('Filters') }}</span>
       </div>
 
-      <PriceRange
-        v-model:min="minPrice"
-        v-model:max="maxPrice"
-        class="aside__price"
-        :currency-symbol="currencyStore.currentCurrencySymbol"
-        placeholder-min="0"
-        placeholder-max="10000"
-        @change="handlePriceRangeChange"
-      />
+      <button type="button" class="market-aside__reset" @click="handleReset">
+        {{ $t('Reset all') }}
+      </button>
     </div>
-    <div class="aside__control">
-      <div class="aside__subtitle">
-        {{ $t('Item type') }}
-      </div>
 
-      <div v-if="typeOptions.length" class="aside__box">
-        <BaseCheckbox
-          variant="radio"
-          class="aside__checkbox"
-          :model-value="
-            !safeFilters.type.length && !safeFilters.subcategories.length
-          "
-          @update:model-value="clearTypes"
-        >
-          {{ $t('All') }}
-        </BaseCheckbox>
-        <BaseCheckbox
-          variant="radio"
-          v-for="option in typeOptions"
-          :key="option.value"
-          class="aside__checkbox"
-          :model-value="isTypeChecked(option)"
-          @update:model-value="toggleType(option)"
-        >
-          {{ decodeHtml(option.label) }}
-        </BaseCheckbox>
-      </div>
-    </div>
-    <BaseDdropdown
-      v-if="typeOptions.length && false"
-      class="aside__dropdown"
-      :label="typeDropdownLabel"
-      :close-on-outside="false"
-      :close-on-escape="false"
-    >
-      <BaseCheckbox
-        class="aside__checkbox"
-        :model-value="
-          !safeFilters.type.length && !safeFilters.subcategories.length
-        "
-        @update:model-value="clearTypes"
-      >
-        {{ $t('All') }}
-      </BaseCheckbox>
-
-      <BaseCheckbox
-        v-for="option in typeOptions"
-        :key="option.value"
-        class="aside__checkbox"
-        :model-value="isTypeChecked(option)"
-        @update:model-value="toggleType(option)"
-      >
-        {{ decodeHtml(option.label) }}
-      </BaseCheckbox>
-    </BaseDdropdown>
-    <BaseDdropdown
-      v-if="showHeroesFilter"
-      class="aside__dropdown"
-      :label="heroDropdownLabel"
-      :close-on-outside="false"
-      :close-on-escape="false"
-    >
-      <BaseCheckbox
-        v-for="option in safeAvailableFilters.heroes"
-        :key="option.value"
-        class="aside__checkbox"
-        :model-value="safeFilters.hero.includes(option.value)"
-        @update:model-value="toggleMulti('hero', option.value)"
-      >
-        {{ decodeHtml(option.label) }}
-      </BaseCheckbox>
-    </BaseDdropdown>
-
-    <template v-if="showCs2ExteriorFilter">
-      <div class="aside__control">
-        <div class="aside__subtitle">
-          {{ $t('Quality:') }}
+    <div class="market-aside__content">
+      <div class="market-aside__price">
+        <div class="market-aside__section-label">
+          {{ $t('Price') }}
         </div>
-        <div class="aside__box">
-          <BaseCheckbox
-            variant="radio"
-            class="aside__checkbox"
-            :model-value="!selectedCs2ExteriorValues.length"
-            @update:model-value="clearCs2Exterior"
-          >
-            {{ $t('All') }}
-          </BaseCheckbox>
 
-          <BaseCheckbox
-            variant="radio"
-            v-for="option in cs2ExteriorOptions"
-            :key="option.value"
-            class="aside__checkbox"
-            :model-value="selectedCs2ExteriorValues.includes(option.value)"
-            @update:model-value="toggleCs2Exterior(option.value)"
-          >
-            {{ decodeHtml(option.label) }}
-          </BaseCheckbox>
-        </div>
-        <BaseDdropdown
-          v-if="false"
-          class="aside__dropdown"
-          :label="exteriorDropdownLabel"
-          :close-on-outside="false"
-          :close-on-escape="false"
-        >
-          <BaseCheckbox
-            class="aside__checkbox"
-            :model-value="!selectedCs2ExteriorValues.length"
-            @update:model-value="clearCs2Exterior"
-          >
-            {{ $t('All') }}
-          </BaseCheckbox>
-
-          <BaseCheckbox
-            v-for="option in cs2ExteriorOptions"
-            :key="option.value"
-            class="aside__checkbox"
-            :model-value="selectedCs2ExteriorValues.includes(option.value)"
-            @update:model-value="toggleCs2Exterior(option.value)"
-          >
-            {{ decodeHtml(option.label) }}
-          </BaseCheckbox>
-        </BaseDdropdown>
-      </div>
-    </template>
-
-    <template v-if="showDotaQualityFilter">
-      <div class="aside__subtitle">
-        {{ $t('Rarity') }}
+        <PriceRange
+          v-model:min="minPrice"
+          v-model:max="maxPrice"
+          class="market-aside__price-range"
+          :currency-symbol="currencyStore.currentCurrencySymbol"
+          placeholder-min="0"
+          placeholder-max="10000"
+          @change="handlePriceChange"
+        />
       </div>
 
       <BaseDdropdown
-        class="aside__dropdown"
-        :label="rarityDropdownLabel"
+        v-if="qualityOptions.length"
+        :key="`${currentGame}-rarity`"
+        class="market-aside__dropdown"
+        variant="sidebar"
+        :label="$t('Rarity')"
         :close-on-outside="false"
         :close-on-escape="false"
       >
         <BaseCheckbox
-          class="aside__checkbox"
-          :model-value="!safeFilters.quality.length"
-          @update:model-value="clearMulti('quality')"
+          class="market-aside__option"
+          :model-value="!selectedQualities.length"
+          @update:model-value="clearQualities"
+          variant="radio"
         >
           {{ $t('All') }}
         </BaseCheckbox>
 
         <BaseCheckbox
-          v-for="option in safeAvailableFilters.qualities"
+          variant="radio"
+          v-for="option in qualityOptions"
           :key="option.value"
-          class="aside__checkbox"
-          :model-value="safeFilters.quality.includes(option.value)"
+          class="market-aside__option"
+          :model-value="selectedQualities.includes(option.value)"
           @update:model-value="toggleMulti('quality', option.value)"
+        >
+          <span class="market-aside__option-text">
+            <span
+              class="market-aside__rarity-dot"
+              :style="{
+                backgroundColor: rarityColor(option.value),
+              }"
+            />
+            {{ decodeHtml(option.label) }}
+          </span>
+        </BaseCheckbox>
+      </BaseDdropdown>
+
+      <BaseDdropdown
+        v-if="typeOptions.length"
+        :key="`${currentGame}-type`"
+        class="market-aside__dropdown"
+        variant="sidebar"
+        :label="$t('Item type')"
+        :close-on-outside="false"
+        :close-on-escape="false"
+      >
+        <BaseCheckbox
+          class="market-aside__option"
+          :model-value="!selectedTypes.length && !selectedSubcategories.length"
+          @update:model-value="clearTypes"
+          variant="radio"
+        >
+          {{ $t('All') }}
+        </BaseCheckbox>
+
+        <BaseCheckbox
+          variant="radio"
+          v-for="option in typeOptions"
+          :key="option.value"
+          class="market-aside__option"
+          :model-value="selectedTypes.includes(option.value)"
+          @update:model-value="toggleMulti('type', option.value)"
         >
           {{ decodeHtml(option.label) }}
         </BaseCheckbox>
       </BaseDdropdown>
-    </template>
-    <BaseDdropdown
-      v-if="false"
-      class="aside__dropdown"
-      :label="$t('Special offers')"
-      :close-on-outside="false"
-      :close-on-escape="false"
-    >
-      <BaseCheckbox
-        v-for="option in specialOfferOptions"
-        :key="option.value"
-        class="aside__checkbox"
-        :model-value="safeFilters.special_offer === option.value"
-        @update:model-value="toggleSingle('special_offer', option.value)"
-      >
-        {{ $t(option.label) }}
-      </BaseCheckbox>
-    </BaseDdropdown>
 
-    <BaseButton
-      type="button"
-      variant="transparent-link"
-      class="aside__reset"
-      @click="handleResetFilters"
-    >
-      {{ $t('Clear filters') }}
-    </BaseButton>
+      <BaseDdropdown
+        v-if="isCs2 && exteriorOptions.length"
+        class="market-aside__dropdown"
+        variant="sidebar"
+        :label="$t('Exterior')"
+        :close-on-outside="false"
+        :close-on-escape="false"
+      >
+        <BaseCheckbox
+          variant="radio"
+          class="market-aside__option"
+          :model-value="!selectedExterior.length"
+          @update:model-value="clearExterior"
+        >
+          {{ $t('All') }}
+        </BaseCheckbox>
+
+        <BaseCheckbox
+          variant="radio"
+          v-for="option in exteriorOptions"
+          :key="option.value"
+          class="market-aside__option"
+          :model-value="selectedExterior.includes(option.value)"
+          @update:model-value="toggleMulti(exteriorKey, option.value)"
+        >
+          {{ decodeHtml(option.label) }}
+        </BaseCheckbox>
+      </BaseDdropdown>
+
+      <BaseDdropdown
+        v-if="isDota2 && heroOptions.length"
+        class="market-aside__dropdown"
+        variant="sidebar"
+        :label="$t('Heroes')"
+        :close-on-outside="false"
+        :close-on-escape="false"
+      >
+        <BaseCheckbox
+          variant="radio"
+          class="market-aside__option"
+          :model-value="!selectedHeroes.length"
+          @update:model-value="clearHeroes"
+        >
+          {{ $t('All') }}
+        </BaseCheckbox>
+
+        <BaseCheckbox
+          variant="radio"
+          v-for="option in heroOptions"
+          :key="option.value"
+          class="market-aside__option"
+          :model-value="selectedHeroes.includes(option.value)"
+          @update:model-value="toggleMulti('hero', option.value)"
+        >
+          {{ decodeHtml(option.label) }}
+        </BaseCheckbox>
+      </BaseDdropdown>
+    </div>
   </aside>
 </template>
 
 <script setup>
 import { debounce } from 'lodash'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
-import BaseButton from '@/components/base/BaseButton.vue'
 import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import PriceRange from '@/components/base/PriceRange.vue'
 import BaseDdropdown from '@/components/dropdown/BaseDdropdown.vue'
-import { SearchIcon } from '@/components/icons'
+import { FilterIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { useCurrencyStore } from '@/stores/currency'
-
-const { t } = useI18n()
 
 const props = defineProps({
   filters: {
     type: Object,
-    default: () => ({}),
+    required: true,
   },
   availableFilters: {
     type: Object,
@@ -274,424 +193,333 @@ const props = defineProps({
 
 const currencyStore = useCurrencyStore()
 
-const searchValue = ref('')
 const minPrice = ref('')
 const maxPrice = ref('')
 
-const sortOptions = computed(() => [
-  {
-    value: 'desc',
-    label: t('From high to low'),
-  },
-  {
-    value: 'asc',
-    label: t('From low to high'),
-  },
-])
+const isCs2 = computed(() => props.currentGame === 'cs2')
 
-const specialOfferOptions = computed(() => [
-  {
-    value: 'sale',
-    label: t('Sale'),
-  },
-  {
-    value: 'new',
-    label: t('New'),
-  },
-])
+const isDota2 = computed(() => props.currentGame === 'dota2')
 
-const safeFilters = computed(() => ({
-  search: props.filters?.search || '',
-  sort: props.filters?.sort || 'desc',
+const selectedTypes = computed(() =>
+  Array.isArray(props.filters.type) ? props.filters.type : [],
+)
 
-  type: Array.isArray(props.filters?.type) ? props.filters.type : [],
+const selectedSubcategories = computed(() =>
+  Array.isArray(props.filters.subcategories) ? props.filters.subcategories : [],
+)
 
-  quality: Array.isArray(props.filters?.quality) ? props.filters.quality : [],
+const selectedQualities = computed(() =>
+  Array.isArray(props.filters.quality) ? props.filters.quality : [],
+)
 
-  subcategories: Array.isArray(props.filters?.subcategories)
-    ? props.filters.subcategories
+const selectedHeroes = computed(() =>
+  Array.isArray(props.filters.hero) ? props.filters.hero : [],
+)
+
+const toOptions = items =>
+  Array.isArray(items)
+    ? items.map(item => {
+        if (typeof item === 'string') {
+          return {
+            label: item,
+            value: item,
+          }
+        }
+
+        return {
+          label: item.label ?? item.value,
+          value: item.value ?? item.label,
+        }
+      })
+    : []
+
+const qualityOptions = computed(() =>
+  toOptions(props.availableFilters.qualities),
+)
+
+const heroOptions = computed(() => toOptions(props.availableFilters.heroes))
+
+const exteriorNames = computed(() =>
+  toOptions(props.availableFilters.exterior_names),
+)
+
+const exteriorKey = computed(() =>
+  exteriorNames.value.length ? 'exterior_name' : 'quality',
+)
+
+const exteriorOptions = computed(() =>
+  exteriorNames.value.length ? exteriorNames.value : qualityOptions.value,
+)
+
+const selectedExterior = computed(() =>
+  Array.isArray(props.filters[exteriorKey.value])
+    ? props.filters[exteriorKey.value]
     : [],
-
-  hero: Array.isArray(props.filters?.hero) ? props.filters.hero : [],
-
-  exterior_name: Array.isArray(props.filters?.exterior_name)
-    ? props.filters.exterior_name
-    : [],
-
-  special_offer: props.filters?.special_offer || '',
-
-  priceRange: props.filters?.priceRange || {
-    min: null,
-    max: null,
-  },
-}))
-
-const safeAvailableFilters = computed(() => ({
-  types: Array.isArray(props.availableFilters?.types)
-    ? props.availableFilters.types
-    : [],
-
-  qualities: Array.isArray(props.availableFilters?.qualities)
-    ? props.availableFilters.qualities
-    : [],
-
-  heroes: Array.isArray(props.availableFilters?.heroes)
-    ? props.availableFilters.heroes
-    : [],
-
-  exterior_names: Array.isArray(props.availableFilters?.exterior_names)
-    ? props.availableFilters.exterior_names
-    : [],
-
-  subcategories: Array.isArray(props.availableFilters?.subcategories)
-    ? props.availableFilters.subcategories
-    : [],
-}))
-
-const normalizedCurrentGame = computed(() => {
-  return String(props.currentGame || '')
-    .trim()
-    .toLowerCase()
-})
-
-const isCs2 = computed(() => {
-  return normalizedCurrentGame.value === 'cs2'
-})
-
-const isDota2 = computed(() => {
-  return normalizedCurrentGame.value === 'dota2'
-})
-
-const showHeroesFilter = computed(() => {
-  return isDota2.value && safeAvailableFilters.value.heroes.length > 0
-})
-
-const cs2UsesExteriorNames = computed(() => {
-  return safeAvailableFilters.value.exterior_names.length > 0
-})
-
-const cs2ExteriorOptions = computed(() => {
-  if (cs2UsesExteriorNames.value) {
-    return safeAvailableFilters.value.exterior_names
-  }
-
-  return safeAvailableFilters.value.qualities
-})
-
-const cs2ExteriorFilterKey = computed(() => {
-  return cs2UsesExteriorNames.value ? 'exterior_name' : 'quality'
-})
-
-const selectedCs2ExteriorValues = computed(() => {
-  return safeFilters.value[cs2ExteriorFilterKey.value] || []
-})
-
-const showCs2ExteriorFilter = computed(() => {
-  return isCs2.value && cs2ExteriorOptions.value.length > 0
-})
-
-const showDotaQualityFilter = computed(() => {
-  return isDota2.value && safeAvailableFilters.value.qualities.length > 0
-})
+)
 
 const typeOptions = computed(() => {
-  if (isCs2.value) {
-    return safeAvailableFilters.value.subcategories.map(item => ({
-      label: item.category,
+  if (
+    isCs2.value &&
+    Array.isArray(props.availableFilters.subcategories) &&
+    props.availableFilters.subcategories.length
+  ) {
+    return props.availableFilters.subcategories.map(item => ({
       value: item.category,
-      subcategories: item.sub_categories || [],
-      isCs2Category: true,
+      label: item.category,
     }))
   }
 
-  return safeAvailableFilters.value.types
+  return toOptions(props.availableFilters.types)
 })
-
-const debouncedSearch = debounce(async value => {
-  await props.updateFilters({
-    search: value.trim(),
-    page: 1,
-  })
-}, 400)
-
-watch(searchValue, value => {
-  if (value === safeFilters.value.search) {
-    return
-  }
-
-  debouncedSearch(value)
-})
-
-watch(
-  () => safeFilters.value.search,
-  value => {
-    if (searchValue.value !== value) {
-      searchValue.value = value || ''
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
-const sortDropdownLabel = computed(() => {
-  const option = sortOptions.value.find(
-    item => item.value === safeFilters.value.sort,
-  )
-
-  return option?.label || t('Sort by price')
-})
-
-const selectSort = async value => {
-  if (safeFilters.value.sort === value) {
-    return
-  }
-
-  await props.updateFilters({
-    sort: value,
-    page: 1,
-  })
-}
 
 const decodeHtml = value => {
   if (typeof document === 'undefined') {
-    return value || ''
+    return String(value || '')
   }
 
-  const textarea = document.createElement('textarea')
-  textarea.innerHTML = value || ''
+  const element = document.createElement('textarea')
+  element.innerHTML = String(value || '')
 
-  return textarea.value
+  return element.value
 }
 
-const toggleSingle = async (key, value) => {
-  const current = safeFilters.value[key]
+const rarityColor = name => {
+  const value = String(name).toLowerCase()
 
-  await props.updateFilters({
-    [key]: current === value ? '' : value,
-    page: 1,
-  })
+  if (value.includes('arcana') || value.includes('contraband')) {
+    return '#7ad76e'
+  }
+
+  if (value.includes('immortal') || value.includes('covert')) {
+    return '#f2d70b'
+  }
+
+  if (value.includes('legendary') || value.includes('classified')) {
+    return '#dd4aa6'
+  }
+
+  if (value.includes('mythical') || value.includes('restricted')) {
+    return '#a66aff'
+  }
+
+  if (value.includes('rare') || value.includes('milspec')) {
+    return '#368dff'
+  }
+
+  if (value.includes('uncommon')) {
+    return '#65b9f0'
+  }
+
+  return '#99a1b0'
 }
 
-const toggleMulti = async (key, value) => {
-  const current = [...(safeFilters.value[key] || [])]
+const toggleMulti = (key, value) => {
+  const current = Array.isArray(props.filters[key])
+    ? [...props.filters[key]]
+    : []
+
   const index = current.indexOf(value)
 
-  if (index > -1) {
-    current.splice(index, 1)
-  } else {
+  if (index === -1) {
     current.push(value)
+  } else {
+    current.splice(index, 1)
   }
 
-  await props.updateFilters({
+  props.updateFilters({
     [key]: current,
     page: 1,
   })
 }
 
-const clearMulti = async key => {
-  await props.updateFilters({
-    [key]: [],
-    page: 1,
-  })
-}
-
-const toggleCs2Exterior = async value => {
-  await toggleMulti(cs2ExteriorFilterKey.value, value)
-}
-
-const clearCs2Exterior = async () => {
-  await props.updateFilters({
+const clearQualities = () =>
+  props.updateFilters({
     quality: [],
-    exterior_name: [],
     page: 1,
   })
-}
 
-const isTypeChecked = option => {
-  return safeFilters.value.type.includes(option.value)
-}
-
-const toggleType = async option => {
-  await toggleMulti('type', option.value)
-}
-
-const clearTypes = async () => {
-  await props.updateFilters({
+const clearTypes = () =>
+  props.updateFilters({
     type: [],
     subcategories: [],
     page: 1,
   })
-}
 
-const typeDropdownLabel = computed(() => {
-  const selected = safeFilters.value.type
+const clearHeroes = () =>
+  props.updateFilters({
+    hero: [],
+    page: 1,
+  })
 
-  if (!selected.length) {
-    return t('All')
+const clearExterior = () =>
+  props.updateFilters({
+    quality: [],
+    exterior_name: [],
+    page: 1,
+  })
+
+const debouncedPrice = debounce(() => {
+  const min = minPrice.value === '' ? null : Number(minPrice.value)
+
+  const max = maxPrice.value === '' ? null : Number(maxPrice.value)
+
+  if (min !== null && max !== null && min > max) {
+    return
   }
 
-  if (selected.length === 1) {
-    return decodeHtml(selected[0])
-  }
-
-  return `${selected.length} ${t('selected')}`
-})
-
-const heroDropdownLabel = computed(() => {
-  const selected = safeFilters.value.hero
-
-  if (!selected.length) {
-    return t('All')
-  }
-
-  if (selected.length === 1) {
-    const option = safeAvailableFilters.value.heroes.find(
-      item => item.value === selected[0],
-    )
-
-    return decodeHtml(option?.label || selected[0])
-  }
-
-  return `${selected.length} ${t('selected')}`
-})
-
-const exteriorDropdownLabel = computed(() => {
-  const selected = selectedCs2ExteriorValues.value
-
-  if (!selected.length) {
-    return t('All')
-  }
-
-  if (selected.length === 1) {
-    const option = cs2ExteriorOptions.value.find(
-      item => item.value === selected[0],
-    )
-
-    return decodeHtml(option?.label || selected[0])
-  }
-
-  return `${selected.length} ${t('selected')}`
-})
-
-const rarityDropdownLabel = computed(() => {
-  const selected = safeFilters.value.quality
-
-  if (!selected.length) {
-    return t('All')
-  }
-
-  if (selected.length === 1) {
-    const option = safeAvailableFilters.value.qualities.find(
-      item => item.value === selected[0],
-    )
-
-    return decodeHtml(option?.label || selected[0])
-  }
-
-  return `${selected.length} ${t('selected')}`
-})
-
-const debouncedPriceChange = debounce(async () => {
-  await props.updateFilters({
+  props.updateFilters({
     priceRange: {
-      min: minPrice.value !== '' ? Number(minPrice.value) : null,
-      max: maxPrice.value !== '' ? Number(maxPrice.value) : null,
+      min,
+      max,
     },
     page: 1,
   })
-}, 300)
+}, 350)
 
-const handlePriceRangeChange = () => {
-  debouncedPriceChange()
+const handlePriceChange = () => {
+  debouncedPrice()
 }
 
 watch(
-  () => safeFilters.value.priceRange,
-  value => {
-    minPrice.value = value?.min ?? ''
-    maxPrice.value = value?.max ?? ''
+  () => [props.filters.priceRange?.min, props.filters.priceRange?.max],
+  ([min, max]) => {
+    minPrice.value = min ?? ''
+    maxPrice.value = max ?? ''
   },
-  {
-    deep: true,
-    immediate: true,
-  },
+  { immediate: true },
 )
 
-const handleResetFilters = async () => {
-  debouncedSearch.cancel()
-  debouncedPriceChange.cancel()
+const handleReset = () => {
+  debouncedPrice.cancel()
 
-  searchValue.value = ''
   minPrice.value = ''
   maxPrice.value = ''
 
-  if (typeof props.resetFilters === 'function') {
-    await props.resetFilters()
-  }
+  props.resetFilters()
 }
 
 onBeforeUnmount(() => {
-  debouncedSearch.cancel()
-  debouncedPriceChange.cancel()
+  debouncedPrice.cancel()
 })
 </script>
 
 <style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
-@use '@/assets/styles/components/classes' as *;
 
-.aside {
-  @include adaptiveValue('padding', 30, 10);
-  @include adaptiveValue('border-radius', 20, 10);
-  background-color: var(--bg-primary-color);
-  border: 1px solid var(--border-primary-color);
-  &__title {
-    text-transform: capitalize;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
+.market-aside {
+  width: 100%;
+  border: 1px solid rgba(153, 161, 176, 0.13);
+  border-radius: 10px;
+  background: var(--bg-fourth-color);
+  overflow: visible;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 62px;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(153, 161, 176, 0.09);
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 10px 10px 0 0;
+  }
+
+  &__heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--third-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__filter-icon {
+    display: flex;
+    width: 17px;
+    height: 17px;
+    color: var(--fifth-color);
+  }
+
+  &__reset {
+    padding: 4px 0;
+    background: transparent;
+    border: 0;
+    color: #5da0ff;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    white-space: nowrap;
+    cursor: pointer;
+
+    @media (any-hover: hover) {
+      &:hover {
+        color: #fff;
+      }
     }
   }
 
-  &__control,
-  &__search {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 18);
-    }
+  &__content {
+    padding: 12px 16px 16px;
   }
 
-  &__search {
-    &-icon {
-      min-width: 18px;
-      height: 18px;
-      color: var(--hint-primary-color);
+  &__section-label {
+    margin-bottom: 12px;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fifth-color);
+    text-transform: uppercase;
+  }
+
+  &__price {
+    padding-bottom: 16px;
+  }
+
+  &__price-range {
+    width: 100%;
+
+    :deep(.price-range__field) {
+      max-width: none;
+      min-width: 0;
+    }
+
+    :deep(.price-range) {
+      gap: 8px;
+    }
+
+    :deep(.base-input) {
+      min-height: 42px;
+      border-radius: 6px;
+      background: rgba(153, 161, 176, 0.09);
+    }
+
+    :deep(.base-input__control) {
+      font-size: 12px;
     }
   }
 
   &__dropdown {
+    position: relative;
   }
 
-  &__checkbox {
-    padding: 5px 0px;
+  &__option {
+    padding: 3px 4px;
   }
 
-  &__subtitle {
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+  &__option-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
   }
 
-  &__price {
-  }
-
-  &__box {
-    max-height: 130px;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  &__reset {
+  &__rarity-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: 0 0 7px;
   }
 }
 </style>

@@ -1,79 +1,102 @@
 <template>
   <template v-if="product">
-    <div
+    <article
       class="card"
       v-bind="$attrs"
-      :class="{ 'in-cart': isInCart }"
+      :class="{
+        'card_in-cart': isInCart,
+        card_dota: isDota2,
+      }"
       :style="{
         '--card-color': cardColor,
-        '--card-color-rgb': cardColorRgb,
+        '--rarity-color': rarityColor,
       }"
-      @click="openDetails"
     >
-      <div v-if="productWeapon" class="card__weapon">
-        {{ productWeapon }}
-      </div>
-      <div v-if="product.img_url" class="card__image-wrapper">
-        <div class="card__bg _ibg-contain">
-          <img src="@/assets/img/card-bg.svg" />
+      <button
+        type="button"
+        class="card__view"
+        :aria-label="`View ${productName}`"
+        @click="openDetails"
+      >
+        <div class="card__media">
+          <div v-if="productImage" class="card__image">
+            <img
+              :src="productImage"
+              :alt="productName"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+
+          <div v-else class="card__placeholder">
+            <span>{{ gameLabel }}</span>
+          </div>
         </div>
-        <div class="card__image _ibg-contain">
-          <img :src="productImage" :alt="product.title" />
+
+        <div class="card__info">
+          <div class="card__name" :title="productName">
+            {{ productName }}
+          </div>
+
+          <div v-if="gameLabel || productRarity" class="card__details">
+            <span v-if="gameLabel" class="card__game">
+              {{ gameLabel }}
+            </span>
+
+            <span v-if="gameLabel && productRarity" class="card__separator">
+              •
+            </span>
+
+            <span v-if="productRarity" class="card__rarity">
+              {{ productRarity }}
+            </span>
+          </div>
+
+          <PriceFormatter
+            v-if="price !== null"
+            :price="price"
+            skip-conversion
+            size="size-16"
+            class="card__price"
+          />
         </div>
+      </button>
+
+      <div class="card__actions">
+        <BaseButton
+          type="button"
+          variant="bordered"
+          class="card__button card__button_view"
+          @click.stop="openDetails"
+        >
+          {{ $t('View Item') }}
+        </BaseButton>
+
+        <BaseButton
+          type="button"
+          class="card__button card__button_buy"
+          :class="{
+            card__button_remove: forceCartMode,
+          }"
+          :disabled="isLoading"
+          @click.stop="handlePrimaryAction"
+        >
+          <span v-if="isLoading"> {{ $t('Loading') }}... </span>
+
+          <span v-else-if="forceCartMode">
+            {{ $t('Remove') }}
+          </span>
+
+          <span v-else-if="isInCart">
+            {{ $t('Go to Cart') }}
+          </span>
+
+          <span v-else>
+            {{ $t('Buy Now') }}
+          </span>
+        </BaseButton>
       </div>
-
-      <div v-if="productName" class="card__name">
-        {{ productName }}
-      </div>
-
-      <div class="card__bottom">
-        <PriceFormatter
-          v-if="price"
-          :price="price"
-          reverse
-          size="size-18"
-          skip-conversion
-          class="card__price"
-        />
-
-        <div class="card__actions">
-          <BaseButton
-            v-if="!shouldShowRemove"
-            type="button"
-            variant="bordered"
-            class="card__button card__button_regular"
-            :disabled="isLoading"
-            @click.stop="handleCartAction"
-          >
-            <template v-if="isLoading"> ... </template>
-
-            <template v-else>
-              {{ $t('Add') }}
-              <SvgIcon
-                v-if="false"
-                :icon="CartIcon"
-                class="card__button-icon"
-              />
-            </template>
-          </BaseButton>
-
-          <BaseButton
-            v-else
-            type="button"
-            variant="delete"
-            class="card__button"
-            :disabled="isLoading"
-            @click.stop="handleCartAction"
-          >
-            <template v-if="isLoading"> ... </template>
-
-            <template v-else>
-              <SvgIcon :icon="TrashIcon" class="card__button-icon" />
-            </template>
-          </BaseButton>
-        </div>
-      </div>
-    </div>
+    </article>
 
     <ProductDetailsModal
       v-if="SHOW_DETAILS_MODAL && isDetailsOpen"
@@ -81,6 +104,7 @@
       :product="product"
       :cart-item-id="cartActionId"
       :force-cart-mode="forceCartMode"
+      :accent-color="cardColor"
       @close="closeDetails"
     />
   </template>
@@ -93,8 +117,6 @@ import { useRouter } from 'vue-router'
 
 import PriceFormatter from '@/components/PriceFormatter.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
-import { CartIcon, TrashIcon } from '@/components/icons'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
 import ProductDetailsModal from '@/components/modals/ProductDetailsModal.vue'
 
 import { useToast } from '@/composables/useToast'
@@ -117,32 +139,50 @@ const CARD_COLORS = [
   '#C1587B',
 ]
 
+const RARITY_COLORS = {
+  'consumer grade': '#AEB8C8',
+  'industrial grade': '#7CB6E8',
+  'mil-spec grade': '#4B8DFF',
+  restricted: '#8847FF',
+  classified: '#D32CE6',
+  covert: '#EB4B4B',
+  contraband: '#E4AE39',
+  'base grade': '#AEB8C8',
+  'high grade': '#4B8DFF',
+  remarkable: '#8847FF',
+  exotic: '#D32CE6',
+  extraordinary: '#EB4B4B',
+  common: '#AEB8C8',
+  uncommon: '#7CB6E8',
+  rare: '#368DFF',
+  mythical: '#A66AFF',
+  legendary: '#DD4AA6',
+  immortal: '#E7CD37',
+  arcana: '#80D67A',
+}
+
 const props = defineProps({
   product: {
     type: Object,
     required: true,
   },
-
   accentColor: {
     type: String,
     default: '',
   },
-
   forceCartMode: {
     type: Boolean,
     default: false,
   },
-
   cartItemId: {
     type: [Number, String],
     default: null,
   },
 })
 
+const router = useRouter()
 const cartStore = useCartStore()
 const toast = useToast()
-const router = useRouter()
-
 const { t } = useI18n()
 
 const isLoading = ref(false)
@@ -151,7 +191,7 @@ const isDetailsOpen = ref(false)
 const formatText = value => {
   return String(value || '')
     .trim()
-    .replace(/[_]+/g, ' ')
+    .replace(/_/g, ' ')
     .replace(/\s+/g, ' ')
     .replace(/\b\w/g, letter => letter.toUpperCase())
 }
@@ -166,19 +206,83 @@ const cleanProductTitle = value => {
     .trim()
 }
 
-const hexToRgb = hex => {
-  const normalized = String(hex || '')
-    .replace('#', '')
+const productGame = computed(() => {
+  return String(
+    props.product?.category ||
+      props.product?.game_code ||
+      props.product?.gameCode ||
+      '',
+  )
     .trim()
+    .toLowerCase()
+    .replace(/[\s_-]/g, '')
+})
 
-  if (!/^[0-9a-f]{6}$/i.test(normalized)) {
-    return '63, 144, 136'
+const isDota2 = computed(() => productGame.value === 'dota2')
+
+const gameLabel = computed(() => {
+  if (productGame.value === 'cs2' || productGame.value === 'csgo') {
+    return 'CS2'
   }
 
-  const number = Number.parseInt(normalized, 16)
+  if (isDota2.value) {
+    return 'Dota 2'
+  }
 
-  return [(number >> 16) & 255, (number >> 8) & 255, number & 255].join(', ')
-}
+  return formatText(productGame.value)
+})
+
+const productName = computed(() => {
+  const title = cleanProductTitle(props.product?.title || props.product?.name)
+
+  if (!title) return ''
+
+  const parts = title.split('|').map(part => part.trim())
+
+  return parts.length > 1 ? parts.slice(1).join(' | ') : title
+})
+
+const productRarity = computed(() => {
+  const quality =
+    props.product?.quality ||
+    props.product?.rarity ||
+    props.product?.exterior_name ||
+    props.product?.exterior ||
+    ''
+
+  return formatText(quality)
+})
+
+const rarityColor = computed(() => {
+  return RARITY_COLORS[productRarity.value.toLowerCase()] || '#99A1B0'
+})
+
+const productImage = computed(() => {
+  const imageUrl = props.product?.img_url || ''
+
+  if (!imageUrl) return ''
+
+  if (/^(https?:)?\/\//i.test(imageUrl) || imageUrl.startsWith('data:')) {
+    return imageUrl
+  }
+
+  const base = VITE_STATIC_DOMAIN.replace(/\/+$/, '')
+  const path = String(imageUrl).replace(/^\/+/, '')
+
+  return base ? `${base}/${path}` : `/${path}`
+})
+
+const price = computed(() => {
+  const rawPrice = props.product?.internal_price ?? props.product?.price
+
+  if (rawPrice == null || rawPrice === '') {
+    return null
+  }
+
+  const value = Number(rawPrice)
+
+  return Number.isFinite(value) ? value : null
+})
 
 const fallbackColor = computed(() => {
   const source = String(
@@ -194,116 +298,16 @@ const fallbackColor = computed(() => {
   return CARD_COLORS[hash % CARD_COLORS.length]
 })
 
-const cardColor = computed(() => {
-  return props.accentColor || fallbackColor.value
-})
+const cardColor = computed(() => props.accentColor || fallbackColor.value)
 
-const cardColorRgb = computed(() => {
-  return hexToRgb(cardColor.value)
-})
-
-const cartActionId = computed(() => {
-  return props.cartItemId || props.product.id
-})
+const cartActionId = computed(
+  () => props.cartItemId ?? props.product?.id ?? null,
+)
 
 const isInCart = computed(() => {
+  if (props.product?.id == null) return false
+
   return cartStore.isItemInCart(props.product.id)
-})
-
-const shouldShowRemove = computed(() => {
-  return props.forceCartMode || isInCart.value
-})
-
-const productImage = computed(() => {
-  const imageUrl = props.product?.img_url || ''
-
-  if (!imageUrl) return ''
-
-  if (/^https?:\/\//i.test(imageUrl)) {
-    return imageUrl
-  }
-
-  return `${VITE_STATIC_DOMAIN}${imageUrl}`
-})
-
-const price = computed(() => {
-  const value = Number.parseFloat(props.product?.internal_price ?? 0)
-
-  return Number.isFinite(value) ? value : 0
-})
-
-const productGame = computed(() => {
-  return String(
-    props.product?.category ||
-      props.product?.game_code ||
-      props.product?.gameCode ||
-      '',
-  )
-    .trim()
-    .toLowerCase()
-})
-
-const productExterior = computed(() => {
-  const directExterior =
-    props.product?.exterior_name || props.product?.exterior || ''
-
-  if (directExterior) {
-    return String(directExterior).trim().replace(/_/g, ' ')
-  }
-
-  const title = String(props.product?.title || '')
-
-  const match = title.match(/\(([^)]+)\)\s*$/)
-
-  return match ? String(match[1]).trim() : ''
-})
-
-const productWeapon = computed(() => {
-  const title = cleanProductTitle(props.product?.title)
-
-  if (!title) return ''
-
-  const [weapon] = title.split('|').map(part => part.trim())
-
-  return weapon || ''
-})
-
-const productName = computed(() => {
-  const title = cleanProductTitle(props.product?.title)
-
-  if (!title) return ''
-
-  const parts = title.split('|').map(part => part.trim())
-
-  if (parts.length > 1) {
-    return parts.slice(1).join(' | ')
-  }
-
-  return title
-})
-
-const productInfoLine = computed(() => {
-  if (productGame.value === 'cs2') {
-    return productExterior.value
-  }
-
-  if (productGame.value === 'dota2') {
-    return formatText(
-      props.product?.hero ||
-        props.product?.hero_name ||
-        props.product?.character,
-    )
-  }
-
-  return (
-    productExterior.value ||
-    formatText(props.product?.quality) ||
-    formatText(
-      props.product?.hero ||
-        props.product?.hero_name ||
-        props.product?.character,
-    )
-  )
 })
 
 const openDetails = () => {
@@ -314,11 +318,9 @@ const openDetails = () => {
 
   router.push({
     name: 'ProductDetailsPage',
-
     params: {
       productId: props.product.id,
     },
-
     query: {
       from: router.currentRoute.value.fullPath,
     },
@@ -330,36 +332,43 @@ const closeDetails = () => {
 }
 
 const removeFromCart = async () => {
-  try {
-    isLoading.value = true
+  if (cartActionId.value == null) return
 
+  isLoading.value = true
+
+  try {
     const { success, error: errorMessage } = await cartStore.removeFromCart(
       cartActionId.value,
     )
 
     if (success) {
       toast.success(t('Item removed from cart'))
-
       return
     }
 
     toast.error(errorMessage || t('Failed to remove item'))
-  } catch (error) {
-    toast.error(error?.message || t('Failed to remove item'))
+  } catch (err) {
+    toast.error(err?.message || t('Failed to remove item'))
   } finally {
     isLoading.value = false
   }
 }
 
 const addToCart = async () => {
-  try {
-    isLoading.value = true
+  if (props.product?.id == null) return
 
+  isLoading.value = true
+
+  try {
     const { success, isAlreadyInCart, message, isUnauthorized } =
       await cartStore.addToCart(props.product.id)
 
     if (success) {
       toast.success(t('Item added to cart'))
+
+      await router.push({
+        name: 'CartPage',
+      })
 
       return
     }
@@ -369,7 +378,6 @@ const addToCart = async () => {
 
       await router.push({
         name: 'LoginPage',
-
         query: {
           redirect: router.currentRoute.value.fullPath || '/',
         },
@@ -379,24 +387,33 @@ const addToCart = async () => {
     }
 
     if (isAlreadyInCart) {
-      toast.warning(message || t('Item is already in cart'))
+      await router.push({
+        name: 'CartPage',
+      })
 
       return
     }
 
     toast.error(message || t('Failed to add item'))
-  } catch (error) {
-    toast.error(error?.message || t('Failed to add item to cart'))
+  } catch (err) {
+    toast.error(err?.message || t('Failed to add item to cart'))
   } finally {
     isLoading.value = false
   }
 }
 
-const handleCartAction = async () => {
+const handlePrimaryAction = async () => {
   if (isLoading.value) return
 
-  if (shouldShowRemove.value) {
+  if (props.forceCartMode) {
     await removeFromCart()
+    return
+  }
+
+  if (isInCart.value) {
+    await router.push({
+      name: 'CartPage',
+    })
     return
   }
 
@@ -410,113 +427,311 @@ const handleCartAction = async () => {
 @use '@/assets/styles/components/classes' as *;
 
 .card {
-  position: relative;
+  --card-surface: #121923;
 
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 290px;
+  padding: 12px 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--card-surface);
+  color: var(--third-color);
+  overflow: visible;
 
-  @include adaptiveValue('padding-top', 15, 10);
-  @include adaptiveValue('padding-bottom', 15, 10);
-  @include adaptiveValue('padding-left', 20, 10);
-  @include adaptiveValue('padding-right', 20, 10);
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 
-  border: 1px solid var(--border-primary-color);
-  @include adaptiveValue('border-radius', 20, 10);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover,
+    &:focus-within {
+      --card-surface: #18222f;
 
-  background: var(--bg-third-color);
-
-  cursor: pointer;
-  transform: scale(1);
-  transition: all 0.3s ease 0s;
-
-  @media (any-hover: hover) {
-    &:hover {
-      transform: scale(1.03);
+      z-index: 10;
+      border-color: rgba(153, 161, 176, 0.14);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
     }
   }
 
-  &__weapon,
-  &__name {
+  &__view {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
     width: 100%;
     min-width: 0;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  &__weapon {
-    font-size: 10px;
-    line-height: 15px;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
 
-    &:not(:last-child) {
-      margin-bottom: 17px;
+    &:focus-visible {
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: 3px;
+      border-radius: 5px;
     }
   }
-  &__image-wrapper {
-    position: relative;
-    width: 100%;
+
+  &__media {
     display: flex;
     align-items: center;
     justify-content: center;
-    &:not(:last-child) {
-      margin-bottom: 18px;
+    width: 100%;
+    height: clamp(125px, 11vw, 170px);
+    margin-bottom: 16px;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: background-color 0.25s ease;
+
+    .card_dota & {
+      background-color: rgba(255, 255, 255, 0.08);
     }
   }
 
-  &__bg {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 140px;
+  &__image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    max-height: 112px;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+
+      transition: transform 0.3s ease;
+    }
   }
 
-  &__image {
-    position: relative;
-    z-index: 1;
-    margin: 0 auto;
-    max-width: 160px;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover &__image img {
+      transform: scale(1.04);
+    }
+  }
+
+  &__placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
-    aspect-ratio: 1 / 0.78;
+    height: 100%;
+    color: var(--fifth-color);
+    font-size: 13px;
+  }
+
+  &__info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
   }
 
   &__name {
-    color: var(--primary-color);
-    font-size: 14px;
+    display: -webkit-box;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    color: #f3f5f8;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+
+    min-height: 36px;
   }
 
-  &__bottom {
-    margin-top: auto;
+  &__details {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+    margin-top: 6px;
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  &__game {
+    color: #85bfff;
+  }
+
+  &__separator {
+    color: #8995a7;
+  }
+
+  &__rarity {
+    color: var(--rarity-color);
   }
 
   &__price {
-    align-self: flex-end;
+    width: fit-content;
+    margin-top: auto;
+    padding-top: 15px;
+
     :deep(.price__value) {
-      color: var(--primary-color);
+      color: #f4f6fb;
+      font-family: var(--font-orbitron);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    :deep(.price__icon) {
+      width: 15px;
+      min-width: 15px;
+      height: 15px;
     }
   }
 
   &__actions {
-    max-width: 80px;
-    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 14px;
   }
 
   &__button {
     width: 100%;
-    min-height: 32px;
-    font-size: 10px;
-    padding: 5px 8px;
+    min-height: 34px !important;
+    height: 34px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
 
-    &-icon {
-      min-width: 16px;
-      height: 16px;
+    &_view {
+      background: transparent !important;
+      border: 1px solid #8794a6 !important;
+      color: #f3f5f8 !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          background: rgba(255, 255, 255, 0.08) !important;
+          border-color: #f3f5f8 !important;
+        }
+      }
+    }
+
+    &_buy {
+      background: #1a73ff !important;
+      border: 1px solid #1a73ff !important;
+      color: #ffffff !important;
+
+      @media (any-hover: hover) {
+        &:hover {
+          background: #005fe8 !important;
+          border-color: #005fe8 !important;
+        }
+      }
+    }
+
+    &_remove {
+      background: #293446 !important;
+      border-color: #3d4a5e !important;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &__actions {
+      position: absolute;
+      top: calc(100% - 1px);
+      left: -1px;
+      right: -1px;
+      width: calc(100% + 2px);
+      margin-top: 0;
+      padding: 0 12px 12px;
+      border: 1px solid rgba(153, 161, 176, 0.14);
+      border-top: 0;
+      border-radius: 0 0 10px 10px;
+      background: var(--card-surface);
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.22);
+
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(-8px);
+
+      transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease,
+        transform 0.2s ease,
+        background-color 0.25s ease;
+    }
+
+    &:hover &__actions,
+    &:focus-within &__actions {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    min-height: 0;
+
+    &__actions {
+      position: static;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+    }
+  }
+
+  @media (max-width: $md4) {
+    padding: 10px;
+    border-radius: 8px;
+
+    &__media {
+      height: 130px;
+      margin-bottom: 12px;
+    }
+
+    &__name {
+      font-size: 12px;
+      min-height: 34px;
+    }
+
+    &__details {
+      font-size: 11px;
+    }
+
+    &__price {
+      padding-top: 12px;
+
+      :deep(.price__value) {
+        font-size: 13px;
+      }
+    }
+
+    &__button {
+      min-height: 32px !important;
+      height: 32px;
+      font-size: 10px;
     }
   }
 }

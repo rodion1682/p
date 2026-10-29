@@ -15,13 +15,12 @@
             <div class="top__back-text">{{ $t('Back') }}</div>
           </button>
           <div v-if="product.category === 'cs2'" class="top__game top__game_cs">
-            <SvgIcon class="top__game-icon" :icon="CS" />
+            <SvgIcon class="top__game-icon" :icon="CS2" />
           </div>
           <div v-else class="top__game top__game_dota">
-            <SvgIcon class="top__game-icon" :icon="DOTA" />
+            <SvgIcon class="top__game-icon" :icon="DOTA2" />
           </div>
-          <div class="top__line _ibg">
-          </div>
+          <div class="top__line _ibg"></div>
         </div>
         <div class="detailed__product product">
           <div class="product__title _h3">{{ product.title }}</div>
@@ -136,7 +135,7 @@ import { useToast } from '@/composables/useToast'
 import { useCartStore } from '@/stores/cart'
 import { useProductStore } from '@/stores/product'
 
-import { ChevronDownIcon, CS, DOTA, TrashIcon } from '@/components/icons'
+import { ChevronDownIcon, CS2, DOTA2, TrashIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ProductCard from '@/components/ProductCard.vue'

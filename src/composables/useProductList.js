@@ -15,47 +15,58 @@ export const PRODUCT_GAMES = {
 export const ALLOWED_GAMES = [PRODUCT_GAMES.CS2, PRODUCT_GAMES.DOTA2]
 
 export const SORT_OPTIONS = [
-  {
-    value: 'desc',
-    label: 'From high to low ',
-  },
-  {
-    value: 'asc',
-    label: 'From low to high',
-  },
+  { value: 'desc', label: 'From high to low' },
+  { value: 'asc', label: 'From low to high' },
 ]
 
 export const DEFAULT_FILTERS = {
   search: '',
   sort: 'desc',
-
-  priceRange: {
-    min: null,
-    max: null,
-  },
-
+  priceRange: { min: null, max: null },
   page: 1,
   perPage: 25,
-
   type: [],
   quality: [],
   subcategories: [],
   hero: [],
   class: [],
   exterior_name: [],
-
   special_offer: '',
 }
 
-const toArray = value => {
-  return value ? String(value).split(',').filter(Boolean) : []
-}
-
-const normalizeGame = value => {
-  return String(value || '')
+const normalizeGame = value =>
+  String(value || '')
     .trim()
     .toLowerCase()
+
+const toArray = value =>
+  (Array.isArray(value) ? value : [value])
+    .filter(Boolean)
+    .flatMap(item => String(item).split(','))
+    .map(item => item.trim())
+    .filter(Boolean)
+
+const toPositiveInteger = (value, fallback) => {
+  const number = Number(value)
+  return Number.isInteger(number) && number > 0 ? number : fallback
 }
+
+const toNullableNumber = value => {
+  if (value == null || value === '') return null
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 0 ? number : null
+}
+
+const emptyFilterState = () => ({
+  ...DEFAULT_FILTERS,
+  priceRange: { min: null, max: null },
+  type: [],
+  quality: [],
+  subcategories: [],
+  hero: [],
+  class: [],
+  exterior_name: [],
+})
 
 export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
   const { t } = useI18n()
@@ -63,73 +74,47 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
   const router = useRouter()
   const currencyStore = useCurrencyStore()
 
-  const allowedGames = computed(() => {
-    const games = ALLOWED_GAMES.map(normalizeGame).filter(game => {
-      return Object.values(PRODUCT_GAMES).includes(game)
-    })
-
-    const uniqueGames = [...new Set(games)]
-
-    if (!uniqueGames.length) {
-      return [PRODUCT_GAMES.CS2]
-    }
-
-    return uniqueGames
-  })
-
-  const isCs2Allowed = computed(() => {
-    return allowedGames.value.includes(PRODUCT_GAMES.CS2)
-  })
-
-  const isDota2Allowed = computed(() => {
-    return allowedGames.value.includes(PRODUCT_GAMES.DOTA2)
-  })
-
-  const isSingleGame = computed(() => {
-    return allowedGames.value.length === 1
-  })
-
-  const isCs2Only = computed(() => {
-    return (
-      allowedGames.value.length === 1 &&
-      allowedGames.value[0] === PRODUCT_GAMES.CS2
-    )
-  })
-
-  const isDota2Only = computed(() => {
-    return (
-      allowedGames.value.length === 1 &&
-      allowedGames.value[0] === PRODUCT_GAMES.DOTA2
-    )
-  })
+  const allowedGames = computed(() =>
+    [...new Set(ALLOWED_GAMES.map(normalizeGame))].filter(game =>
+      Object.values(PRODUCT_GAMES).includes(game),
+    ),
+  )
 
   const resolveAllowedGame = value => {
     const game = normalizeGame(value)
 
-    if (allowedGames.value.includes(game)) {
-      return game
-    }
-
-    return allowedGames.value[0]
+    return game === 'all' || allowedGames.value.includes(game)
+      ? game
+      : allowedGames.value[0] || PRODUCT_GAMES.CS2
   }
 
   const currentCategory = ref(
-    resolveAllowedGame(
-      route.query.category || initialCategory || allowedGames.value[0],
-    ),
+    resolveAllowedGame(route.query.category || initialCategory),
   )
 
-  const currentGame = computed(() => {
-    return currentCategory.value
-  })
+  const currentGame = computed(() => currentCategory.value)
 
-  const isCs2 = computed(() => {
-    return currentCategory.value === PRODUCT_GAMES.CS2
-  })
+  const isCs2 = computed(() => currentCategory.value === PRODUCT_GAMES.CS2)
 
-  const isDota2 = computed(() => {
-    return currentCategory.value === PRODUCT_GAMES.DOTA2
-  })
+  const isDota2 = computed(() => currentCategory.value === PRODUCT_GAMES.DOTA2)
+
+  const isCs2Allowed = computed(() =>
+    allowedGames.value.includes(PRODUCT_GAMES.CS2),
+  )
+
+  const isDota2Allowed = computed(() =>
+    allowedGames.value.includes(PRODUCT_GAMES.DOTA2),
+  )
+
+  const isSingleGame = computed(() => allowedGames.value.length === 1)
+
+  const isCs2Only = computed(
+    () => isSingleGame.value && allowedGames.value[0] === PRODUCT_GAMES.CS2,
+  )
+
+  const isDota2Only = computed(
+    () => isSingleGame.value && allowedGames.value[0] === PRODUCT_GAMES.DOTA2,
+  )
 
   const products = ref([])
   const loading = ref(false)
@@ -150,80 +135,49 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
     total: 0,
     currentPage: 1,
     lastPage: 1,
-    from: 1,
-    to: DEFAULT_FILTERS.perPage,
+    from: 0,
+    to: 0,
   })
 
-  const currencyCode = computed(() => {
-    return currencyStore.currentCurrencyCode || 'EUR'
-  })
+  const currencyCode = computed(
+    () => currencyStore.currentCurrencyCode || 'EUR',
+  )
 
   const getForcedSpecialOffer = () => {
-    if (route.name === 'NewItemsPage') {
-      return 'new'
-    }
-
-    if (route.name === 'SalePage') {
-      return 'sale'
-    }
-
+    if (route.name === 'NewItemsPage') return 'new'
+    if (route.name === 'SalePage') return 'sale'
     return ''
   }
 
   const initializeFilters = () => {
     const q = route.query
 
-    const forcedSpecialOffer = getForcedSpecialOffer()
-
     return {
-      ...DEFAULT_FILTERS,
-
+      ...emptyFilterState(),
+      search: String(q.search || ''),
+      sort: ['asc', 'desc'].includes(q.sort) ? q.sort : DEFAULT_FILTERS.sort,
+      page: toPositiveInteger(q.page, DEFAULT_FILTERS.page),
+      perPage: toPositiveInteger(q.per_page, DEFAULT_FILTERS.perPage),
       priceRange: {
-        min:
-          q.price_from != null && q.price_from !== ''
-            ? Number(q.price_from)
-            : null,
-
-        max:
-          q.price_till != null && q.price_till !== ''
-            ? Number(q.price_till)
-            : null,
+        min: toNullableNumber(q.price_from),
+        max: toNullableNumber(q.price_till),
       },
-
-      search: q.search ? String(q.search) : '',
-
-      sort: q.sort ? String(q.sort) : DEFAULT_FILTERS.sort,
-
-      page: q.page ? Number(q.page) : 1,
-
-      perPage: q.per_page ? Number(q.per_page) : DEFAULT_FILTERS.perPage,
-
       type: toArray(q.type),
-
       quality: toArray(q.quality),
-
       subcategories: toArray(q.subcategories),
-
       hero: toArray(q.heroes),
-
-      exterior_name: toArray(q.exterior_names),
-
       class: toArray(q.item_class),
-
-      special_offer:
-        forcedSpecialOffer || (q.special_offer ? String(q.special_offer) : ''),
+      exterior_name: toArray(q.exterior_names),
+      special_offer: getForcedSpecialOffer() || String(q.special_offer || ''),
     }
   }
 
   const filters = reactive(initializeFilters())
 
   const resetAvailableFilters = () => {
-    availableFilters.types = []
-    availableFilters.qualities = []
-    availableFilters.heroes = []
-    availableFilters.exterior_names = []
-    availableFilters.classes = []
-    availableFilters.subcategories = []
+    Object.keys(availableFilters).forEach(key => {
+      availableFilters[key] = []
+    })
   }
 
   const buildQueryFromFilters = () => ({
@@ -290,185 +244,178 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
     })
   }
 
+  let filterRequestId = 0
+
   const fetchFilterData = async () => {
+    const requestId = ++filterRequestId
+    const category = currentCategory.value
+
     try {
       const { data } = await axios.get('/items/filter-data', {
-        params: {
-          category: currentCategory.value,
-        },
+        params: category === 'all' ? {} : { category },
       })
+
+      if (requestId !== filterRequestId) return
 
       if (data?.status !== 'OK') {
         resetAvailableFilters()
         return
       }
 
-      availableFilters.types = (data.payload?.types || []).map(value => ({
-        label: value,
-        value,
-      }))
-
-      availableFilters.qualities = (data.payload?.qualities || []).map(
-        value => ({
+      const toOptions = values =>
+        (Array.isArray(values) ? values : []).map(value => ({
           label: value,
           value,
-        }),
-      )
+        }))
 
-      availableFilters.heroes = (data.payload?.heroes || []).map(value => ({
-        label: value,
-        value,
-      }))
+      availableFilters.types = toOptions(data.payload?.types)
+      availableFilters.qualities = toOptions(data.payload?.qualities)
+      availableFilters.heroes = toOptions(data.payload?.heroes)
+      availableFilters.exterior_names = toOptions(data.payload?.exterior_names)
+      availableFilters.classes = toOptions(data.payload?.classes)
+    } catch (err) {
+      if (requestId !== filterRequestId) return
 
-      availableFilters.exterior_names = (
-        data.payload?.exterior_names || []
-      ).map(value => ({
-        label: value,
-        value,
-      }))
-
-      availableFilters.classes = (data.payload?.classes || []).map(value => ({
-        label: value,
-        value,
-      }))
-    } catch (e) {
-      console.error('fetchFilterData error:', e)
-
+      console.error('fetchFilterData error:', err)
       resetAvailableFilters()
     }
   }
 
+  let subcategoryRequestId = 0
+
   const fetchSubcategories = async () => {
+    const requestId = ++subcategoryRequestId
+    const category = currentCategory.value
+
+    if (category === 'all') {
+      availableFilters.subcategories = []
+      subcategoriesLoading.value = false
+      return
+    }
+
     subcategoriesLoading.value = true
 
     try {
       const { data } = await axios.get('/items/subcategories', {
-        params: {
-          category: currentCategory.value,
-        },
+        params: { category },
       })
 
-      availableFilters.subcategories =
-        data?.status === 'OK' ? data.payload || [] : []
-    } catch (e) {
-      console.error('fetchSubcategories error:', e)
+      if (requestId !== subcategoryRequestId) return
 
+      availableFilters.subcategories =
+        data?.status === 'OK' && Array.isArray(data.payload) ? data.payload : []
+    } catch (err) {
+      if (requestId !== subcategoryRequestId) return
+
+      console.error('fetchSubcategories error:', err)
       availableFilters.subcategories = []
     } finally {
-      subcategoriesLoading.value = false
+      if (requestId === subcategoryRequestId) {
+        subcategoriesLoading.value = false
+      }
     }
   }
 
-  let currentRequestId = 0
+  let productRequestId = 0
   let abortController = null
 
   const fetchProductsImmediate = async () => {
-    const requestId = ++currentRequestId
+    const requestId = ++productRequestId
 
-    currentCategory.value = resolveAllowedGame(currentCategory.value)
+    abortController?.abort()
 
-    if (abortController) {
-      abortController.abort()
-    }
-
-    abortController = new AbortController()
+    const controller = new AbortController()
+    abortController = controller
 
     loading.value = true
     error.value = null
 
-    try {
-      const params = {
-        page: filters.page,
-        limit: filters.perPage,
-        sort: filters.sort,
+    const params = {
+      page: filters.page,
+      limit: filters.perPage,
+      sort: filters.sort,
+      currency: currencyCode.value,
+
+      ...(currentCategory.value !== 'all' && {
         category: currentCategory.value,
-        currency: currencyCode.value,
-      }
+      }),
 
-      if (filters.search) {
-        params.search = filters.search
-      }
+      ...(filters.search && {
+        search: filters.search,
+      }),
 
-      if (filters.priceRange.min != null) {
-        params.price_from = filters.priceRange.min
-      }
+      ...(filters.priceRange.min != null && {
+        price_from: filters.priceRange.min,
+      }),
 
-      if (filters.priceRange.max != null) {
-        params.price_till = filters.priceRange.max
-      }
+      ...(filters.priceRange.max != null && {
+        price_till: filters.priceRange.max,
+      }),
 
-      if (filters.type.length) {
-        params.type = filters.type.join(',')
-      }
+      ...(filters.type.length && {
+        type: filters.type.join(','),
+      }),
 
-      if (filters.quality.length) {
-        params.quality = filters.quality.join(',')
-      }
+      ...(filters.quality.length && {
+        quality: filters.quality.join(','),
+      }),
 
-      if (filters.subcategories.length) {
-        params.subcategories = filters.subcategories.join(',')
-      }
+      ...(filters.subcategories.length && {
+        subcategories: filters.subcategories.join(','),
+      }),
 
-      if (filters.hero.length) {
-        params.heroes = filters.hero.join(',')
-      }
+      ...(filters.hero.length && {
+        heroes: filters.hero.join(','),
+      }),
 
-      if (filters.exterior_name.length) {
-        params.exterior_names = filters.exterior_name.join(',')
-      }
+      ...(filters.exterior_name.length && {
+        exterior_names: filters.exterior_name.join(','),
+      }),
 
-      if (filters.class.length) {
-        params.item_class = filters.class.join(',')
-      }
+      ...(filters.class.length && {
+        item_class: filters.class.join(','),
+      }),
 
-      if (filters.special_offer) {
-        params.special_offer = filters.special_offer
-      }
+      ...(filters.special_offer && {
+        special_offer: filters.special_offer,
+      }),
+    }
 
+    try {
       const { data } = await axios.get('/items/list', {
         params,
         timeout: 15000,
-        signal: abortController.signal,
+        signal: controller.signal,
       })
 
-      if (requestId !== currentRequestId) {
-        return
+      if (requestId !== productRequestId) return
+
+      if (data?.status !== 'OK') {
+        throw new Error(data?.message || t('Failed to load products.'))
       }
 
-      if (data?.status === 'OK') {
-        products.value = data.payload || []
+      products.value = Array.isArray(data.payload) ? data.payload : []
 
-        const total = Number(data?.meta?.total ?? 0)
-        const pages = Number(data?.meta?.pages ?? 1)
+      const total = Number(data?.meta?.total ?? products.value.length)
 
-        pagination.total = total
-        pagination.lastPage = pages
-        pagination.currentPage = Number(filters.page || 1)
+      const page = Number(filters.page) || 1
 
-        pagination.from = total
-          ? (pagination.currentPage - 1) * filters.perPage + 1
-          : 0
+      const perPage = Number(filters.perPage) || DEFAULT_FILTERS.perPage
 
-        pagination.to = Math.min(
-          pagination.currentPage * filters.perPage,
-          total,
-        )
-      } else {
-        products.value = []
+      pagination.total = total
 
-        pagination.total = 0
-        pagination.currentPage = 1
-        pagination.lastPage = 1
-        pagination.from = 0
-        pagination.to = 0
-      }
+      pagination.lastPage =
+        Number(data?.meta?.pages) || Math.max(1, Math.ceil(total / perPage))
+
+      pagination.currentPage = page
+
+      pagination.from = total ? (page - 1) * perPage + 1 : 0
+
+      pagination.to = Math.min(page * perPage, total)
     } catch (err) {
-      const canceled =
-        err?.name === 'AbortError' ||
-        err?.name === 'CanceledError' ||
-        err?.code === 'ERR_CANCELED'
+      if (requestId !== productRequestId) return
 
-      if (canceled) {
+      if (err?.code === 'ERR_CANCELED' || err?.name === 'AbortError') {
         return
       }
 
@@ -476,22 +423,29 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
 
       if (
         err?.code === 'ECONNABORTED' ||
-        String(err?.message || '').includes('timeout')
+        String(err?.message).includes('timeout')
       ) {
         error.value = t('Request timeout. Please try again.')
-      } else if (!err?.response) {
-        error.value = t('Network error. Please check your connection.')
+      } else if (err?.response) {
+        error.value =
+          err.response.data?.message || t('Failed to load products.')
       } else {
         error.value =
-          err.response?.data?.message || t('Failed to load products.')
+          err?.message || t('Network error. Please check your connection.')
       }
 
       products.value = []
+
+      pagination.total = 0
+      pagination.currentPage = 1
+      pagination.lastPage = 1
+      pagination.from = 0
+      pagination.to = 0
     } finally {
-      if (requestId === currentRequestId) {
+      if (requestId === productRequestId) {
         loading.value = false
-        abortController = null
         ready.value = true
+        abortController = null
       }
     }
   }
@@ -499,75 +453,42 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
   const fetchProducts = debounce(fetchProductsImmediate, DEBOUNCE_DELAY)
 
   const syncFromRouteAndFetch = async () => {
-    const oldCategory = currentCategory.value
-
-    const requestedCategory =
-      route.query.category || initialCategory || allowedGames.value[0]
+    const requestedCategory = route.query.category || initialCategory
 
     const newCategory = resolveAllowedGame(requestedCategory)
 
-    const categoryChanged = oldCategory !== newCategory
+    const categoryChanged = currentCategory.value !== newCategory
 
     currentCategory.value = newCategory
 
     Object.assign(filters, initializeFilters())
 
-    const filtersAreEmpty =
-      !availableFilters.types.length &&
-      !availableFilters.qualities.length &&
-      !availableFilters.heroes.length &&
-      !availableFilters.exterior_names.length &&
-      !availableFilters.classes.length &&
-      !availableFilters.subcategories.length
-
-    let filtersPromise = Promise.resolve()
+    const filtersAreEmpty = Object.values(availableFilters).every(
+      values => !values.length,
+    )
 
     if (categoryChanged || filtersAreEmpty) {
       resetAvailableFilters()
-
-      filtersPromise = Promise.all([fetchFilterData(), fetchSubcategories()])
+      fetchFilterData()
+      fetchSubcategories()
     }
 
     await fetchProductsImmediate()
-
-    await filtersPromise
   }
 
-  const setCategory = async newCategory => {
-    const normalizedCategory = normalizeGame(newCategory)
+  const setCategory = async category => {
+    const next = normalizeGame(category)
 
-    if (!allowedGames.value.includes(normalizedCategory)) {
-      console.warn(
-        `Game "${normalizedCategory}" is not enabled in ALLOWED_GAMES.`,
-      )
-
+    if (next !== 'all' && !allowedGames.value.includes(next)) {
       return
     }
 
-    if (normalizedCategory === currentCategory.value) {
-      return
-    }
+    if (currentCategory.value === next) return
 
-    loading.value = true
-    ready.value = true
-    products.value = []
-
-    currentCategory.value = normalizedCategory
+    currentCategory.value = next
 
     Object.assign(filters, {
-      ...DEFAULT_FILTERS,
-
-      priceRange: {
-        ...DEFAULT_FILTERS.priceRange,
-      },
-
-      type: [],
-      quality: [],
-      subcategories: [],
-      hero: [],
-      class: [],
-      exterior_name: [],
-
+      ...emptyFilterState(),
       special_offer: getForcedSpecialOffer(),
     })
 
@@ -576,104 +497,97 @@ export function useProductList(initialCategory = PRODUCT_GAMES.CS2) {
     await updateURLQuery()
   }
 
-  const updateFilters = async newFilters => {
-    if (!Object.prototype.hasOwnProperty.call(newFilters, 'page')) {
+  const updateFilters = async next => {
+    Object.assign(filters, next)
+
+    if (!Object.prototype.hasOwnProperty.call(next, 'page')) {
       filters.page = 1
     }
 
-    Object.assign(filters, newFilters)
+    const forcedOffer = getForcedSpecialOffer()
 
-    const forcedSpecialOffer = getForcedSpecialOffer()
-
-    if (forcedSpecialOffer) {
-      filters.special_offer = forcedSpecialOffer
+    if (forcedOffer) {
+      filters.special_offer = forcedOffer
     }
 
+    const oldPath = route.fullPath
+
     await updateURLQuery()
+
+    if (route.fullPath === oldPath) {
+      await fetchProductsImmediate()
+    }
   }
 
   const resetFilters = async () => {
     Object.assign(filters, {
-      ...DEFAULT_FILTERS,
-
-      priceRange: {
-        ...DEFAULT_FILTERS.priceRange,
-      },
-
-      type: [],
-      quality: [],
-      subcategories: [],
-      hero: [],
-      class: [],
-      exterior_name: [],
-
+      ...emptyFilterState(),
       special_offer: getForcedSpecialOffer(),
     })
 
+    const oldPath = route.fullPath
+
     await updateURLQuery()
+
+    if (route.fullPath === oldPath) {
+      await fetchProductsImmediate()
+    }
   }
 
   watch(
     () => route.fullPath,
-    async () => {
-      await syncFromRouteAndFetch()
+    () => {
+      fetchProducts.cancel()
+      syncFromRouteAndFetch()
     },
-    {
-      immediate: true,
-    },
+    { immediate: true },
   )
 
   watch(
     () => currencyStore.currentCurrencyCode,
     async () => {
-      filters.priceRange.min = null
-      filters.priceRange.max = null
+      filters.priceRange = {
+        min: null,
+        max: null,
+      }
+
       filters.page = 1
 
+      const oldPath = route.fullPath
+
       await updateURLQuery()
+
+      if (route.fullPath === oldPath) {
+        await fetchProductsImmediate()
+      }
     },
   )
 
   return {
     SORT_OPTIONS,
-
     allowedGames,
-
     isSingleGame,
-
     isCs2Allowed,
     isDota2Allowed,
-
     isCs2Only,
     isDota2Only,
-
     isCs2,
     isDota2,
-
     products,
-
     loading,
     subcategoriesLoading,
     error,
     ready,
-
     filters,
     availableFilters,
-
     pagination,
-
     currentGame,
-
     setCategory,
-
     updateFilters,
     resetFilters,
-
     fetchProducts,
     fetchProductsImmediate,
-
     syncFromRouteAndFetch,
-
     fetchFilterData,
     fetchSubcategories,
   }

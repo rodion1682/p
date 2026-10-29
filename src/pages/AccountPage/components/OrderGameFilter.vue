@@ -26,7 +26,7 @@
 
 <script setup>
 import BaseButton from '@/components/base/BaseButton.vue'
-import { CS, DOTA } from '@/components/icons'
+import { CS2, DOTA2 } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 defineProps({
@@ -40,8 +40,8 @@ defineEmits(['update:modelValue'])
 
 const options = [
   { label: 'All', value: 'all' },
-  { label: 'CS2', value: 'cs2', icon: CS },
-  { label: 'Dota 2', value: 'dota2', icon: DOTA },
+  { label: 'CS2', value: 'cs2', icon: CS2 },
+  { label: 'Dota 2', value: 'dota2', icon: DOTA2 },
 ]
 </script>
 
