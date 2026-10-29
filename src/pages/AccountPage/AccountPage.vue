@@ -1,87 +1,141 @@
 <template>
-  <div class="profile">
+  <section class="profile">
     <div class="profile__inner _cnt">
-      <div class="profile__title _h2">
+      <h1 class="profile__title _h2">
         {{ pageTitle }}
-      </div>
+      </h1>
 
-      <div class="profile__nav">
-        <BaseButton
-          class="profile__button"
-          :variant="activeSection === 'profile' ? 'primary' : 'bordered'"
-          :active="activeSection === 'profile'"
+      <nav class="profile__nav" aria-label="Account navigation">
+        <button
+          type="button"
+          class="profile__nav-button"
+          :class="{ 'is-active': activeSection === 'profile' }"
+          :aria-current="activeSection === 'profile' ? 'page' : undefined"
           @click="toggleSection('profile')"
         >
-          {{ $t('Profile Settings') }}
-        </BaseButton>
+          <SvgIcon :icon="ProfileSettingsIcon" class="profile__nav-icon" />
+          <span>{{ $t('Profile Settings') }}</span>
+        </button>
 
-        <BaseButton
-          class="profile__button"
-          :variant="activeSection === 'balance' ? 'primary' : 'bordered'"
-          :active="activeSection === 'balance'"
+        <button
+          type="button"
+          class="profile__nav-button"
+          :class="{ 'is-active': activeSection === 'balance' }"
+          :aria-current="activeSection === 'balance' ? 'page' : undefined"
           @click="toggleSection('balance')"
         >
-          {{ $t('My Balance') }}
-        </BaseButton>
+          <SvgIcon :icon="MyBalanceIcon" class="profile__nav-icon" />
+          <span>{{ $t('My Balance') }}</span>
+        </button>
 
-        <BaseButton
-          class="profile__button"
-          :variant="
-            activeSection === 'payment-history' ? 'primary' : 'bordered'
+        <button
+          type="button"
+          class="profile__nav-button"
+          :class="{ 'is-active': activeSection === 'payment-history' }"
+          :aria-current="
+            activeSection === 'payment-history' ? 'page' : undefined
           "
-          :active="activeSection === 'payment-history'"
           @click="toggleSection('payment-history')"
         >
-          {{ $t('Transaction History') }}
-        </BaseButton>
+          <SvgIcon :icon="TransactionHistoryIcon" class="profile__nav-icon" />
+          <span>{{ $t('Transaction History') }}</span>
+        </button>
 
-        <BaseButton
-          class="profile__button"
-          :variant="activeSection === 'order-history' ? 'primary' : 'bordered'"
-          :active="activeSection === 'order-history'"
-          @click="toggleSection('order-history')"
-        >
-          {{ $t('Order History') }}
-        </BaseButton>
-
-        <BaseButton
+        <button
           v-if="isOfferEnabled"
-          class="profile__button"
-          :variant="activeSection === 'offers' ? 'primary' : 'bordered'"
-          :active="activeSection === 'offers'"
+          type="button"
+          class="profile__nav-button"
+          :class="{ 'is-active': activeSection === 'offers' }"
+          :aria-current="activeSection === 'offers' ? 'page' : undefined"
           @click="toggleSection('offers')"
         >
-          {{ $t('Offer History') }}
-        </BaseButton>
-      </div>
+          <SvgIcon :icon="OfferHistoryIcon" class="profile__nav-icon" />
+          <span>{{ $t('Offer History') }}</span>
+        </button>
+
+        <button
+          v-if="activeSection === 'order-history'"
+          type="button"
+          class="profile__nav-button is-active"
+          aria-current="page"
+          @click="toggleSection('order-history')"
+        >
+          <SvgIcon :icon="TransactionHistoryIcon" class="profile__nav-icon" />
+          <span>{{ $t('Order History') }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="profile__nav-button profile__nav-button_logout"
+          :disabled="isLoggingOut"
+          @click="handleLogout"
+        >
+          <SvgIcon :icon="LogOutIcon" class="profile__nav-icon" />
+          <span>
+            {{ isLoggingOut ? $t('Logging out') : $t('Log Out') }}
+          </span>
+        </button>
+      </nav>
 
       <div class="profile__content">
-        <UserInfo
-          class="profile__info"
-          :active-section="activeSection"
-          :offers-enabled="isOfferEnabled"
-          @password-change="openPasswordModal"
-          @withdraw="openWithdrawModal"
+        <PersonalInfoWithPassword
+          v-if="activeSection === 'profile'"
+          class="profile__settings"
         />
 
-        <div class="profile__body">
-          <PaymentHistory v-if="activeSection === 'payment-history'" />
+        <div v-else-if="activeSection === 'balance'" class="profile__section">
+          <div class="profile__balance-top">
+            <div class="profile__balance-summary">
+              <SvgIcon :icon="MyBalanceIcon" class="profile__balance-icon" />
 
-          <OrderHistory v-else-if="activeSection === 'order-history'" />
+              <div class="profile__balance-info">
+                <div class="profile__balance-label">
+                  {{ $t('My Balance') }}
+                </div>
 
-          <MyOffers v-else-if="activeSection === 'offers' && isOfferEnabled" />
+                <PriceFormatter
+                  :price="userBalance ?? 0"
+                  skip-conversion
+                  class="profile__balance-value"
+                />
+              </div>
+            </div>
 
-          <MyBalance v-else-if="activeSection === 'balance'" />
+            <BaseButton
+              v-if="canWithdraw"
+              class="profile__withdraw"
+              variant="bordered"
+              @click="openWithdrawModal"
+            >
+              {{ $t('Withdraw') }}
+            </BaseButton>
+          </div>
 
-          <PersonalInfo v-else />
+          <MyBalance />
+        </div>
+
+        <div
+          v-else-if="activeSection === 'payment-history'"
+          class="profile__section"
+        >
+          <PaymentHistory />
+        </div>
+
+        <div
+          v-else-if="activeSection === 'order-history'"
+          class="profile__section"
+        >
+          <OrderHistory />
+        </div>
+
+        <div
+          v-else-if="activeSection === 'offers' && isOfferEnabled"
+          class="profile__section"
+        >
+          <MyOffers />
         </div>
       </div>
     </div>
-
-    <PasswordChangeModal
-      v-model:show="isPasswordModalOpen"
-      @close="closePasswordModal"
-    />
 
     <ContactInfoModal
       v-model:show="isWithdrawModalOpen"
@@ -96,107 +150,107 @@
       :redirect-url="modalStore.getData('payment')?.redirectUrl"
       @close="modalStore.close('payment')"
     />
-  </div>
+  </section>
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
+import PriceFormatter from '@/components/PriceFormatter.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import {
+  LogOutIcon,
+  MyBalanceIcon,
+  OfferHistoryIcon,
+  ProfileSettingsIcon,
+  TransactionHistoryIcon,
+} from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 import ContactInfoModal from '@/components/modals/sellSkins/ContactInfoModal.vue'
-
-import { useSettingsStore } from '@/stores/settings'
-
-import UserInfo from './components/UserInfo.vue'
-
 import PaymentModal from '@/components/modals/sellSkins/PaymentModal.vue'
+
+import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 import { useModalStore } from '@/stores/modal'
-import PasswordChangeModal from './modals/PasswordChangeModal.vue'
+import { useSettingsStore } from '@/stores/settings'
+import { useUserStore } from '@/stores/user'
+
 import MyBalance from './tabs/MyBalance.vue'
 import MyOffers from './tabs/MyOffers.vue'
 import OrderHistory from './tabs/OrderHistory.vue'
 import PaymentHistory from './tabs/PaymentHistory.vue'
-import PersonalInfo from './tabs/PersonalInfo.vue'
+import PersonalInfoWithPassword from './tabs/PersonalInfoWithPassword.vue'
 
 const { t } = useI18n()
-
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
+const authStore = useAuthStore()
+const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 const modalStore = useModalStore()
+
+const { userBalance } = storeToRefs(userStore)
+
 const activeSection = ref('profile')
-
-const isPasswordModalOpen = ref(false)
-
+const isLoggingOut = ref(false)
 const isWithdrawModalOpen = ref(false)
 
-const isOfferEnabled = computed(() => {
-  return settingsStore.isOfferEnabled
-})
+const isOfferEnabled = computed(() => Boolean(settingsStore.isOfferEnabled))
+
+const canWithdraw = computed(
+  () =>
+    isOfferEnabled.value &&
+    Boolean(settingsStore.settings?.payout_methods?.sepa),
+)
 
 const pageTitle = computed(() => {
-  if (activeSection.value === 'profile') {
-    return t('Profile Settings')
+  switch (activeSection.value) {
+    case 'profile':
+      return t('PROFILE')
+    case 'balance':
+      return t('MY BALANCE')
+    case 'payment-history':
+      return t('TRANSACTION HISTORY')
+    case 'order-history':
+      return t('ORDER HISTORY')
+    case 'offers':
+      return t('OFFER HISTORY')
+    default:
+      return t('PROFILE')
   }
-
-  if (activeSection.value === 'balance') {
-    return t('My Balance')
-  }
-
-  if (activeSection.value === 'payment-history') {
-    return t('Transaction History')
-  }
-
-  if (activeSection.value === 'order-history') {
-    return t('Order History')
-  }
-
-  if (activeSection.value === 'offers' && isOfferEnabled.value) {
-    return t('Offer History')
-  }
-
-  return ''
 })
 
 const sectionPaths = {
   profile: '/account/profile',
-
   balance: '/account/balance',
-
   'payment-history': '/account/payment-history',
-
   'order-history': '/account/order-history',
-
   offers: '/account/offers',
 }
 
 const toggleSection = section => {
-  if (section === 'offers' && !isOfferEnabled.value) {
-    return
-  }
-
-  activeSection.value = section
+  if (section === 'offers' && !isOfferEnabled.value) return
 
   const path = sectionPaths[section]
 
-  if (path && route.path !== path) {
-    router.push(path)
-  }
+  if (!path || route.path === path) return
+
+  router.push(path)
 }
 
 const syncActiveSection = path => {
   if (path.includes('/payment-history')) {
     activeSection.value = 'payment-history'
-
     return
   }
 
   if (path.includes('/order-history')) {
     activeSection.value = 'order-history'
-
     return
   }
 
@@ -206,35 +260,19 @@ const syncActiveSection = path => {
     } else {
       router.replace('/account/profile')
     }
-
     return
   }
 
   if (path.includes('/balance')) {
     activeSection.value = 'balance'
-
     return
   }
 
   activeSection.value = 'profile'
 }
 
-const openPasswordModal = () => {
-  isWithdrawModalOpen.value = false
-
-  isPasswordModalOpen.value = true
-}
-
-const closePasswordModal = () => {
-  isPasswordModalOpen.value = false
-}
-
 const openWithdrawModal = () => {
-  if (!isOfferEnabled.value) {
-    return
-  }
-
-  isPasswordModalOpen.value = false
+  if (!canWithdraw.value) return
 
   isWithdrawModalOpen.value = true
 }
@@ -243,14 +281,28 @@ const closeWithdrawModal = () => {
   isWithdrawModalOpen.value = false
 }
 
+const handleLogout = async () => {
+  if (isLoggingOut.value) return
+
+  isLoggingOut.value = true
+
+  try {
+    await authStore.logout()
+    await router.replace({ name: 'HomePage' })
+  } catch (error) {
+    console.error('Logout error:', error)
+    toast.error(t('Failed to logout'))
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+
 watch(
   () => route.path,
   path => {
     syncActiveSection(path)
   },
-  {
-    immediate: true,
-  },
+  { immediate: true },
 )
 
 watch(isOfferEnabled, enabled => {
@@ -267,89 +319,236 @@ watch(isOfferEnabled, enabled => {
 
 .profile {
   position: relative;
-
   display: flex;
-  flex: 1 1 100%;
+  flex: 1 1 auto;
   flex-direction: column;
-  align-items: center;
+  width: 100%;
+  min-height: 100vh;
 
-  @include adaptiveValue('padding-top', 20, 25);
+  background-color: var(--bg-primary-color);
 
-  @include adaptiveValue('padding-bottom', 130, 25);
+  @include adaptiveValue('padding-top', 130, 90);
+  @include adaptiveValue('padding-bottom', 150, 60);
 
   &__inner {
     width: 100%;
-
-    align-self: center;
-
-    margin-top: auto;
-    margin-bottom: auto;
+    max-width: 1140px;
   }
 
   &__title {
+    margin: 0;
+    color: var(--third-color);
+    font-family: var(--font-orbitron);
+    font-weight: 700;
     text-align: center;
     text-transform: uppercase;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 18);
+      @include adaptiveValue('margin-bottom', 46, 24);
     }
   }
 
   &__nav {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-
-    @include adaptiveValue('gap', 20, 4);
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-
-    @media (max-width: $md2) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    @media (max-width: $md4) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    @media (max-width: $md7) {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-  }
-
-  &__button {
-    min-width: 0;
-  }
-
-  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     width: 100%;
 
-    @media (min-width: $md2) {
-      display: flex;
-
-      @include adaptiveValue('gap', 20, 10);
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 16, 12);
     }
   }
 
-  &__info {
-    height: fit-content;
-
-    flex: 0 1 30%;
+  &__nav-button {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
     min-width: 0;
+    min-height: 44px;
+    padding: 9px 12px;
 
-    @media (max-width: $md2) {
-      &:not(:last-child) {
-        margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background-color: transparent;
+
+    color: var(--third-color);
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+
+    &.is-active {
+      background-color: #111821;
+      color: #65a7ff;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: 3px;
+    }
+
+    @media (any-hover: hover) {
+      &:not(.is-active):not(:disabled):hover {
+        background-color: #111821;
+        color: #65a7ff;
+      }
+    }
+
+    &_logout {
+      @media (any-hover: hover) {
+        &:not(:disabled):hover {
+          color: #f56b76;
+        }
       }
     }
   }
 
-  &__body {
-    display: flex;
-    flex: 0 1 70%;
-    flex-direction: column;
+  &__nav-icon {
+    position: relative;
+    display: block;
+    flex: 0 0 24px;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    color: inherit;
 
+    :deep(svg) {
+      display: block;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__content {
+    width: 100%;
     min-width: 0;
+  }
+
+  &__settings {
+    width: 100%;
+  }
+
+  &__section {
+    width: 100%;
+    min-width: 0;
+    padding: clamp(20px, 3vw, 35px);
+    border: 1px solid rgba(153, 161, 176, 0.18);
+    border-radius: 10px;
+    background-color: #111821;
+  }
+
+  &__balance-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(153, 161, 176, 0.12);
+  }
+
+  &__balance-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  &__balance-icon {
+    display: block;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    color: #65a7ff;
+  }
+
+  &__balance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__balance-label {
+    font-family: var(--font-inter);
+    font-size: 13px;
+    color: #99a1b0;
+  }
+
+  &__balance-value {
+    :deep(.price__value) {
+      color: var(--third-color);
+      font-family: var(--font-orbitron);
+      font-size: 20px;
+      font-weight: 700;
+    }
+  }
+
+  &__withdraw {
+    width: auto;
+    min-width: 170px;
+  }
+
+  @media (max-width: $md2) {
+    &__nav {
+      gap: 6px;
+    }
+
+    &__nav-button {
+      padding: 9px 7px;
+      font-size: 11px;
+      gap: 6px;
+    }
+  }
+
+  @media (max-width: $md3) {
+    &__nav {
+      justify-content: flex-start;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: #344050 transparent;
+    }
+
+    &__nav-button {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 9px 15px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: $md5) {
+    &__section {
+      padding: 18px 14px;
+    }
+
+    &__nav-icon {
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+      flex-basis: 22px;
+
+      :deep(svg) {
+        width: 22px;
+        height: 22px;
+      }
+    }
   }
 }
 </style>

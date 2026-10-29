@@ -1,155 +1,184 @@
 <template>
-  <div class="info">
-    <div class="info__item">
-      <div class="info__column">
-        <div class="info__title _h3">{{ $t('Personal Information') }}</div>
-      </div>
-      <div class="info__inputs">
-        <div class="info__row">
-          <BaseInput
-            v-model="form.name"
-            :placeholder="t('First name')"
-            class="info__input"
-            :error="errors.name"
-            :disabled="isAnySubmitting"
-          />
-          <BaseInput
-            v-model="form.surname"
-            :placeholder="t('Last name')"
-            class="info__input"
-            :error="errors.surname"
-            :disabled="isAnySubmitting"
-          />
-        </div>
+  <div class="profile-info">
+    <form class="profile-info__card" @submit.prevent="submitPersonalInfo">
+      <h2 class="profile-info__title">
+        {{ $t('Personal Information') }}
+      </h2>
+
+      <div class="profile-info__fields">
+        <BaseInput
+          v-model="form.name"
+          class="profile-info__input"
+          :label="$t('Name')"
+          :placeholder="$t('Name')"
+          autocomplete="given-name"
+          :error="errors.name"
+          :disabled="isAnySubmitting"
+        />
+
+        <BaseInput
+          v-model="form.surname"
+          class="profile-info__input"
+          :label="$t('Surname')"
+          :placeholder="$t('Surname')"
+          autocomplete="family-name"
+          :error="errors.surname"
+          :disabled="isAnySubmitting"
+        />
+
         <BaseInput
           v-model="form.email"
+          class="profile-info__input"
           type="email"
+          :label="$t('E-Mail')"
+          :placeholder="$t('person@gmail.com')"
           autocomplete="email"
-          :placeholder="t('Email')"
-          class="info__input"
           :error="errors.email"
           :disabled="isAnySubmitting"
         />
+
         <BaseInput
           v-model="form.phone"
+          class="profile-info__input"
           type="tel"
+          :label="$t('Phone')"
+          :placeholder="'+1 234 5678 9000'"
           autocomplete="tel"
-          :placeholder="t('Phone')"
-          class="info__input"
           :error="errors.phone"
           :disabled="isAnySubmitting"
         />
       </div>
+
       <BaseButton
-        class="info__save"
-        variant="primary"
-        @click="submitPersonalInfo"
+        type="submit"
+        variant="white-bordered"
+        class="profile-info__save"
         :disabled="isAnySubmitting"
       >
-        <span v-if="isSubmittingPersonal">{{ $t('Saving') }}...</span>
+        <span v-if="isSubmittingPersonal"> {{ $t('Saving') }}... </span>
         <span v-else>{{ $t('Save') }}</span>
       </BaseButton>
-    </div>
-    <div class="info__item">
-      <div class="info__column">
-        <div class="info__title _h3">{{ $t('payment information') }}</div>
-      </div>
+    </form>
 
-      <div class="info__inputs">
+    <form class="profile-info__card" @submit.prevent="submitBillingInfo">
+      <h2 class="profile-info__title">
+        {{ $t('Billing Information') }}
+      </h2>
+
+      <div class="profile-info__fields">
         <BaseSelect
           v-model="form.countryId"
+          class="profile-info__input"
           :options="countryOptions"
-          optionLabel="title"
-          optionValue="id"
+          option-label="title"
+          option-value="id"
+          :label="$t('Country')"
           :placeholder="$t('Country')"
           :error="errors.countryId"
           :disabled="isAnySubmitting"
-          class="info__input"
         />
-        <div class="info__row">
-          <BaseInput
-            v-model="form.city"
-            :placeholder="t('City')"
-            class="info__input"
-            :error="errors.city"
-            :disabled="isAnySubmitting"
-          />
-          <BaseInput
-            v-model="form.address"
-            :placeholder="t('Address')"
-            class="info__input"
-            :error="errors.address"
-            :disabled="isAnySubmitting"
-          />
-        </div>
+
+        <BaseInput
+          v-model="form.city"
+          class="profile-info__input"
+          :label="$t('City')"
+          :placeholder="$t('City')"
+          autocomplete="address-level2"
+          :error="errors.city"
+          :disabled="isAnySubmitting"
+        />
+
+        <BaseInput
+          v-model="form.address"
+          class="profile-info__input"
+          :label="$t('Address')"
+          :placeholder="$t('Address')"
+          autocomplete="street-address"
+          :error="errors.address"
+          :disabled="isAnySubmitting"
+        />
+
         <BaseInput
           v-model="form.postCode"
-          :placeholder="t('ZIP-code')"
-          class="info__input"
+          class="profile-info__input"
+          :label="$t('Postcode')"
+          :placeholder="$t('123456')"
+          autocomplete="postal-code"
           :error="errors.postCode"
           :disabled="isAnySubmitting"
         />
       </div>
+
       <BaseButton
-        class="info__save"
-        variant="primary"
-        @click="submitBillingInfo"
+        type="submit"
+        variant="white-bordered"
+        class="profile-info__save"
         :disabled="isAnySubmitting"
       >
-        <span v-if="isSubmittingBilling">{{ $t('Saving') }}...</span>
+        <span v-if="isSubmittingBilling"> {{ $t('Saving') }}... </span>
         <span v-else>{{ $t('Save') }}</span>
       </BaseButton>
-    </div>
-    <div class="info__item">
-      <div class="info__column">
-        <div class="info__title _h3">{{ $t('password change') }}</div>
-      </div>
-      <div class="info__inputs">
+    </form>
+
+    <form class="profile-info__card" @submit.prevent="submitPassword">
+      <h2 class="profile-info__title">
+        {{ $t('Password Change') }}
+      </h2>
+
+      <div class="profile-info__fields">
         <BaseInput
           v-model="passwordForm.currentPassword"
+          class="profile-info__input"
           type="password"
-          autocomplete="off"
-          name="current-password-field"
-          :placeholder="t('Current password')"
-          class="info__input"
+          autocomplete="current-password"
+          :label="$t('Current password')"
           :error="passwordErrors.currentPassword"
           :disabled="isAnySubmitting"
         />
-        <div class="info__text">
-          {{ $t('New password must contain at least 8 characters.') }}
-        </div>
+
+        <p class="profile-info__hint">
+          {{ $t('* Your new password must contain at least 8 characters.') }}
+        </p>
+
         <BaseInput
           v-model="passwordForm.newPassword"
+          class="profile-info__input"
           type="password"
           autocomplete="new-password"
-          :placeholder="t('New password')"
-          class="info__input"
+          :label="$t('New password')"
           :error="passwordErrors.newPassword"
           :disabled="isAnySubmitting"
         />
+
         <BaseInput
           v-model="passwordForm.confirmPassword"
+          class="profile-info__input"
           type="password"
           autocomplete="new-password"
-          :placeholder="t('Confirm new password')"
-          class="info__input"
+          :label="$t('Confirm new password')"
           :error="passwordErrors.confirmPassword"
           :disabled="isAnySubmitting"
         />
       </div>
-      <div v-if="userStore.error" class="info__error _text-error">
-        {{ userStore.error }}
+
+      <div
+        v-if="passwordError"
+        class="profile-info__error _text-error"
+        role="alert"
+      >
+        {{ passwordError }}
       </div>
+
       <BaseButton
-        class="info__save"
-        variant="primary"
-        @click="submitPassword"
+        type="submit"
+        variant="white-bordered"
+        class="profile-info__save"
         :disabled="isAnySubmitting"
       >
-        <span v-if="isSubmittingPassword">{{ $t('Saving') }}...</span>
+        <span v-if="isSubmittingPassword"> {{ $t('Saving') }}... </span>
         <span v-else>{{ $t('Save') }}</span>
       </BaseButton>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -166,6 +195,7 @@ import { useCountriesStore } from '@/stores/countries'
 import { useUserStore } from '@/stores/user'
 
 const { t } = useI18n()
+
 const toast = useToast()
 const userStore = useUserStore()
 const countriesStore = useCountriesStore()
@@ -173,14 +203,16 @@ const countriesStore = useCountriesStore()
 const isSubmittingPersonal = ref(false)
 const isSubmittingBilling = ref(false)
 const isSubmittingPassword = ref(false)
+const passwordError = ref('')
 
-const isAnySubmitting = computed(() => {
-  return (
+const isAnySubmitting = computed(
+  () =>
     isSubmittingPersonal.value ||
     isSubmittingBilling.value ||
-    isSubmittingPassword.value
-  )
-})
+    isSubmittingPassword.value,
+)
+
+const countryOptions = computed(() => countriesStore.countries || [])
 
 const form = reactive({
   name: '',
@@ -189,8 +221,8 @@ const form = reactive({
   phone: '',
   countryId: '',
   city: '',
-  postCode: '',
   address: '',
+  postCode: '',
 })
 
 const passwordForm = reactive({
@@ -206,8 +238,8 @@ const errors = reactive({
   phone: '',
   countryId: '',
   city: '',
-  postCode: '',
   address: '',
+  postCode: '',
 })
 
 const passwordErrors = reactive({
@@ -216,9 +248,37 @@ const passwordErrors = reactive({
   confirmPassword: '',
 })
 
-const countryOptions = computed(() => countriesStore.countries || [])
-
 const normalize = value => String(value ?? '').trim()
+
+const getProfilePayload = raw => raw?.payload || raw?.data || raw || null
+
+const isPlaceholderName = value => {
+  const name = normalize(value).toLowerCase()
+  return name === 'name' || name === 'surname'
+}
+
+const fillFromUser = rawUser => {
+  const user = getProfilePayload(rawUser)
+
+  if (!user) return
+
+  form.name = isPlaceholderName(user.name) ? '' : user.name || ''
+
+  form.surname = isPlaceholderName(user.surname) ? '' : user.surname || ''
+
+  form.email = user.email || ''
+  form.phone = user.phone || ''
+
+  form.countryId =
+    user.country_id ??
+    user.country?.id ??
+    (typeof user.country === 'string' ? user.country : '') ??
+    ''
+
+  form.city = user.city || ''
+  form.address = user.address || ''
+  form.postCode = user.post_code || user.zip || ''
+}
 
 const clearErrors = fields => {
   fields.forEach(field => {
@@ -230,6 +290,7 @@ const clearPasswordErrors = () => {
   passwordErrors.currentPassword = ''
   passwordErrors.newPassword = ''
   passwordErrors.confirmPassword = ''
+  passwordError.value = ''
 }
 
 const resetPasswordForm = () => {
@@ -239,74 +300,18 @@ const resetPasswordForm = () => {
   clearPasswordErrors()
 }
 
-const isPlaceholderValue = (value, placeholderKey) => {
-  const v = normalize(value).toLowerCase()
-  const ph = normalize(t(placeholderKey)).toLowerCase()
-
-  return !!v && v === ph
-}
-
-const isLegacyPlaceholderValue = value => {
-  const v = normalize(value).toLowerCase()
-  return v === 'name' || v === 'surname'
-}
-
-const getProfilePayload = user => {
-  return user?.payload || user?.data || user || null
-}
-
-const fillFromUser = rawUser => {
-  const user = getProfilePayload(rawUser)
-
-  if (!user) return
-
-  const name = user?.name || ''
-  const surname = user?.surname || ''
-
-  form.name =
-    isPlaceholderValue(name, 'Name') || isLegacyPlaceholderValue(name)
-      ? ''
-      : name
-
-  form.surname =
-    isPlaceholderValue(surname, 'Surname') || isLegacyPlaceholderValue(surname)
-      ? ''
-      : surname
-
-  form.email = user?.email || ''
-  form.phone = user?.phone || ''
-  form.countryId = user?.country_id || user?.country?.id || user?.country || ''
-  form.postCode = user?.post_code || user?.zip || ''
-  form.city = user?.city || ''
-  form.address = user?.address || ''
-
-  resetPasswordForm()
-}
-
 const validatePersonalInfo = () => {
   clearErrors(['name', 'surname', 'email', 'phone'])
 
-  if (!normalize(form.name)) {
+  if (!normalize(form.name) || isPlaceholderName(form.name)) {
     errors.name = t('Please enter name')
-  } else if (
-    isPlaceholderValue(form.name, 'Name') ||
-    isLegacyPlaceholderValue(form.name)
-  ) {
-    errors.name = t('Please enter a real name')
   }
 
-  if (!normalize(form.surname)) {
+  if (!normalize(form.surname) || isPlaceholderName(form.surname)) {
     errors.surname = t('Please enter surname')
-  } else if (
-    isPlaceholderValue(form.surname, 'Surname') ||
-    isLegacyPlaceholderValue(form.surname)
-  ) {
-    errors.surname = t('Please enter a real surname')
   }
 
-  if (!normalize(form.email)) {
-    errors.email = t('Email is required')
-  } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalize(form.email))) {
     errors.email = t('Invalid email format')
   }
 
@@ -314,19 +319,32 @@ const validatePersonalInfo = () => {
     errors.phone = t('Phone number is required')
   }
 
-  return !errors.name && !errors.surname && !errors.email && !errors.phone
+  return ![errors.name, errors.surname, errors.email, errors.phone].some(
+    Boolean,
+  )
 }
 
 const validateBillingInfo = () => {
   clearErrors(['countryId', 'city', 'address', 'postCode'])
 
-  if (!form.countryId) errors.countryId = t('Country is required')
-  if (!normalize(form.city)) errors.city = t('City is required')
-  if (!normalize(form.address)) errors.address = t('Address is required')
-  if (!normalize(form.postCode)) errors.postCode = t('Post Code is required')
+  if (!form.countryId) {
+    errors.countryId = t('Country is required')
+  }
 
-  return (
-    !errors.countryId && !errors.city && !errors.address && !errors.postCode
+  if (!normalize(form.city)) {
+    errors.city = t('City is required')
+  }
+
+  if (!normalize(form.address)) {
+    errors.address = t('Address is required')
+  }
+
+  if (!normalize(form.postCode)) {
+    errors.postCode = t('Post Code is required')
+  }
+
+  return ![errors.countryId, errors.city, errors.address, errors.postCode].some(
+    Boolean,
   )
 }
 
@@ -339,8 +357,10 @@ const validatePassword = () => {
 
   if (!passwordForm.newPassword) {
     passwordErrors.newPassword = t('New password is required')
-  } else if (String(passwordForm.newPassword).length < 8) {
-    passwordErrors.newPassword = t('Password is too short')
+  } else if (passwordForm.newPassword.length < 8) {
+    passwordErrors.newPassword = t(
+      'Password must contain at least 8 characters',
+    )
   }
 
   if (!passwordForm.confirmPassword) {
@@ -349,45 +369,32 @@ const validatePassword = () => {
     passwordErrors.confirmPassword = t('Passwords do not match')
   }
 
-  return (
-    !passwordErrors.currentPassword &&
-    !passwordErrors.newPassword &&
-    !passwordErrors.confirmPassword
-  )
+  return !Object.values(passwordErrors).some(Boolean)
 }
 
-const buildPersonalPayload = () => ({
-  name: normalize(form.name),
-  surname: normalize(form.surname),
-  email: normalize(form.email),
-  phone: normalize(form.phone),
-})
-
-const buildBillingPayload = () => ({
-  country: form.countryId || null,
-  city: normalize(form.city),
-  address: normalize(form.address),
-  postCode: normalize(form.postCode),
-})
-
 const submitPersonalInfo = async () => {
-  if (isAnySubmitting.value) return
-  if (!validatePersonalInfo()) return
+  if (isAnySubmitting.value || !validatePersonalInfo()) return
 
-  userStore.clearError?.()
+  isSubmittingPersonal.value = true
 
   try {
-    isSubmittingPersonal.value = true
+    await userStore.updateProfile({
+      name: normalize(form.name),
+      surname: normalize(form.surname),
+      email: normalize(form.email),
+      phone: normalize(form.phone),
+    })
 
-    await userStore.updateProfile(buildPersonalPayload())
     toast.success(t('Personal information updated successfully'))
 
-    await userStore.fetchProfile?.()
+    await userStore.fetchProfile()
     fillFromUser(userStore.user)
-  } catch (e) {
+  } catch (error) {
+    console.error('Profile update error:', error)
+
     toast.error(
-      e?.response?.data?.message ||
-        e?.message ||
+      error?.response?.data?.message ||
+        error?.message ||
         t('Failed to update personal information'),
     )
   } finally {
@@ -396,23 +403,28 @@ const submitPersonalInfo = async () => {
 }
 
 const submitBillingInfo = async () => {
-  if (isAnySubmitting.value) return
-  if (!validateBillingInfo()) return
+  if (isAnySubmitting.value || !validateBillingInfo()) return
 
-  userStore.clearError?.()
+  isSubmittingBilling.value = true
 
   try {
-    isSubmittingBilling.value = true
+    await userStore.updateProfile({
+      country: form.countryId,
+      city: normalize(form.city),
+      address: normalize(form.address),
+      postCode: normalize(form.postCode),
+    })
 
-    await userStore.updateProfile(buildBillingPayload())
     toast.success(t('Address information updated successfully'))
 
-    await userStore.fetchProfile?.()
+    await userStore.fetchProfile()
     fillFromUser(userStore.user)
-  } catch (e) {
+  } catch (error) {
+    console.error('Billing update error:', error)
+
     toast.error(
-      e?.response?.data?.message ||
-        e?.message ||
+      error?.response?.data?.message ||
+        error?.message ||
         t('Failed to update address information'),
     )
   } finally {
@@ -421,14 +433,12 @@ const submitBillingInfo = async () => {
 }
 
 const submitPassword = async () => {
-  if (isAnySubmitting.value) return
-  if (!validatePassword()) return
+  if (isAnySubmitting.value || !validatePassword()) return
 
+  isSubmittingPassword.value = true
   userStore.clearError?.()
 
   try {
-    isSubmittingPassword.value = true
-
     await userStore.updatePassword({
       cur_password: passwordForm.currentPassword,
       new_password: passwordForm.newPassword,
@@ -437,13 +447,16 @@ const submitPassword = async () => {
 
     toast.success(t('Password changed successfully'))
     resetPasswordForm()
-  } catch (e) {
-    toast.error(
-      e?.response?.data?.message ||
-        e?.message ||
-        userStore.error ||
-        t('Failed to update password'),
-    )
+  } catch (error) {
+    console.error('Password update error:', error)
+
+    passwordError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      userStore.error ||
+      t('Failed to update password')
+
+    toast.error(passwordError.value)
   } finally {
     isSubmittingPassword.value = false
   }
@@ -452,12 +465,13 @@ const submitPassword = async () => {
 onMounted(async () => {
   try {
     if (!countriesStore.countries?.length) {
-      await countriesStore.fetchCountries?.()
+      await countriesStore.fetchCountries()
     }
 
-    await userStore.fetchProfile?.()
+    await userStore.fetchProfile()
     fillFromUser(userStore.user)
-  } catch {
+  } catch (error) {
+    console.error('Profile load error:', error)
     toast.error(t('Failed to load profile data'))
   }
 })
@@ -467,46 +481,62 @@ watch(
   user => {
     if (user) fillFromUser(user)
   },
-  { deep: true },
 )
 
 watch(
   () => form.name,
-  () => (errors.name = ''),
+  () => {
+    errors.name = ''
+  },
 )
 watch(
   () => form.surname,
-  () => (errors.surname = ''),
+  () => {
+    errors.surname = ''
+  },
 )
 watch(
   () => form.email,
-  () => (errors.email = ''),
+  () => {
+    errors.email = ''
+  },
 )
 watch(
   () => form.phone,
-  () => (errors.phone = ''),
+  () => {
+    errors.phone = ''
+  },
 )
 watch(
   () => form.countryId,
-  () => (errors.countryId = ''),
+  () => {
+    errors.countryId = ''
+  },
 )
 watch(
   () => form.city,
-  () => (errors.city = ''),
+  () => {
+    errors.city = ''
+  },
 )
 watch(
   () => form.address,
-  () => (errors.address = ''),
+  () => {
+    errors.address = ''
+  },
 )
 watch(
   () => form.postCode,
-  () => (errors.postCode = ''),
+  () => {
+    errors.postCode = ''
+  },
 )
 
 watch(
   () => passwordForm.currentPassword,
   () => {
     passwordErrors.currentPassword = ''
+    passwordError.value = ''
   },
 )
 
@@ -514,6 +544,7 @@ watch(
   () => passwordForm.newPassword,
   () => {
     passwordErrors.newPassword = ''
+    passwordError.value = ''
   },
 )
 
@@ -521,6 +552,7 @@ watch(
   () => passwordForm.confirmPassword,
   () => {
     passwordErrors.confirmPassword = ''
+    passwordError.value = ''
   },
 )
 </script>
@@ -530,75 +562,193 @@ watch(
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.info {
-  display: flex;
-  @include adaptiveValue('gap', 20, 10, 1440, 992, 1);
-  @media (max-width: $md2) {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  &__item {
-    background-color: var(--bg-third-color);
-    border-radius: 20px;
-    @include adaptiveValue('padding-left', 40, 10, 1440, 992, 1);
-    @include adaptiveValue('padding-right', 40, 10, 1440, 992, 1);
-    @include adaptiveValue('padding-top', 40, 15);
-    @include adaptiveValue('padding-bottom', 40, 15);
-    flex: 0 1 33.333%;
-    @media (max-width: $md2) {
-      flex: 0 1 calc(50% - 5px);
-    }
-    @media (max-width: $md3) {
-      flex: 1 1 100%;
-    }
-    @media (max-width: $md5) {
-      margin-left: -10px;
-      margin-right: -10px;
-    }
-  }
+.profile-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
 
-  &__column {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 15);
+  &__card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 460px;
+    padding: clamp(20px, 2.5vw, 36px);
+
+    border: 1px solid #303948;
+    border-radius: 10px;
+    background-color: #111821;
+    color: var(--third-color);
+
+    transition: border-color 0.25s ease;
+
+    &:focus-within {
+      border-color: rgba(101, 167, 255, 0.35);
     }
   }
 
   &__title {
-    text-align: center;
-    text-transform: uppercase;
+    margin: 0 0 23px;
+    color: #f4f6fb;
+    font-family: var(--font-orbitron);
+    font-size: 14px;
     font-weight: 700;
+    line-height: 1.4;
+    text-transform: none;
   }
 
-  &__save {
-  }
-
-  &__inputs {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 40, 20);
-    }
-  }
-
-  &__row {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
-    }
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
   }
 
   &__input {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
+    width: 100%;
+    min-width: 0;
+
+    :deep(.base-input__label),
+    :deep(.base-select__field-label) {
+      margin-bottom: 5px;
+      color: #99a1b0;
+      font-family: var(--font-inter);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.4;
     }
-  }
-  &__text {
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-top', 33, 15);
-      @include adaptiveValue('margin-bottom', 33, 15);
+
+    :deep(.base-input),
+    :deep(.base-select) {
+      min-height: 40px;
+      height: 40px;
+      border: 1px solid rgba(153, 161, 176, 0.12);
+      border-radius: 6px;
+      background-color: #222934;
+      color: #f4f6fb;
+    }
+
+    :deep(.base-input.is-focused),
+    :deep(.base-select.is-open),
+    :deep(.base-input:focus-within) {
+      border-color: var(--hint-primary-color);
+    }
+
+    :deep(.base-input__control),
+    :deep(.base-select__value-text),
+    :deep(.base-select__placeholder) {
+      font-family: var(--font-inter);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    :deep(.base-input__control),
+    :deep(.base-select__value-text) {
+      color: #f4f6fb;
+    }
+
+    :deep(.base-input__placeholder) {
+      color: #b8c1ce;
+      font-family: var(--font-inter);
+      font-size: 12px;
+    }
+
+    :deep(.base-input__error),
+    :deep(.base-select__error) {
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    :deep(.base-select__dropdown) {
+      z-index: 30;
+      background-color: #222934;
+      border: 1px solid #344050;
+      border-radius: 6px;
     }
   }
 
+  &__hint {
+    margin: 8px 0 12px;
+    color: #e3e7ee;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.65;
+  }
+
   &__error {
-    margin-bottom: 8px;
+    margin-top: 12px;
+    color: var(--error-color);
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &__save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    height: 40px;
+    margin-top: auto;
+    padding: 7px 15px;
+
+    border: 1px solid #8794a6 !important;
+    border-radius: 6px !important;
+    background-color: transparent !important;
+    color: #f4f6fb !important;
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+
+    @media (any-hover: hover) {
+      &:not(:disabled):hover {
+        border-color: var(--hint-primary-color) !important;
+        background-color: var(--hint-primary-color) !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  @media (max-width: $md2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    &__card {
+      min-height: 440px;
+    }
+
+    &__card:last-child {
+      grid-column: 1 / -1;
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: $md4) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+
+    &__card,
+    &__card:last-child {
+      grid-column: auto;
+      min-height: 0;
+      padding: 22px 18px;
+    }
+
+    &__save {
+      margin-top: 28px;
+    }
   }
 }
 </style>
