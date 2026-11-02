@@ -1,0 +1,25 @@
+:root {
+  // text
+  --primary-color: #181e1a;
+  --secondary-color: #ffffff;
+
+  // background
+  --bg-primary-color: #f0eae5;
+
+  // border
+  --border-primary-color: #b8b1aa;
+  // #FFFFFF 20%
+  --border-primary-color: rgb(255, 255, 255, 0.2);
+
+  // hint
+  --hint-primary-color: #2a3f2f;
+
+  // link
+
+  --link-color: #5796ff;
+
+  // status colors
+  --pending-color: #f9a000;
+  --error-color: #d5412c;
+  --success-color: #6ba11b;
+}
