@@ -1,5 +1,5 @@
 <template>
-  <section class="faq">
+  <section id="faq" class="faq">
     <div class="faq__inner _cnt">
       <div class="faq__body">
         <LoadingSpinner v-if="faqStore.isLoading" class="faq__loading" />

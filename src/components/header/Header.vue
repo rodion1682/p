@@ -63,13 +63,13 @@
           {{ $t('Rules') }}
         </button>
 
-        <RouterLink
-          :to="{ name: 'FAQ' }"
+        <button
+          type="button"
           class="nav__link"
-          @click="closeMobileMenu"
+          @click="scrollToHomeSection('faq')"
         >
           {{ $t('FAQ') }}
-        </RouterLink>
+        </button>
       </nav>
 
       <div class="header__auth auth">

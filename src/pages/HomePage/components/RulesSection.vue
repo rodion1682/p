@@ -1,5 +1,5 @@
 <template>
-  <section class="rules">
+  <section id="rules" class="rules">
     <div class="rules__inner _cnt-home">
       <div class="rules__info">
         <div class="rules__subtitle _h4">

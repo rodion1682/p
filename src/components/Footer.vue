@@ -36,7 +36,10 @@
         >
           <img src="@/assets/img/icons/footer-logo.svg" />
         </RouterLink>
-        <div class="footer__contacts">
+        <div
+          data-da=".footer__for-contacts,767.98,first"
+          class="footer__contacts"
+        >
           <a
             v-if="supportEmailHref"
             :href="supportEmailHref"
@@ -389,6 +392,13 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     @include adaptiveValue('gap', 20, 18);
+    @media (max-width: $md4) {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      &:not(:last-child) {
+        margin-bottom: 18px;
+      }
+    }
   }
 
   &__socials {
@@ -418,6 +428,9 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     @include adaptiveValue('gap', 20, 18);
+    @media (max-width: $md3) {
+      flex-wrap: wrap;
+    }
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 40, 18);
     }
@@ -430,16 +443,31 @@ onMounted(async () => {
     color: var(--fourth-color);
   }
   &__requisites {
-    max-width: 372px;
+    @media (min-width: $md4) {
+      max-width: 372px;
+    }
+    @media (max-width: $md4) {
+      flex: 1 1 100%;
+    }
   }
 
   &__links {
     display: flex;
+    @media (max-width: $md3) {
+      @include adaptiveValue('margin-right', -16, -10);
+    }
+    @media (max-width: $md4) {
+      flex-wrap: wrap;
+      flex: 1 1 100%;
+      @include adaptiveValue('margin-left', -16, -10);
+    }
   }
 
   &__link {
     @include adaptiveValue('padding-left', 16, 10);
     @include adaptiveValue('padding-right', 16, 10);
+    padding-top: 8px;
+    padding-bottom: 8px;
     white-space: nowrap;
     width: fit-content;
     height: fit-content;
@@ -462,6 +490,10 @@ onMounted(async () => {
 
   &__for-contacts {
     max-width: 516px;
+    @media (max-width: $md3) {
+      max-width: 100%;
+      flex: 1 1 100%;
+    }
   }
 
   &__text {
@@ -470,6 +502,9 @@ onMounted(async () => {
   &__bottom {
     display: flex;
     @include adaptiveValue('gap', 20, 18);
+    @media (max-width: $md4) {
+      flex-wrap: wrap;
+    }
   }
 
   &__methods {
@@ -486,8 +521,11 @@ onMounted(async () => {
 
   &__copy {
     align-self: center;
-    text-align: right;
+
     color: var(--secondary-color);
+    @media (min-width: $md4) {
+      text-align: right;
+    }
   }
 }
 </style>
