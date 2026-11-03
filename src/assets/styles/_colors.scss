@@ -2,21 +2,41 @@
   // text
   --primary-color: #181e1a;
   --secondary-color: #ffffff;
+  // #FFFFFF 62%
+  --third-color: rgb(255, 255, 255, 0.62);
+  // #FFFFFF 70%
+  --fourth-color: rgb(255, 255, 255, 0.62);
+  --fifth-color: #0D151A;
 
   // background
   --bg-primary-color: #f0eae5;
+  // #181E1A 60%
+  --bg-secondary-color: rgb(24, 30, 26, 0.6);
+  --bg-third-color: #f6f1ee;
+  // #F0EAE5 60%
+  --bg-fourth-color: rgb(240, 234, 229, 0.6);
+  // #F0EAE5 80%
+  --bg-fifth-color: rgb(240, 234, 229, 0.8);
+  // #181E1A 70%
+  --bg-sixth-color: rgb(24, 30, 26, 0.7);
+  // #1F2D36 10%
+  --bg-seventh-color: rgb(31, 45, 54, 0.1);
 
   // border
   --border-primary-color: #b8b1aa;
   // #FFFFFF 20%
-  --border-primary-color: rgb(255, 255, 255, 0.2);
+  --border-secondary-color: rgb(255, 255, 255, 0.2);
+  // #FFFFFF 50%
+  --border-third-color: rgb(255, 255, 255, 0.5);
 
   // hint
   --hint-primary-color: #2a3f2f;
+  --hint-secodnary-color: #53725a;
+  --hint-third-color: #404c44;
 
   // link
-
-  --link-color: #5796ff;
+  --link-color: #4285f4;
+  --link-hover-color: #8299ff;
 
   // status colors
   --pending-color: #f9a000;

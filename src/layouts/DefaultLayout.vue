@@ -26,7 +26,6 @@ import CookieModal from '@/components/modals/CookieModal.vue'
   flex-direction: column;
   position: relative;
   &__main {
-    @include header-indent;
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;

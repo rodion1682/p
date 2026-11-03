@@ -1,8 +1,10 @@
 <template>
   <div class="sign-up">
+    <div class="sign-up__subtitle _h4">
+      {{ $t('Welcome TO') }}
+    </div>
     <div class="sign-up__title _h2">
-      {{ $t('Welcome to') }}
-      <span>{{ $t('WipeVault') }}</span>
+      <span>{{ $t('WASTELANDCORE') }}</span>
     </div>
 
     <form class="sign-up__form" @submit.prevent="handleSteamSignUp">
@@ -16,11 +18,11 @@
 
       <BaseButton
         type="submit"
-        variant="primary"
+        variant="shadow"
         class="sign-up__submit"
         :disabled="!termsAccepted"
       >
-        {{ $t('Sign In with Steam') }}
+        {{ $t('Login with') }}
         <SvgIcon :icon="SteamIcon" class="sign-up__submit-icon" />
       </BaseButton>
     </form>
@@ -61,10 +63,16 @@ const handleSteamSignUp = () => {
 @use '@/assets/styles/components/classes' as *;
 
 .sign-up {
+  &__subtitle {
+    text-align: center;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 14, 4);
+    }
+  }
   &__title {
     text-align: center;
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 38, 15);
+      @include adaptiveValue('margin-bottom', 40, 18);
     }
   }
 
@@ -73,7 +81,7 @@ const handleSteamSignUp = () => {
 
   &__terms {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 38, 20);
+      @include adaptiveValue('margin-bottom', 40, 18);
     }
   }
 
@@ -84,23 +92,9 @@ const handleSteamSignUp = () => {
   }
 
   &__submit {
-    min-width: 150px;
-    width: fit-content;
+    max-width: 207px;
+    @include adaptiveValue('min-height', 48, 40);
     margin: 0 auto;
-
-    font-size: 16px;
-    line-height: 100%;
-
-    text-transform: uppercase;
-
-    font-family: var(--font-condensed);
-
-    @include adaptiveValue('min-height', 36, 40);
-
-    height: fit-content;
-
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
     &-icon {
       min-width: 16px;
       height: 16px;

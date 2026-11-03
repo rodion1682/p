@@ -1,7 +1,5 @@
 <script setup>
 import BaseButton from '@/components/base/BaseButton.vue'
-import { CopyIcon } from '@/components/icons'
-import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
 import { storeToRefs } from 'pinia'
@@ -45,55 +43,86 @@ const copyServerIP = async () => {
 
 <template>
   <section class="how">
-    <div class="how__bg _ibg">
-
-    </div>
     <div class="how__inner _cnt-home">
-      <div class="how__image _ibg-contain">
-
-      </div>
       <div class="how__top">
-        <div class="how__subtitle _h6">
-          <span>{{ $t('QUICK START') }}</span>
+        <div class="how__info">
+          <div class="how__subtitle _h4">
+            <span>{{ $t('HOW TO GET STARTED') }}</span>
+          </div>
+          <div class="how__title _h2">
+            {{ $t('YOUR SURVIVAL JOURNEY STARTS HERE') }}
+          </div>
+          <div class="how__text">
+            {{
+              $t(
+                'Getting onto WastelandCore takes only a few steps. Prepare your game, connect to the server, and begin building your place in the wasteland.',
+              )
+            }}
+          </div>
         </div>
-        <div class="how__title _h3">{{ $t('HOW TO JOIN') }}</div>
+        <BaseButton
+          class="how__copy"
+          variant="shadow"
+          :disabled="!connectCommand"
+          @click="copyServerIP"
+        >
+          {{ $t('START PLAYING') }}
+        </BaseButton>
       </div>
       <div class="how__items">
-        <div class="how__item how__item_1">
-          <div class="how__number">01</div>
-          <div class="how__label _h5">{{ $t('SIGN IN WITH STEAM') }}</div>
+        <div class="how__item">
+          <div class="how__number _h2">
+            <div>01</div>
+            <span></span>
+          </div>
+          <div class="how__label _h4">{{ $t('GET RUST ON STEAM') }}</div>
           <div class="how__value">
             {{
               $t(
-                'Log in using your Steam account to access your profile, inventory features, and the Scrap-Lands Shop.',
+                'Find the gear you need to prepare for dangerous encounters and defend what you’ve built.',
               )
             }}
           </div>
         </div>
         <div class="how__item">
-          <div class="how__number">02</div>
-          <div class="how__label _h5">{{ $t('CONNECT TO THE SERVER') }}</div>
-          <div class="how__value">
-            {{ $t('Launch Rust, press F1, and enter the connect command:') }}
+          <div class="how__number _h2">
+            <div>02</div>
+            <span></span>
           </div>
-          <BaseButton
-            class="how__copy"
-            variant="bordered"
-            :disabled="!connectCommand"
-            @click="copyServerIP"
-          >
-            <span>{{ serverIP }}</span>
-
-            <SvgIcon :icon="CopyIcon" class="how__copy-icon" />
-          </BaseButton>
+          <div class="how__label _h4">{{ $t('CONNECT TO WASTELANDCORE') }}</div>
+          <div class="how__value">
+            <span>{{
+              $t('Launch Rust and press F1 to open the in-game console.')
+            }}</span>
+            <span>{{ $t('Enter the following command:') }}</span>
+            <span>{{ $t('client.connect') }}{{ serverIP }}</span>
+            <span>{{ $t('Press Enter to connect.') }}</span>
+          </div>
         </div>
         <div class="how__item">
-          <div class="how__number">03</div>
-          <div class="how__label _h5">{{ $t('START YOUR JOURNEY') }}</div>
+          <div class="how__number _h2">
+            <div>03</div>
+            <span></span>
+          </div>
+          <div class="how__label _h4">{{ $t('ENTER THE WASTELAND') }}</div>
           <div class="how__value">
             {{
               $t(
-                'Collect resources, build your base, fight for territory, earn valuable loot, and use the Scrap-Lands Shop whenever you`re ready.',
+                'Gather resources, craft equipment, establish your base, and explore everything the server has to offer.',
+              )
+            }}
+          </div>
+        </div>
+        <div class="how__item">
+          <div class="how__number _h2">
+            <div>04</div>
+            <span></span>
+          </div>
+          <div class="how__label _h4">{{ $t('VISIT THE SHOP') }}</div>
+          <div class="how__value">
+            {{
+              $t(
+                'Log in with Steam to access the website’s item features. Purchase what you need or sell eligible items from your collection.',
               )
             }}
           </div>
@@ -110,131 +139,99 @@ const copyServerIP = async () => {
 
 .how {
   position: relative;
-  @include adaptiveValue('padding-top', 96, 25);
-  @include adaptiveValue('padding-bottom', 96, 25);
-  &__bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-  }
-
+  z-index: 1;
+  @include adaptiveValue('padding-top', 102, 60);
+  @include adaptiveValue('padding-bottom', 50, 30);
   &__inner {
-    position: relative;
-    z-index: 1;
-  }
-
-  &__image {
-    @include adaptiveValue('bottom', -96, -25);
-    height: 144%;
-    position: absolute;
-    right: -10%;
-    width: 30%;
   }
 
   &__top {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 95, 15);
+      @include adaptiveValue('margin-bottom', 30, 10);
+    }
+    @media (min-width: $md5) {
+      display: flex;
+      @include adaptiveValue('gap', 20, 18);
+    }
+  }
+
+  &__info {
+    flex: 1 1 auto;
+    @media (max-width: $md5) {
+      &:not(:last-child) {
+        margin-bottom: 10px;
+      }
     }
   }
 
   &__subtitle {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
+      @include adaptiveValue('margin-bottom', 14, 4);
     }
   }
 
   &__title {
+    color: var(--hint-primary-color);
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 14, 10);
+    }
+  }
+
+  &__text {
+    max-width: 712px;
+  }
+
+  &__copy {
+    @include adaptiveValue('max-width', 212, 200);
+    @include adaptiveValue('min-width', 212, 200);
+    align-self: flex-end;
   }
 
   &__items {
-    display: flex;
-    @include adaptiveValue('gap', 16, 4);
-    max-width: 1025px;
-    @media (max-width: $md4) {
-      gap: 4px;
-      flex-wrap: wrap;
+    display: grid;
+    @include adaptiveValue('gap', 24, 4);
+    grid-template-columns: repeat(4, 1fr);
+    @media (max-width: $md3) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: $md5) {
+      grid-template-columns: repeat(1, 1fr);
     }
   }
 
   &__item {
-    flex: 0 1 33.333%;
-    background-color: var(--bg-third-color);
-    @include adaptiveValue('padding', 32, 10);
-    position: relative;
-    @include adaptiveValue('padding-top', 135, 50);
-    &_1 {
-      background-color: var(--hint-primary-color);
-      .how__number {
-        color: rgb(0, 0, 0, 10%);
-        &::before {
-          background-color: var(--hint-primary-color);
-        }
-      }
-      .how__value {
-        color: var(--primary-color);
-      }
-    }
-    @media (max-width: $md4) {
-      flex: 0 1 calc(50% - 2px);
-      &:last-child {
-        flex: 1 1 100%;
-      }
-    }
-    @media (max-width: $md5) {
-      flex: 1 1 100%;
-    }
+    background-color: var(--bg-fourth-color);
+    @include adaptiveValue('padding-top', 20, 10);
+    @include adaptiveValue('padding-bottom', 20, 10);
+    @include adaptiveValue('padding-left', 26, 10);
+    @include adaptiveValue('padding-right', 26, 10);
+    border: 1px solid var(--border-primary-color);
+    border-radius: 6px;
   }
 
   &__number {
-    @include adaptiveValue('font-size', 128, 38);
-    font-weight: 700;
-    line-height: 120%;
-    position: absolute;
-    top: 0;
-    @include adaptiveValue('left', 32, 10);
-    color: var(--border-primary-color);
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 35%;
-      width: 100%;
-      background-color: var(--bg-third-color);
+    position: relative;
+    color: var(--hint-primary-color);
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 20, 10);
+    }
+    display: flex;
+    @include adaptiveValue('gap', 13, 10);
+    span {
+      align-self: center;
+      flex: 1 1 auto;
+      height: 1px;
+      background-color: var(--border-primary-color);
     }
   }
 
   &__label {
-    position: relative;
-    z-index: 1;
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 24, 10);
     }
   }
 
   &__value {
-    color: var(--secondary-color);
-    position: relative;
-    z-index: 1;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 12, 10);
-    }
-  }
-
-  &__copy {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    font-family: var(--font-barlow);
-    font-weight: 500;
-    line-height: 1;
-    @include adaptiveValue('min-height', 36, 40);
-    &-icon {
-      min-width: 20px;
-      height: 20px;
-    }
   }
 }
 </style>

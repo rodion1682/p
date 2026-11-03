@@ -1,75 +1,129 @@
 <template>
   <section class="rules">
     <div class="rules__inner _cnt-home">
-      <div class="rules__bg _ibg">
-        <img src="@/assets/img/rules-bg.jpg" />
-      </div>
-      <div class="rules__top">
-        <div class="rules__title _h1">
-          {{ $t('Survival') }}
-          <span>{{ $t('Guidelines') }}</span>
+      <div class="rules__info">
+        <div class="rules__subtitle _h4">
+          {{ $t('SERVER RULES') }}
+        </div>
+        <div class="rules__title _h2">
+          <div>{{ $t('SURVIVE') }}</div>
+          <div>{{ $t(' ') }}</div>
+          <div>{{ $t('TOGETHER.') }}</div>
+          <div>{{ $t(' ') }}</div>
+          <div>{{ $t('PLAY FAIR.') }}</div>
         </div>
         <div class="rules__text">
           {{
             $t(
-              'To ensure a fair and brutal experience for everyone, we enforce a strict code of conduct:',
+              'WastelandCore is built around competitive survival and mutual respect. Follow the rules to help maintain a fair and enjoyable environment for everyone.',
             )
           }}
         </div>
       </div>
-      <div class="rules__items">
-        <div class="rules__item">
-          <div class="rules__number _h3"><span>01</span></div>
-          <div class="rules__label _h3">
-            {{ $t('Zero Tolerance Policy') }}
+      <div class="rules__content">
+        <div class="rules__items">
+          <div class="rules__item">
+            <div class="rules__item-number _h2">01</div>
+            <div class="rules__item-meta">
+              <div class="rules__item-title _h4">
+                {{ $t('Respect other players. ') }}
+              </div>
+              <div class="rules__item-text">
+                {{
+                  $t(
+                    'Harassment, racism, hate speech, and disruptive spam are prohibited.',
+                  )
+                }}
+              </div>
+            </div>
           </div>
-          <div class="rules__value">
-            {{
-              $t(
-                'Any use of scripts, macros, or third-party software results in an immediate and permanent hardware ban. Play fair or don`t play at all.',
-              )
-            }}
+          <div class="rules__item">
+            <div class="rules__item-number _h2">02</div>
+            <div class="rules__item-meta">
+              <div class="rules__item-title _h4">
+                {{ $t('Play fair.') }}
+              </div>
+              <div class="rules__item-text">
+                {{
+                  $t(
+                    'Cheats, hacks, unauthorized scripts, and other tools that provide unfair advantages are strictly forbidden.',
+                  )
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="rules__item">
+            <div class="rules__item-number _h2">03</div>
+            <div class="rules__item-meta">
+              <div class="rules__item-title _h4">
+                {{ $t('Don’t exploit bugs.') }}
+              </div>
+              <div class="rules__item-text">
+                {{
+                  $t(
+                    'Abusing unintended mechanics may result in penalties. Report issues to the server staff.',
+                  )
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="rules__item">
+            <div class="rules__item-number _h2">04</div>
+            <div class="rules__item-meta">
+              <div class="rules__item-title _h4">
+                {{ $t('Protect everyone’s privacy.') }}
+              </div>
+              <div class="rules__item-text">
+                {{
+                  $t(
+                    'Never publish personal or sensitive information in chat or community channels.',
+                  )
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="rules__item">
+            <div class="rules__item-number _h2">05</div>
+            <div class="rules__item-meta">
+              <div class="rules__item-title _h4">
+                {{ $t('Follow staff instructions.') }}
+              </div>
+              <div class="rules__item-text">
+                {{
+                  $t(
+                    'Cooperate with moderators and respect server-wide announcements and guidelines.',
+                  )
+                }}
+              </div>
+            </div>
           </div>
         </div>
-        <div class="rules__item">
-          <div class="rules__number _h3"><span>02</span></div>
-          <div class="rules__label _h3">{{ $t('Respect the Grind') }}</div>
-          <div class="rules__value">
-            {{
-              $t(
-                'PvP and raiding are encouraged, but toxic behavior, racism, and harassment are not. We value a competitive but professional community.',
-              )
-            }}
+
+        <a v-if="supportEmail" :href="supportEmailHref" class="rules__contact">
+          <SvgIcon :icon="SupportIcon" class="rules__contact-icon" />
+
+          <div class="rules__contact-about">
+            <div class="rules__contact-title _h4">
+              {{ $t('Need assistance or want to report a violation?') }}
+            </div>
+
+            <div class="rules__contact-text">
+              {{
+                $t(
+                  'Contact the WastelandCore support team through the website or official community channels.',
+                )
+              }}
+            </div>
           </div>
-        </div>
-        <div class="rules__item">
-          <div class="rules__number _h3"><span>03</span></div>
-          <div class="rules__label _h3">{{ $t('Exploit Prevention') }}</div>
-          <div class="rules__value">
-            {{
-              $t(
-                'Abusing map glitches, item duplication, or broken mechanics is strictly prohibited and monitored by our team.',
-              )
-            }}
-          </div>
-        </div>
-        <div class="rules__item">
-          <div class="rules__number _h3"><span>04</span></div>
-          <div class="rules__label _h3">{{ $t('Admin Authority') }}</div>
-          <div class="rules__value">
-            {{
-              $t(
-                'Our staff reserves the right to remove any player who undermines the server`s stability or fairness.',
-              )
-            }}
-          </div>
-        </div>
+        </a>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
+import { SupportIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { computed } from 'vue'
 
@@ -87,112 +141,153 @@ const supportEmailHref = computed(() =>
 @use '@/assets/styles/components/classes' as *;
 
 .rules {
-  @media (min-width: $md5) {
-    @include adaptiveValue('padding-left', 0, 10, 1400, 992, 1);
-    @include adaptiveValue('padding-right', 0, 10, 1400, 992, 1);
-  }
-  @media (max-width: $md5) {
-    margin-left: -1px;
-    margin-right: -1px;
-  }
+  position: relative;
+  z-index: 1;
+  @include adaptiveValue('padding-top', 50, 30);
+  @include adaptiveValue('padding-bottom', 50, 30);
   &__inner {
-    @include adaptiveValue('border-radius', 30, 6);
-    background-color: var(--bg-eight-color);
-    border: 1px solid var(--border-primary-color);
-    @include adaptiveValue('padding-left', 54, 10, 1400, 992, 1);
-    @include adaptiveValue('padding-right', 54, 10, 1400, 992, 1);
-    @include adaptiveValue('padding-bottom', 104, 25);
-    @include adaptiveValue('padding-top', 104, 25);
-    position: relative;
-    z-index: 1;
-    @media (max-width: $md5) {
-      padding: 10px 11px;
+    @media (min-width: $md3) {
+      display: flex;
+      @include adaptiveValue('gap', 55, 20, 1430, 992, 1);
     }
   }
 
-  &__bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    @include adaptiveValue('border-radius', 30, 6);
-    overflow: hidden;
-    &::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background-image: url('../../../assets/img/rules-bg-mask.svg');
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      z-index: 1;
+  &__info {
+    flex: 0 1 25%;
+    @media (max-width: $md3) {
+      &:not(:last-child) {
+        margin-bottom: 18px;
+      }
     }
   }
 
-  &__top {
-    position: relative;
-    z-index: 1;
-    text-align: center;
+  &__subtitle {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 38, 15);
+      @include adaptiveValue('margin-bottom', 14, 4);
     }
   }
 
   &__title {
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
+      @include adaptiveValue('margin-bottom', 30, 4);
+    }
+    @media (max-width: $md3) {
+      div {
+        display: inline;
+      }
     }
   }
 
   &__text {
   }
 
+  &__content {
+    flex: 0 1 75%;
+  }
+
   &__items {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    justify-content: center;
-    @include adaptiveValue('gap', 48, 20, 1400, 992, 1);
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+
+    @include adaptiveValue('gap', 24, 4);
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 24, 4);
+    }
+
+    .rules__item:nth-child(-n + 3) {
+      grid-column: span 2;
+    }
+    .rules__item:nth-child(n + 4) {
+      grid-column: span 3;
+    }
     @media (max-width: $md3) {
-      gap: 20px;
-      flex-wrap: wrap;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      .rules__item:nth-child(n) {
+        grid-column: span 1;
+      }
+    }
+
+    @media (max-width: $md5) {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
   &__item {
-    text-align: center;
-    @media (min-width: $md3) {
-      flex: 0 1 25%;
-      max-width: 300px;
-    }
-    @media (max-width: $md3) {
-      flex: 0 1 calc(50% - 10px);
-    }
-    @media (max-width: $md6) {
-      flex: 1 1 100%;
+    min-width: 0;
+
+    &-meta {
+      min-width: 0;
     }
   }
 
-  &__number {
-    &:not(:last-child) {
-      margin-bottom: 14px;
+  &__item {
+    @include adaptiveValue('padding-top', 20, 10);
+    @include adaptiveValue('padding-bottom', 20, 10);
+    @include adaptiveValue('padding-left', 26, 10);
+    @include adaptiveValue('padding-right', 26, 10);
+    display: flex;
+    border-radius: 6px;
+    background-color: var(--bg-fourth-color);
+    border: 1px solid var(--border-primary-color);
+    &-number {
+      color: var(--hint-primary-color);
+      @include adaptiveValue('padding-right', 20, 10);
+    }
+
+    &-meta {
+      @include adaptiveValue('padding-left', 20, 10);
+      padding-top: 10px;
+      padding-bottom: 10px;
+      border-left: 1px solid var(--border-primary-color);
+    }
+
+    &-title {
+      text-transform: none;
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 24, 10);
+      }
+    }
+
+    &-text {
     }
   }
 
-  &__label {
-    &:not(:last-child) {
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border-primary-color);
-    }
-  }
+  &__contact {
+    @include adaptiveValue('padding', 26, 10);
+    border-radius: 6px;
+    background-color: var(--bg-sixth-color);
+    border: 1px solid var(--border-primary-color);
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
 
-  &__value {
-    line-height: 24px;
+    &-icon {
+      width: fit-content;
+      @include adaptiveValue('min-width', 45, 40);
+      @include adaptiveValue('height', 45, 40);
+      @include adaptiveValue('margin-right', 17, 10);
+      color: inherit;
+    }
+
+    &-about {
+      @include adaptiveValue('padding-left', 20, 10);
+      color: inherit;
+      border-left: 1px solid var(--border-primary-color);
+    }
+
+    &-title {
+      text-transform: none;
+      color: inherit;
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 12, 6);
+      }
+    }
+
+    &-text {
+      color: inherit;
+    }
   }
 }
 </style>

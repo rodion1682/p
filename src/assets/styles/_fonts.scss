@@ -32,7 +32,7 @@
 }
 
 @mixin font-h1 {
-  @include adaptiveValue('font-size', 72, 46);
+  @include adaptiveValue('font-size', 72, 33);
 }
 
 ._h1,
@@ -43,7 +43,7 @@
 ._h6 {
   font-weight: 700;
   text-transform: uppercase;
-  line-height: 125%;
+  line-height: 137%;
   color: var(--primary-color);
   font-family: var(--font-akshar);
   span {
@@ -58,7 +58,8 @@
 
 ._h2 {
   @include font-h2;
-  line-height: 118%;
+  font-weight: 500;
+  line-height: 137%;
 }
 
 ._h3 {
@@ -68,9 +69,7 @@
 
 ._h4 {
   @include font-h4;
-  font-weight: 700;
-  line-height: 20px;
-  font-family: var(--font-open-sans);
+  font-weight: 500;
 }
 
 ._h5 {
@@ -105,15 +104,15 @@
   display: block;
   width: fit-content;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 150%;
-  transition: border 0.3s ease 0s;
-  border-bottom: 1px solid transparent;
-  font-family: var(--font-open-sans);
+  transition: color 0.3s ease 0s;
+  border-bottom: 1px solid inherit;
+  font-family: var(--font-inter);
   color: var(--link-color);
   @media (any-hover: hover) {
     &:hover {
-      border-color: var(--link-color) !important;
+      color: var(--link-hover-color);
     }
   }
 }

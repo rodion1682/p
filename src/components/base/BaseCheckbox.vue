@@ -189,12 +189,12 @@ const capitalizeWords = text => {
   &__row {
     cursor: pointer;
     display: flex;
-    @include adaptiveValue('gap', 23, 13);
+    @include adaptiveValue('gap', 21, 12);
 
     @media (any-hover: hover) {
       &:hover {
         .base-checkbox__box {
-          border-color: var(--hint-secondary-color);
+          border-color: var(--link-color);
         }
       }
     }
@@ -211,12 +211,12 @@ const capitalizeWords = text => {
     cursor: pointer;
     flex-shrink: 0;
     transition: all 0.3s ease 0s;
-    background-color: var(--bg-primary-color);
-    min-width: 22px;
-    width: 22px;
-    height: 22px;
-    border-radius: 0px;
-    border: 1px solid var(--border-secondary-color);
+    background-color: var(--bg-seventh-color);
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--border-primary-color);
     border-radius: 4px;
 
     &.has-error {
@@ -224,7 +224,7 @@ const capitalizeWords = text => {
     }
 
     &.is-checked {
-      background-color: var(--hint-primary-color);
+      border-color: var(--link-color);
       .base-checkbox__check {
         opacity: 1;
       }
@@ -232,7 +232,7 @@ const capitalizeWords = text => {
 
     @media (any-hover: hover) {
       &:hover {
-        border-color: var(--hint-primary-color);
+        border-color: var(--link-color);
       }
     }
   }
@@ -244,7 +244,7 @@ const capitalizeWords = text => {
     width: 12px;
     height: 9px;
     transform: translate(-50%, -50%);
-    color: var(--bg-primary-color);
+    color: var(--link-color);
     opacity: 0;
     transition: opacity 0.3s ease 0s;
 
@@ -261,22 +261,20 @@ const capitalizeWords = text => {
     flex: 1 1 100%;
     cursor: pointer;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 150%;
-    color: var(--primary-color);
-    font-family: var(--font-open-sans);
+    color: var(--fifth-color);
+    font-family: var(--font-inter);
 
     :deep(a) {
-      color: var(--hint-primary-color) !important;
+      color: var(--link-color) !important;
       display: inline-block !important;
       text-transform: capitalize !important;
       margin: 0 4px;
       transition: border 0.3s ease 0s;
-      border-bottom: 1px solid transparent;
+      border-bottom: 1px solid inherit;
       @media (any-hover: hover) {
-        &:hover {
-          border-color: inherit;
-        }
+        color: var(--link-hover-color) !important;
       }
     }
   }

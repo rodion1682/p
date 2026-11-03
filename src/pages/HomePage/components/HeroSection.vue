@@ -7,8 +7,10 @@ import BaseButton from '@/components/base/BaseButton.vue'
 
 import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '@/stores/settings'
+import { useRouter } from 'vue-router'
 
 const settingsStore = useSettingsStore()
+const router = useRouter()
 
 const toast = useToast()
 const { t } = useI18n()
@@ -16,6 +18,10 @@ const { t } = useI18n()
 const { serverIP } = storeToRefs(settingsStore)
 
 const copied = ref(false)
+
+const goToProducts = () => {
+  router.push({ name: 'ProductListPage' })
+}
 
 const connectCommand = computed(() => {
   if (!serverIP.value) {
@@ -75,18 +81,14 @@ const copyServerIP = async () => {
         </p>
       </div>
       <div class="hero__actions">
-        <div class="hero__button"></div>
-        <BaseButton class="hero__button" variant="shadow">
+        <BaseButton class="hero__button" variant="shadow" @click="goToProducts">
           {{ $t('JOIN THE MARKET') }}
         </BaseButton>
         <div v-if="serverIP" class="hero__connect">
-          <div class="hero__icon _ibg-contain">
-            <img src="@/assets/img/server.svg" />
+          <div class="hero__connect-text">
+            {{ $t('SERVER IP') }}
           </div>
-          <div class="hero__meta">
-            <div class="hero__label">{{ $t('Connect to Server') }}</div>
-            <div class="hero__ip">{{ serverIP }}</div>
-          </div>
+          <div class="hero__connect-ip">{{ serverIP }}</div>
           <BaseButton
             class="hero__copy"
             variant="dark"
@@ -107,106 +109,86 @@ const copyServerIP = async () => {
 @use '@/assets/styles/components/classes' as *;
 
 .hero {
-  @include adaptiveValue('padding-top', 97, 25);
-  @include adaptiveValue('padding-bottom', 234, 25);
   position: relative;
-  &__bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    &::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background-image: url('../../../assets/img/hero-bg-mask.svg');
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      z-index: 1;
-    }
-  }
-
+  z-index: 1;
+  @include adaptiveValue('padding-top', 216, 80);
+  @include adaptiveValue('padding-bottom', 91, 30);
   &__inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1260px;
+    @include adaptiveValue('padding-left', 46, 10, 1430, 768, 1);
+    @include adaptiveValue('padding-right', 49, 10, 1430, 768, 1);
   }
 
   &__title {
+    div {
+      @include adaptiveValue('font-size', 48, 20);
+    }
     span {
-      display: block;
+      color: var(--hint-primary-color);
     }
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
+      @include adaptiveValue('margin-bottom', 39, 18);
     }
-  }
-
-  &__info {
-    margin-left: auto;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
+    @media (min-width: $md6) {
+      div {
+        display: inline;
+      }
     }
   }
 
   &__subtitle {
-    text-align: right;
-    span {
-      display: block;
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 30, 18);
+    }
+  }
+
+  &__text {
+    max-width: 659px;
+    p {
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 22, 18);
+      }
     }
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
+      @include adaptiveValue('margin-bottom', 40, 22);
     }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    @include adaptiveValue('gap', 42, 10);
+  }
+
+  &__button {
+    max-width: 225px;
   }
 
   &__connect {
-    width: fit-content;
-    margin-left: auto;
-    @include adaptiveValue('padding', 16, 10);
-    border-radius: 6px;
+    @include adaptiveValue('min-height', 48, 40);
     display: flex;
     align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border-primary-color);
-    background-color: var(--bg-third-color);
-  }
+    text-transform: uppercase;
+    padding: 4px 4px 4px 10px;
+    color: var(--secondary-color);
+    border-radius: 6px;
+    background-color: var(--bg-secondary-color);
+    border: 1px solid var(--border-third-color);
+    @include adaptiveValue('gap', 14, 10);
+    &-text {
+      font-weight: 500;
+      font-size: 12px;
+      white-space: nowrap;
+      &::after {
+        content: ':';
+      }
+    }
 
-  &__icon {
-    min-width: 32px;
-    height: 32px;
-  }
-
-  &__meta {
-    line-height: 120%;
-    padding-right: 15px;
-  }
-
-  &__label {
-    white-space: nowrap;
-    font-size: 12px;
-    text-transform: capitalize;
-    color: var(--hint-primary-color);
-    font-weight: 700;
-    &:not(:last-child) {
-      margin-bottom: 4px;
+    &-ip {
+      white-space: nowrap;
     }
   }
 
-  &__ip {
-    white-space: nowrap;
-    font-size: 16px;
-    font-weight: 700;
-  }
-
   &__copy {
-    max-width: 73px;
-  }
-  &__text {
-    max-width: 337px;
   }
 }
 </style>

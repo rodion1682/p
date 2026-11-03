@@ -4,19 +4,18 @@
   <section class="why">
     <div class="why__inner _cnt-home">
       <div class="why__title _h2">
-        {{ $t('Why the Community Chooses') }}
-        <span>{{ $t('WipeVault') }}</span>
+        {{ $t('WHY WASTELANDCORE?') }}
       </div>
       <div class="why__items">
         <div class="why__item">
           <div class="why__icon _ibg-contain">
             <img src="@/assets/img/why-01.svg" />
           </div>
-          <div class="why__label _h3">{{ $t('Modded Excellence') }}</div>
+          <div class="why__label _h4">{{ $t('SURVIVAL WITHOUT LIMITS') }}</div>
           <div class="why__text">
             {{
               $t(
-                'Powered by a custom uMod (Oxide) framework, offering unique mechanics and events you won`t find on vanilla servers.',
+                'Discover a world where exploration, resource management, and tactical decisions determine how far you can go.',
               )
             }}
           </div>
@@ -25,11 +24,11 @@
           <div class="why__icon _ibg-contain">
             <img src="@/assets/img/why-02.svg" />
           </div>
-          <div class="why__label _h3">{{ $t('Performance & Stability') }}</div>
+          <div class="why__label _h4">{{ $t('YOUR ITEMS, YOUR CHOICE') }}</div>
           <div class="why__text">
             {{
               $t(
-                'High-tickrate hardware ensures a smooth PvP experience, even during the most intense raids.',
+                'Purchase useful equipment through the website or sell items fr om your collection. The WastelandCore Shop makes managing your inventory straightforward.',
               )
             }}
           </div>
@@ -38,11 +37,11 @@
           <div class="why__icon _ibg-contain">
             <img src="@/assets/img/why-03.svg" />
           </div>
-          <div class="why__label _h3">{{ $t('Fair Play Focus') }}</div>
+          <div class="why__label _h4">{{ $t('COMPETITIVE GAMEPLAY') }}</div>
           <div class="why__text">
             {{
               $t(
-                'Balanced loot tables and active admin moderation protect the integrity of your wipe.',
+                'Face hostile survivors, defend your territory, and fight for valuable resources in an environment wh ere preparation makes all the difference.',
               )
             }}
           </div>
@@ -51,11 +50,11 @@
           <div class="why__icon _ibg-contain">
             <img src="@/assets/img/why-04.svg" />
           </div>
-          <div class="why__label _h3">{{ $t('Active Warfront') }}</div>
+          <div class="why__label _h4">{{ $t('BUILT FOR THE COMMUNITY') }}</div>
           <div class="why__text">
             {{
               $t(
-                'A competitive environment designed for dedicated teams and ambitious solo players.',
+                'Join fellow survivors, participate in server activities, and become part of a community that continues to evolve with every wipe.',
               )
             }}
           </div>
@@ -71,67 +70,54 @@
 @use '@/assets/styles/components/classes' as *;
 
 .why {
-  @include adaptiveValue('padding-top', 120, 35);
-  @include adaptiveValue('padding-bottom', 120, 25);
+  position: relative;
+  z-index: 1;
+  @include adaptiveValue('padding-top', 91, 30);
+  @include adaptiveValue('padding-bottom', 100, 30);
+  text-shadow: 1px 1px 1px var(--primary-color);
   &__inner {
   }
 
   &__title {
-    text-align: center;
-    @include adaptiveValue('font-size', 32, 27);
-    span {
-      display: block;
-    }
+    color: var(--secondary-color);
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 46, 15);
+      @include adaptiveValue('margin-bottom', 40, 18);
     }
   }
 
   &__items {
-    display: flex;
-    justify-content: center;
-    @include adaptiveValue('gap', 48, 20, 1400, 992, 1);
+    @include adaptiveValue('gap', 24, 18);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     @media (max-width: $md3) {
-      gap: 20px;
-      flex-wrap: wrap;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: $md6) {
+      grid-template-columns: repeat(1, 1fr);
     }
   }
 
   &__item {
-    text-align: center;
-    @media (min-width: $md3) {
-      flex: 0 1 25%;
-      max-width: 291px;
-    }
-    @media (max-width: $md3) {
-      flex: 0 1 calc(50% - 10px);
-    }
-    @media (max-width: $md6) {
-      flex: 1 1 100%;
-    }
+    @include adaptiveValue('padding-right', 0, 2);
   }
 
   &__icon {
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    @include adaptiveValue('min-width', 46, 40);
-    @include adaptiveValue('height', 46, 40);
+    @include adaptiveValue('width', 42, 40);
+    @include adaptiveValue('height', 42, 40);
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 15);
+      @include adaptiveValue('margin-bottom', 20, 10);
     }
   }
 
   &__label {
+    color: var(--secondary-color);
     &:not(:last-child) {
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border-primary-color);
+      @include adaptiveValue('margin-bottom', 24, 18);
     }
   }
 
   &__text {
-    line-height: 24px;
+    color: var(--third-color);
   }
 }
 </style>

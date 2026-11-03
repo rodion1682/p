@@ -1,7 +1,7 @@
 <template>
   <div class="auth">
     <div class="auth__bg _ibg">
-      <img src="@/assets/img/auth-bg.jpg" />
+      <img src="@/assets/img/start-bg.jpg" />
     </div>
     <div class="auth__inner _cnt">
       <div class="auth__form" :class="formClass">
@@ -34,8 +34,8 @@ defineProps({
   flex: 1 1 100%;
   display: flex;
   flex-direction: column;
-  @include adaptiveValue('padding-top', 80, 25);
-  @include adaptiveValue('padding-bottom', 80, 25);
+  @include adaptiveValue('padding-top', 158, 80);
+  @include adaptiveValue('padding-bottom', 100, 30);
   &__bg {
     position: absolute;
     width: 100%;
@@ -53,14 +53,12 @@ defineProps({
   }
   &__form {
     margin: auto;
-    max-width: 396px;
+    max-width: 600px;
     width: 100%;
     border-radius: 6px;
-    background-color: #12181c;
-    @include adaptiveValue('padding-left', 32, 10);
-    @include adaptiveValue('padding-right', 32, 10);
-    @include adaptiveValue('padding-top', 58, 15);
-    @include adaptiveValue('padding-bottom', 58, 15);
+    background-color: var(--bg-third-color);
+    border: 1px solid var(--border-primary-color);
+    @include adaptiveValue('padding', 50, 10);
   }
 }
 </style>

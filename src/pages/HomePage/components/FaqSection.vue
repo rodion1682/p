@@ -1,55 +1,70 @@
 <template>
-  <section class="faq-section">
-    <div class="faq-section__title _h3">{{ $t('FAQ') }}</div>
-    <div class="faq-section__body">
-      <LoadingSpinner v-if="faqStore.isLoading" class="faq-section__loading" />
+  <section class="faq">
+    <div class="faq__inner _cnt">
+      <div class="faq__body">
+        <LoadingSpinner v-if="faqStore.isLoading" class="faq__loading" />
 
-      <div v-else-if="faqStore.error" class="faq-section__error _text-error">
-        {{ faqStore.error }}
-      </div>
+        <div v-else-if="faqStore.error" class="faq__error _text-error">
+          {{ faqStore.error }}
+        </div>
 
-      <div v-else-if="faqItems.length" class="faq-section__items">
-        <div
-          v-for="(item, index) in faqItems"
-          :key="item.id"
-          class="faq-section__item"
-          :class="{
-            'is-open': activeIndex === index,
-          }"
-        >
-          <button
-            type="button"
-            class="faq-section__question"
-            :aria-expanded="activeIndex === index"
-            @click="toggleFaq(index)"
-          >
-            <div class="faq-section__number">
-              {{ String(index + 1).padStart(2, '0') }}
-            </div>
-
-            <div class="faq-section__label">
-              {{ item.question }}
-            </div>
-
-            <SvgIcon
-              :icon="ChevronDownIcon"
-              class="faq-section__chevron"
-              :class="{
-                'is-open': activeIndex === index,
-              }"
-            />
-          </button>
-
+        <div v-else-if="faqItems.length" class="faq__items">
           <div
-            class="faq-section__answer-wrap"
+            v-for="(item, index) in faqItems"
+            :key="item.id"
+            class="faq__item"
             :class="{
               'is-open': activeIndex === index,
             }"
           >
-            <div class="faq-section__answer-inner">
-              <div class="faq-section__answer" v-html="item.answer" />
+            <button
+              type="button"
+              class="faq__question"
+              :aria-expanded="activeIndex === index"
+              :aria-controls="`faq-answer-${item.id}`"
+              @click="toggleFaq(index)"
+            >
+              <SvgIcon
+                :icon="ChevronDownIcon"
+                class="faq__chevron"
+                :class="{
+                  'is-open': activeIndex === index,
+                }"
+              />
+
+              <div class="faq__label _h4">
+                {{ item.question }}
+              </div>
+
+              <div class="faq__number _h4">
+                {{ String(index + 1).padStart(2, '0') }}
+              </div>
+            </button>
+
+            <div
+              :id="`faq-answer-${item.id}`"
+              class="faq__answer-wrap"
+              :class="{
+                'is-open': activeIndex === index,
+              }"
+              :inert="activeIndex !== index"
+            >
+              <div class="faq__answer-inner">
+                <div class="faq__answer" v-html="item.answer" />
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="faq__content">
+        <div class="faq__title _h2">
+          <div>{{ $t('FREQUENTLY ASKED') }}</div>
+          <div>{{ $t(' ') }}</div>
+          <div>{{ $t('QUESTIONS') }}</div>
+        </div>
+        <div class="faq__image _ibg-contain">
+          <img src="@/assets/img/faq.png" alt="FAQ" />
         </div>
       </div>
     </div>
@@ -69,6 +84,7 @@ import { useLanguageStore } from '@/stores/language'
 const faqStore = useFaqStore()
 const languageStore = useLanguageStore()
 
+// All answers closed by default
 const activeIndex = ref(0)
 const loadedLangId = ref(null)
 
@@ -76,6 +92,7 @@ const faqItems = computed(() => {
   return Array.isArray(faqStore.faq) ? faqStore.faq : []
 })
 
+// Close all answers
 const resetFaqState = () => {
   activeIndex.value = faqItems.value.length ? 0 : null
 }
@@ -100,6 +117,7 @@ const loadFaq = async langId => {
   resetFaqState()
 }
 
+// Open selected question, close previously opened one
 const toggleFaq = index => {
   activeIndex.value = activeIndex.value === index ? null : index
 }
@@ -113,6 +131,7 @@ onMounted(async () => {
 watch(
   () => languageStore.currentLanguageId,
   async newLangId => {
+    resetFaqState()
     await loadFaq(newLangId)
   },
 )
@@ -123,200 +142,173 @@ watch(
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.faq-section {
-  width: 100%;
-  max-width: 808px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 100%;
-  &__title {
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
+.faq {
+  @include adaptiveValue('padding-top', 104, 30);
+  @include adaptiveValue('padding-bottom', 50, 30);
+  &__inner {
+    display: flex;
+    @include adaptiveValue('gap', 118, 20, 1430, 992, 1);
+    @media (max-width: $md4) {
+      flex-direction: column-reverse;
+      gap: 8px;
     }
   }
+
   &__body {
+    flex: 0 1 50%;
     display: flex;
     flex-direction: column;
-    flex: 1 1 100%;
+    min-width: 0;
   }
-  &__loading,
-  &__error {
+
+  &__loading {
     margin: auto;
   }
 
+  &__error {
+    text-align: center;
+  }
+
   &__items {
-    @media (max-width: $md6) {
-      margin-left: -10px;
-      margin-right: -10px;
-    }
+    width: 100%;
   }
 
   &__item {
-    width: 100%;
-
-    background-color: rgb(18, 24, 28, 0.9);
-
     border-radius: 6px;
+    background-color: var(--bg-fifth-color);
+    border: 1px solid var(--border-primary-color);
 
-    overflow: hidden;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
 
     &:not(:last-child) {
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
 
     &.is-open {
-      .faq-section__question {
-        border-bottom-color: var(--hint-primary-color);
-      }
-
-      .faq-section__number {
+      background-color: var(--bg-third-color);
+      .faq__number {
         color: var(--hint-primary-color);
       }
 
-      .faq-section__label {
+      .faq__label {
         color: var(--primary-color);
+      }
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--bg-third-color);
       }
     }
   }
 
   &__question {
-    background-color: rgb(18, 24, 28, 0.9);
-    display: grid;
-
-    grid-template-columns:
-      40px
-      minmax(0, 1fr)
-      20px;
-
+    display: flex;
     align-items: center;
-
+    gap: 20px;
     width: 100%;
 
-    @include adaptiveValue('min-height', 62, 40);
-    padding-top: 10px;
-    padding-bottom: 10px;
-
-    @include adaptiveValue('padding-left', 16, 10);
-
-    @include adaptiveValue('padding-right', 16, 10);
-    color: var(--primary-color);
-
+    background-color: transparent;
+    cursor: pointer;
     text-align: left;
 
-    cursor: pointer;
-
-    transition:
-      border-color 0.3s ease,
-      background-color 0.3s ease;
-
-    @media (any-hover: hover) {
-      &:hover {
-        .faq-section__number,
-        .faq-section__chevron {
-          color: var(--hint-primary-color);
-        }
-      }
-    }
-  }
-
-  &__number {
-    color: var(--hint-primary-color);
-
-    font-family: var(--font-condensed);
-
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1;
-
-    transition: color 0.3s ease;
-  }
-
-  &__label {
-    min-width: 0;
-
-    padding-left: 8px;
-    padding-right: 15px;
-
-    color: var(--primary-color);
-
-    font-family: var(--font-condensed);
-
-    font-size: 14px;
-
-    font-weight: 700;
-    line-height: 24px;
-
-    transition: color 0.3s ease;
+    @include adaptiveValue('padding-top', 24, 10);
+    @include adaptiveValue('padding-bottom', 24, 10);
+    @include adaptiveValue('padding-left', 18, 10);
+    @include adaptiveValue('padding-right', 18, 10);
   }
 
   &__chevron {
-    justify-self: end;
-
+    flex-shrink: 0;
     width: 12px;
-    min-width: 12px;
-    height: 12px;
+    height: 8px;
 
-    color: var(--hint-primary-color);
-
-    pointer-events: none;
-
-    svg {
-      transform: rotate(0deg);
-
-      transition: transform 0.3s ease;
-    }
+    transition: transform 0.5s ease;
 
     &.is-open {
-      svg {
-        transform: rotate(180deg);
+      transform: rotate(180deg);
+    }
+  }
+
+  &__label {
+    flex: 1 1 auto;
+    text-align: left;
+
+    transition: color 0.3s ease;
+  }
+
+  &__number {
+    flex-shrink: 0;
+    color: var(--hint-primary-color);
+
+    transition: color 0.3s ease;
+  }
+  &__answer {
+    &-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      visibility: hidden;
+
+      transition:
+        grid-template-rows 0.5s ease,
+        opacity 0.5s ease,
+        visibility 0.5s ease;
+
+      &.is-open {
+        grid-template-rows: 1fr;
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  &__answer {
+    color: var(--primary-color);
+    @include adaptiveValue('padding-bottom', 24, 10);
+    @include adaptiveValue('padding-right', 18, 10);
+    @include adaptiveValue('padding-left', 50, 10);
+  }
+
+  &__content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__title {
+    @media (min-width: $md4) {
+      &:not(:last-child) {
+        @include adaptiveValue('margin-bottom', 19, 10);
+      }
+    }
+    @media (max-width: $md4) {
+      div {
+        display: inline;
       }
     }
   }
 
-  &__answer-wrap {
-    display: grid;
-    background-color: rgb(18, 24, 28, 0.9);
-
-    grid-template-rows: 0fr;
-
-    opacity: 0;
-    visibility: hidden;
-
-    transition:
-      grid-template-rows 0.3s ease,
-      opacity 0.25s ease,
-      visibility 0.25s ease;
-
-    &.is-open {
-      grid-template-rows: 1fr;
-
-      opacity: 1;
-      visibility: visible;
+  &__image {
+    max-width: 535px;
+    margin-left: auto;
+    aspect-ratio: 1 / 0.67;
+    @media (max-width: $md4) {
+      @include hide-item;
     }
   }
 
-  &__answer-inner {
-    min-height: 0;
-
-    overflow: hidden;
-  }
-
-  &__answer {
-    @include adaptiveValue('padding-bottom', 18, 15);
-
-    @include adaptiveValue('padding-left', 56, 10);
-
-    @include adaptiveValue('padding-right', 50, 10);
-
-    color: var(--primary-color);
-
-    font-family: var(--font-open-sans);
-
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 24px;
+  @media (prefers-reduced-motion: reduce) {
+    &__answer-wrap,
+    &__chevron {
+      transition: none;
+    }
   }
 }
 </style>

@@ -125,55 +125,49 @@ const buttonClasses = computed(() => [
     pointer-events: none;
   }
   &.primary {
-    background-color: var(--hint-primary-color);
-    color: var(--bg-primary-color);
+    background: var(--hint-primary-color);
+    border-color: var(--border-secondary-color);
+    color: var(--secondary-color);
     @media (any-hover: hover) {
       &:hover {
-        background-color: var(--primary-color);
+        background: var(--hint-secodnary-color);
       }
     }
   }
-  &.bordered {
-    background-color: var(--bg-fifth-color);
-    border-color: var(--border-primary-color);
-    color: var(--primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-sixth-color);
-      }
-    }
-  }
-  &.hint-bordered {
-    background-color: var(--bg-seventh-color);
-    border-color: var(--border-primary-color);
-    color: var(--hint-primary-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--bg-sixth-color);
-      }
-    }
-  }
-  &.trash {
-    background-color: transparent;
-    color: var(--error-color);
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--error-bg-color);
-      }
-    }
-  }
-  &.white {
+  &.dark {
+    color: var(--secondary-color);
     background-color: var(--primary-color);
-    color: var(--bg-primary-color);
-    border-color: inherit;
     @media (any-hover: hover) {
       &:hover {
-        border-color: transparent;
-        background-color: var(--hint-primary-color);
+        background-color: var(--hint-third-color);
       }
     }
   }
+  &.shadow {
+    font-size: 16px;
+    font-weight: 700;
+    @include adaptiveValue('min-height', 46, 40);
+    color: var(--secondary-color);
+    border: 1px solid transparent;
+    background: var(--hint-primary-color);
+    box-shadow:
+      0 4px 12px rgba(24, 30, 26, 0.2),
+      inset 0 4px 10px #516956;
 
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--secondary-color);
+        background-color: var(--hint-secodnary-color);
+        @media (any-hover: hover) {
+          &:hover {
+            box-shadow:
+              0 4px 12px rgba(24, 30, 26, 0.2),
+              inset 0 4px 10px #2a3f2f;
+          }
+        }
+      }
+    }
+  }
   &__icon {
     min-width: 18px;
     height: 18px;
