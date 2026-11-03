@@ -12,7 +12,7 @@ import WhySection from './components/WhySection.vue'
 <template>
   <div class="home">
     <div class="home__block">
-      <div class="home__bg _ibg">
+      <div class="home__bg home__bg_hero _ibg">
         <img src="@/assets/img/hero-bg.jpg" />
       </div>
       <HeroSection />

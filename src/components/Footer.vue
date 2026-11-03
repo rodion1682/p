@@ -509,8 +509,10 @@ onMounted(async () => {
 
   &__methods {
     display: flex;
-    flex-wrap: wrap;
     gap: 4px;
+    @media (max-width: $md4) {
+      flex-wrap: wrap;
+    }
   }
 
   &__method {
@@ -521,7 +523,7 @@ onMounted(async () => {
 
   &__copy {
     align-self: center;
-
+    flex: 1 1 auto;
     color: var(--secondary-color);
     @media (min-width: $md4) {
       text-align: right;
