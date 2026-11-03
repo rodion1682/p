@@ -47,229 +47,209 @@
             v-if="showAction"
             class="profile-layout__th profile-layout__th_action"
           >
-            {{ $t(actionLabel || 'Action') }}
+            {{ actionLabel ? $t(actionLabel) : '' }}
           </div>
         </div>
 
         <div class="profile-layout__table-body">
-          <template v-for="(row, index) in rows" :key="row[rowKey] ?? index">
+          <div
+            v-for="(row, index) in rows"
+            :key="row[rowKey] ?? index"
+            class="profile-layout__item"
+            :class="{
+              'is-expanded': isRowExpanded(row, index),
+            }"
+          >
             <div
-              class="profile-layout__item"
+              class="profile-layout__tr"
               :class="{
-                'is-expanded': isRowExpanded(row, index),
+                active: isRowExpanded(row, index),
               }"
             >
               <div
-                class="profile-layout__tr"
-                :class="{
-                  active: isRowExpanded(row, index),
-                }"
+                v-if="showIDColumn"
+                class="profile-layout__td profile-layout__td_id"
               >
-                <div
-                  v-if="showIDColumn"
-                  class="profile-layout__td profile-layout__td_id"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t('ID') }}
-                  </span>
+                <span class="profile-layout__td-label">
+                  {{ $t('ID') }}
+                </span>
 
-                  <span class="profile-layout__td-value">
-                    {{ row.id ?? '' }}
-                  </span>
-                </div>
+                <span class="profile-layout__td-value">
+                  {{ row.id ?? '—' }}
+                </span>
+              </div>
 
-                <div
-                  v-if="showDataColumn"
-                  class="profile-layout__td profile-layout__td_date"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t('Date') }}
-                  </span>
+              <div
+                v-if="showDataColumn"
+                class="profile-layout__td profile-layout__td_date"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t('Date') }}
+                </span>
 
-                  <div class="profile-layout__td-value">
-                    <div class="profile-layout__date">
-                      <span>
-                        {{ formatDate(row.createdAt, 'DD.MM.YYYY') }}
-                      </span>
+                <div class="profile-layout__td-value">
+                  <div class="profile-layout__date">
+                    <span>
+                      {{ formatRowDate(row.createdAt) }}
+                    </span>
 
-                      <span>
-                        {{ formatDate(row.createdAt, 'HH:mm') }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  v-if="showType"
-                  class="profile-layout__td profile-layout__td_type"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t('Type') }}
-                  </span>
-
-                  <span class="profile-layout__td-value">
-                    {{ row.type || $t('Sell Request')  }}
-                  </span>
-                </div>
-
-                <div
-                  v-if="showSkinName"
-                  class="profile-layout__td profile-layout__td_skin"
-                >
-                  <span
-                    class="profile-layout__td-label"
-                    :class="{
-                      'is-hidden': hideSkinNameLabel,
-                    }"
-                  >
-                    {{ $t('Item') }}
-                  </span>
-
-                  <div class="profile-layout__td-value profile-layout__skins">
-                    <div
-                      v-for="(item, itemIndex) in getSkinItems(row)"
-                      :key="`${row[rowKey] ?? index}-${itemIndex}`"
-                      class="profile-layout__skin"
-                    >
-                      <div
-                        v-if="item.image && showOrderImage"
-                        class="profile-layout__skin-wrapper"
-                      >
-                        <div class="profile-layout__skin-image">
-                          <img
-                            :src="item.image"
-                            :alt="item.title || ''"
-                            loading="lazy"
-                          />
-                        </div>
-                      </div>
-
-                      <div class="profile-layout__skin-info">
-                        <span class="profile-layout__skin-name">
-                          {{ item.title || '' }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  v-if="showQuantity"
-                  class="profile-layout__td profile-layout__td_quantity"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t('Count') }}
-                  </span>
-
-                  <span class="profile-layout__td-value">
-                    {{ row.quantity ?? '' }}
-                  </span>
-                </div>
-
-                <div
-                  v-if="showPrice"
-                  class="profile-layout__td profile-layout__td_total"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t(totalLabel) }}
-                  </span>
-
-                  <div class="profile-layout__td-value">
-                    <PriceFormatter
-                      :is-currency="totalAsCurrency"
-                      :price="row.total"
-                      :currency-symbol="row.currencySymbol"
-                      :currency-code="row.currencyCode || row.currency"
-                      size="size-14"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  v-if="showCoinAmount"
-                  class="profile-layout__td profile-layout__td_coinAmount"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t('Points') }}
-                  </span>
-
-                  <div class="profile-layout__td-value">
-                    <PriceFormatter
-                      :price="formatPriceInCoins(row)"
-                      skip-conversion
-                      size="size-14"
-                    />
-                  </div>
-                </div>
-
-                <div class="profile-layout__td profile-layout__td_status">
-                  <span class="profile-layout__td-label">
-                    {{ $t('Status') }}
-                  </span>
-
-                  <span
-                    class="profile-layout__status"
-                    :class="statusClass(row.status)"
-                  >
-                    {{ row.status || '' }}
-                  </span>
-                </div>
-
-                <div
-                  v-if="showAction"
-                  class="profile-layout__td profile-layout__td_action"
-                >
-                  <span class="profile-layout__td-label">
-                    {{ $t(actionLabel || 'Action') }}
-                  </span>
-
-                  <div class="profile-layout__action">
-                    <slot name="action" :row="row" />
+                    <span v-if="row.createdAt">
+                      {{ formatRowTime(row.createdAt) }}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <Transition name="profile-details">
-                <div
-                  v-if="isRowExpanded(row, index)"
-                  class="profile-layout__expanded"
+              <div
+                v-if="showType"
+                class="profile-layout__td profile-layout__td_type"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t('Type') }}
+                </span>
+
+                <span class="profile-layout__td-value">
+                  {{ row.type || '—' }}
+                </span>
+              </div>
+
+              <div
+                v-if="showSkinName"
+                class="profile-layout__td profile-layout__td_skin"
+              >
+                <span
+                  class="profile-layout__td-label"
+                  :class="{
+                    'is-hidden': hideSkinNameLabel,
+                  }"
                 >
-                  <slot name="expanded" :row="row" />
+                  {{ $t('Item') }}
+                </span>
+
+                <div class="profile-layout__td-value profile-layout__skins">
+                  <div
+                    v-for="(item, itemIndex) in getSkinItems(row)"
+                    :key="`${row[rowKey] ?? index}-${itemIndex}`"
+                    class="profile-layout__skin"
+                  >
+                    <div
+                      v-if="showOrderImage && item.image"
+                      class="profile-layout__skin-wrapper"
+                    >
+                      <div class="profile-layout__skin-image">
+                        <img
+                          :src="item.image"
+                          :alt="item.title || ''"
+                          loading="lazy"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="profile-layout__skin-info">
+                      <span class="profile-layout__skin-name">
+                        {{ item.title || '—' }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </Transition>
+              </div>
+
+              <div
+                v-if="showQuantity"
+                class="profile-layout__td profile-layout__td_quantity"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t('Count') }}
+                </span>
+
+                <span class="profile-layout__td-value">
+                  {{ row.quantity ?? '—' }}
+                </span>
+              </div>
+
+              <div
+                v-if="showPrice"
+                class="profile-layout__td profile-layout__td_total"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t(totalLabel) }}
+                </span>
+
+                <div class="profile-layout__td-value">
+                  <PriceFormatter
+                    v-if="hasValue(row.total)"
+                    :price="row.total"
+                    :is-currency="totalAsCurrency"
+                    :currency-symbol="row.currencySymbol"
+                    :currency-code="row.currencyCode || row.currency"
+                    size="size-14"
+                  />
+
+                  <span v-else>—</span>
+                </div>
+              </div>
+
+              <div
+                v-if="showCoinAmount"
+                class="profile-layout__td profile-layout__td_coinAmount"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t('Points') }}
+                </span>
+
+                <div class="profile-layout__td-value">
+                  <PriceFormatter
+                    v-if="hasValue(row.coinAmount)"
+                    :price="formatCoinAmount(row.coinAmount)"
+                    skip-conversion
+                    size="size-14"
+                  />
+
+                  <span v-else>—</span>
+                </div>
+              </div>
+
+              <div class="profile-layout__td profile-layout__td_status">
+                <span class="profile-layout__td-label">
+                  {{ $t('Status') }}
+                </span>
+
+                <span
+                  class="profile-layout__status"
+                  :class="getStatusClass(row.statusKey || row.status)"
+                >
+                  {{ row.status || '—' }}
+                </span>
+              </div>
+
+              <div
+                v-if="showAction"
+                class="profile-layout__td profile-layout__td_action"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t(actionLabel || 'Action') }}
+                </span>
+
+                <div class="profile-layout__action">
+                  <slot name="action" :row="row" />
+                </div>
+              </div>
             </div>
-          </template>
+
+            <Transition name="profile-details">
+              <div
+                v-if="isRowExpanded(row, index)"
+                class="profile-layout__expanded"
+              >
+                <slot name="expanded" :row="row" />
+              </div>
+            </Transition>
+          </div>
         </div>
       </div>
 
-      <div
-        v-if="showItemsPerPage || totalPages > 1"
-        class="profile-layout__bottom"
-      >
-        <div v-if="showItemsPerPage" class="profile-layout__per-page">
-          <span class="profile-layout__per-page-label">
-            {{ $t('Items per page:') }}
-          </span>
-
-          <BaseDdropdown
-            class="profile-layout__per-page-dropdown"
-            :label="String(itemsPerPage)"
-            absolute
-          >
-            <BaseCheckbox
-              v-for="option in perPageOptions"
-              :key="option"
-              :model-value="Number(itemsPerPage) === Number(option)"
-              class="profile-layout__per-page-option"
-              @update:model-value="changeItemsPerPage(option)"
-            >
-              {{ option }}
-            </BaseCheckbox>
-          </BaseDdropdown>
-        </div>
-
+      <div v-if="totalPages > 1" class="profile-layout__bottom">
         <PaginationComponent
-          v-if="totalPages > 1"
           class="profile-layout__pagination"
           :total-pages="totalPages"
           :current-page="currentPage"
@@ -282,16 +262,12 @@
 </template>
 
 <script setup>
-import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import PaginationComponent from '@/components/PaginationComponent.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
-import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
-import BaseDdropdown from '@/components/dropdown/BaseDdropdown.vue'
 
-import { useCurrencyStore } from '@/stores/currency'
 import { formatDate } from '@/utils/formatters'
 
 const props = defineProps({
@@ -299,198 +275,219 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+
   isLoading: {
     type: Boolean,
     default: false,
   },
+
   emptyText: {
     type: String,
     default: 'No data found',
   },
+
   loadingText: {
     type: String,
     default: 'Loading...',
   },
+
   totalPages: {
     type: Number,
     default: 1,
   },
+
   currentPage: {
     type: Number,
     default: 1,
   },
-  itemsPerPage: {
-    type: Number,
-    default: 5,
-  },
-  perPageOptions: {
-    type: Array,
-    default: () => [5, 10, 20],
-  },
-  showItemsPerPage: {
-    type: Boolean,
-    default: false,
-  },
+
   rowKey: {
     type: String,
     default: '_key',
   },
+
   totalLabel: {
     type: String,
     default: 'Summ',
   },
+
   actionLabel: {
     type: String,
     default: '',
   },
+
   showAction: {
     type: Boolean,
     default: false,
   },
+
   showSkinName: {
     type: Boolean,
     default: false,
   },
+
   showType: {
     type: Boolean,
     default: false,
   },
+
   showCoinAmount: {
     type: Boolean,
     default: false,
   },
+
   showQuantity: {
     type: Boolean,
     default: false,
   },
+
   hideSkinNameLabel: {
     type: Boolean,
     default: false,
   },
+
   showIDColumn: {
     type: Boolean,
     default: false,
   },
+
   showDataColumn: {
     type: Boolean,
     default: true,
   },
+
   showPrice: {
     type: Boolean,
     default: true,
   },
-  isAmountMultiplied: {
-    type: Boolean,
-    default: false,
-  },
+
   showOrderImage: {
     type: Boolean,
     default: true,
   },
+
   totalAsCurrency: {
     type: Boolean,
     default: true,
   },
+
   expandedRowKey: {
     type: [String, Number, null],
     default: null,
   },
 })
 
-const emit = defineEmits(['update:current-page', 'update:items-per-page'])
-
-const currencyStore = useCurrencyStore()
-const { currencies } = storeToRefs(currencyStore)
+const emit = defineEmits(['update:current-page'])
 
 const columns = computed(() => {
   const result = []
 
-  if (props.showIDColumn) result.push('0.9fr')
-  if (props.showDataColumn) result.push('1.05fr')
-  if (props.showType) result.push('1fr')
-  if (props.showSkinName) result.push('1.65fr')
-  if (props.showQuantity) result.push('0.7fr')
-  if (props.showPrice) result.push('1fr')
-  if (props.showCoinAmount) result.push('1fr')
+  if (props.showIDColumn) {
+    result.push('minmax(0, 0.95fr)')
+  }
 
-  result.push('1fr')
+  if (props.showDataColumn) {
+    result.push('minmax(0, 1.05fr)')
+  }
 
-  if (props.showAction) result.push('0.9fr')
+  if (props.showType) {
+    result.push('minmax(0, 1fr)')
+  }
+
+  if (props.showSkinName) {
+    result.push('minmax(0, 1.6fr)')
+  }
+
+  if (props.showQuantity) {
+    result.push('minmax(0, 0.65fr)')
+  }
+
+  if (props.showPrice) {
+    result.push('minmax(0, 1fr)')
+  }
+
+  if (props.showCoinAmount) {
+    result.push('minmax(0, 1fr)')
+  }
+
+  result.push('minmax(0, 0.95fr)')
+
+  if (props.showAction) {
+    result.push('minmax(70px, 0.8fr)')
+  }
 
   return result
 })
 
 const tableStyles = computed(() => ({
-  '--profile-columns': columns.value
-    .map(value => `minmax(0, ${value})`)
-    .join(' '),
+  '--profile-columns': columns.value.join(' '),
 }))
 
+const hasValue = value => {
+  return value !== null && value !== undefined && value !== ''
+}
+
 const getSkinItems = row => {
-  return row.skinItems?.length ? row.skinItems : [{ title: '', image: '' }]
+  if (Array.isArray(row.skinItems) && row.skinItems.length) {
+    return row.skinItems
+  }
+
+  return [
+    {
+      title: '—',
+      image: '',
+    },
+  ]
 }
 
 const isRowExpanded = (row, index) => {
-  return (
-    props.expandedRowKey !== null &&
-    props.expandedRowKey !== undefined &&
-    props.expandedRowKey === (row[props.rowKey] ?? index)
-  )
-}
-
-const getCurrencyByCode = code => {
-  const normalized = String(code || '').toUpperCase()
-
-  return currencies.value.find(
-    currency => String(currency.code).toUpperCase() === normalized,
-  )
-}
-
-const formatPriceInCoins = row => {
-  if (
-    row?.coinAmount !== undefined &&
-    row?.coinAmount !== null &&
-    row?.coinAmount !== ''
-  ) {
-    return Number(row.coinAmount || 0).toFixed(2)
+  if (props.expandedRowKey === null || props.expandedRowKey === undefined) {
+    return false
   }
 
-  const currency = getCurrencyByCode(row?.currency)
-  const rate = Number(currency?.value) || 1
-  const amount = Number(row?.amount) || 0
-
-  const result = props.isAmountMultiplied ? amount * rate : amount / rate
-
-  return result.toFixed(2)
+  return String(props.expandedRowKey) === String(row[props.rowKey] ?? index)
 }
 
-const changeItemsPerPage = option => {
-  const value = Number(option)
+const formatRowDate = timestamp => {
+  if (!hasValue(timestamp)) return '—'
 
-  if (!value || value === Number(props.itemsPerPage)) {
-    return
-  }
-
-  emit('update:items-per-page', value)
+  return formatDate(timestamp, 'DD.MM.YYYY')
 }
 
-const statusClass = status => {
+const formatRowTime = timestamp => {
+  if (!hasValue(timestamp)) return ''
+
+  return formatDate(timestamp, 'HH:mm')
+}
+
+const formatCoinAmount = amount => {
+  const value = Number(amount)
+
+  return Number.isFinite(value) ? value.toFixed(2) : 0
+}
+
+const getStatusClass = status => {
   const value = String(status || '')
     .toLowerCase()
     .trim()
+    .replaceAll('_', ' ')
+    .replaceAll('-', ' ')
 
   if (
-    value.includes('accepted') ||
-    value.includes('completed') ||
-    value.includes('success') ||
-    value.includes('approved') ||
-    value.includes('ready for payout') ||
-    value === 'offer'
+    value.includes('declined') ||
+    value.includes('canceled') ||
+    value.includes('cancelled') ||
+    value.includes('denied') ||
+    value.includes('rejected') ||
+    value.includes('failed') ||
+    value.includes('error') ||
+    value.includes('deleted')
   ) {
-    return 'is-success'
+    return 'is-danger'
   }
 
   if (
+    value.includes('counter offer') ||
     value.includes('pending') ||
     value.includes('processing') ||
     value.includes('awaiting')
@@ -499,16 +496,15 @@ const statusClass = status => {
   }
 
   if (
-    value.includes('canceled') ||
-    value.includes('cancelled') ||
-    value.includes('declined') ||
-    value.includes('denied') ||
-    value.includes('rejected') ||
-    value.includes('error') ||
-    value.includes('failed') ||
-    value.includes('deleted')
+    value.includes('accepted') ||
+    value.includes('completed') ||
+    value.includes('success') ||
+    value.includes('approved') ||
+    value.includes('paid') ||
+    value.includes('ready for payout') ||
+    value === 'offer'
   ) {
-    return 'is-danger'
+    return 'is-success'
   }
 
   return 'is-muted'
@@ -521,25 +517,10 @@ const statusClass = status => {
 @use '@/assets/styles/components/classes' as *;
 
 .profile-layout {
-  display: flex;
-  flex-direction: column;
-
   width: 100%;
   min-width: 0;
 
-  &__state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    min-height: 180px;
-  }
-
-  &__loading {
-    margin: auto;
-  }
-
+  &__state,
   &__empty {
     display: flex;
     align-items: center;
@@ -547,8 +528,13 @@ const statusClass = status => {
 
     width: 100%;
     min-height: 150px;
-    padding: 24px;
 
+    padding: 20px;
+
+    text-align: center;
+  }
+
+  &__empty {
     border: 1px solid var(--border-primary-color);
     border-radius: 6px;
 
@@ -558,59 +544,60 @@ const statusClass = status => {
     font-family: var(--font-inter);
     font-size: 14px;
     font-weight: 500;
-    text-align: center;
   }
 
-  &__content {
+  &__loading {
+    margin: auto;
+  }
+
+  &__content,
+  &__table-wrap,
+  &__table-body,
+  &__item {
     width: 100%;
     min-width: 0;
   }
 
-  &__table-wrap {
-    width: 100%;
-    min-width: 0;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 14);
-    }
-  }
-
-  &__table-head {
+  &__table-head,
+  &__tr {
     display: grid;
     grid-template-columns: var(--profile-columns);
+
     align-items: center;
 
     width: 100%;
     min-width: 0;
+
+    column-gap: clamp(4px, 0.8vw, 12px);
+
+    @include adaptiveValue('padding-left', 16, 8);
+    @include adaptiveValue('padding-right', 16, 8);
+
+    border-radius: 5px;
+
+    background-color: var(--bg-third-color);
+  }
+
+  &__table-head {
     min-height: 36px;
-
-    gap: 8px;
-
-    @include adaptiveValue('padding-left', 18, 10);
-    @include adaptiveValue('padding-right', 18, 10);
 
     padding-top: 10px;
     padding-bottom: 10px;
 
-    border-radius: 5px;
-    background-color: var(--bg-third-color);
-
-    &:not(:last-child) {
-      margin-bottom: 2px;
-    }
+    margin-bottom: 2px;
   }
 
   &__th {
     min-width: 0;
 
     color: var(--hint-third-color);
-    font-family: var(--font-inter);
 
+    font-family: var(--font-inter);
     font-size: 10px;
     font-weight: 500;
     line-height: 1.3;
-    text-transform: uppercase;
 
+    text-transform: uppercase;
     overflow-wrap: anywhere;
 
     &_action {
@@ -621,53 +608,29 @@ const statusClass = status => {
   &__table-body {
     display: flex;
     flex-direction: column;
-
-    width: 100%;
-    min-width: 0;
     gap: 2px;
   }
 
   &__item {
-    width: 100%;
-    min-width: 0;
-
     border-radius: 5px;
   }
 
   &__tr {
-    display: grid;
-    grid-template-columns: var(--profile-columns);
-    align-items: center;
-
-    width: 100%;
-    min-width: 0;
-    min-height: 60px;
-
-    gap: 8px;
-
-    @include adaptiveValue('padding-left', 18, 10);
-    @include adaptiveValue('padding-right', 18, 10);
+    min-height: 61px;
 
     padding-top: 12px;
     padding-bottom: 12px;
 
-    border-radius: 5px;
+    transition: background-color 0.3s ease;
 
-    background-color: var(--bg-third-color);
-    color: var(--primary-color);
-
-    transition:
-      background-color 0.25s ease,
-      border-color 0.25s ease;
+    &.active {
+      border-radius: 5px 5px 0 0;
+    }
 
     @media (any-hover: hover) {
       &:hover {
         background-color: var(--bg-fourth-color);
       }
-    }
-
-    &.active {
-      border-radius: 5px 5px 0 0;
     }
   }
 
@@ -698,6 +661,7 @@ const statusClass = status => {
       max-width: 100%;
 
       color: var(--primary-color);
+
       font-family: var(--font-inter);
       font-size: 12px;
       font-weight: 400;
@@ -706,10 +670,16 @@ const statusClass = status => {
       overflow-wrap: anywhere;
     }
 
-    &_quantity {
-      .profile-layout__td-value {
-        font-weight: 500;
-      }
+    &_id,
+    &_date,
+    &_type,
+    &_quantity,
+    &_total,
+    &_coinAmount,
+    &_skin,
+    &_status,
+    &_action {
+      min-width: 0;
     }
 
     &_status {
@@ -724,9 +694,9 @@ const statusClass = status => {
   &__date {
     display: flex;
     flex-direction: column;
-    gap: 2px;
 
     min-width: 0;
+    gap: 2px;
 
     font-family: var(--font-inter);
     font-size: 12px;
@@ -737,9 +707,9 @@ const statusClass = status => {
     display: flex;
     flex-direction: column;
 
-    min-width: 0;
     width: 100%;
-    gap: 8px;
+    min-width: 0;
+    gap: 6px;
   }
 
   &__skin {
@@ -748,7 +718,7 @@ const statusClass = status => {
 
     width: 100%;
     min-width: 0;
-    gap: 8px;
+    gap: 6px;
   }
 
   &__skin-wrapper {
@@ -756,9 +726,9 @@ const statusClass = status => {
     align-items: center;
     justify-content: center;
 
-    width: 45px;
-    min-width: 45px;
-    height: 40px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
 
     overflow: hidden;
 
@@ -788,10 +758,7 @@ const statusClass = status => {
   &__skin-name {
     display: block;
 
-    min-width: 0;
-
     color: var(--primary-color);
-
     font-family: var(--font-inter);
     font-size: 12px;
     line-height: 1.4;
@@ -804,20 +771,21 @@ const statusClass = status => {
     align-items: center;
     justify-content: center;
 
+    width: fit-content;
     max-width: 100%;
     min-height: 23px;
 
-    padding: 5px 8px;
+    padding: 5px 7px;
 
     border-radius: 4px;
 
-    color: var(--primary-color);
     background-color: var(--bg-primary-color);
+    color: var(--hint-third-color);
 
     font-family: var(--font-akshar);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
 
     text-align: center;
     text-transform: uppercase;
@@ -837,33 +805,41 @@ const statusClass = status => {
       background-color: var(--error-color);
       color: #fff;
     }
-
-    &.is-muted {
-      background-color: var(--bg-primary-color);
-      color: var(--hint-third-color);
-    }
   }
 
   &__action {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
 
     width: 100%;
     min-width: 0;
+    max-width: 100%;
 
     :deep(.btn) {
-      width: fit-content;
+      display: inline-flex;
+      flex: 0 1 auto;
+
+      width: auto;
       max-width: 100%;
       min-width: 0;
-      min-height: 32px;
+      min-height: 30px;
 
-      padding: 7px 10px;
+      padding: 6px 7px;
 
       font-family: var(--font-inter);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 500;
+      line-height: 1.2;
 
-      white-space: normal;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    :deep(.offers__button-icon) {
+      width: 10px;
+      min-width: 10px;
+      height: 10px;
     }
   }
 
@@ -871,7 +847,7 @@ const statusClass = status => {
     width: 100%;
     min-width: 0;
 
-    padding: 15px;
+    padding: 14px;
 
     border: 1px solid var(--border-primary-color);
     border-top: 0;
@@ -883,34 +859,12 @@ const statusClass = status => {
   &__bottom {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
 
     width: 100%;
     min-width: 0;
 
-    @include adaptiveValue('gap', 16, 10);
     @include adaptiveValue('margin-top', 22, 15);
-  }
-
-  &__per-page {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    min-width: 0;
-  }
-
-  &__per-page-label {
-    color: var(--hint-third-color);
-    font-family: var(--font-inter);
-    font-size: 12px;
-    font-weight: 400;
-    white-space: nowrap;
-  }
-
-  &__per-page-dropdown {
-    width: 90px;
-    min-width: 90px;
   }
 
   &__pagination {
@@ -935,6 +889,7 @@ const statusClass = status => {
     }
 
     &__item {
+      width: 100%;
       min-width: 0;
       height: 100%;
     }
@@ -949,7 +904,7 @@ const statusClass = status => {
       min-height: 0;
       height: 100%;
 
-      gap: 12px;
+      gap: 11px;
       padding: 14px;
 
       border: 1px solid var(--border-primary-color);
@@ -965,29 +920,29 @@ const statusClass = status => {
 
     &__td {
       display: flex;
-      justify-content: space-between;
       align-items: flex-start;
+      justify-content: space-between;
 
       width: 100%;
       min-width: 0;
       max-width: 100%;
 
-      gap: 12px;
+      gap: 10px;
 
       &-label {
         display: block;
-        flex: 0 1 42%;
+        flex: 0 1 40%;
 
         min-width: 0;
 
         color: var(--hint-third-color);
-        font-family: var(--font-inter);
 
+        font-family: var(--font-inter);
         font-size: 11px;
         font-weight: 500;
         line-height: 1.4;
-        text-transform: uppercase;
 
+        text-transform: uppercase;
         overflow-wrap: anywhere;
 
         &.is-hidden {
@@ -996,7 +951,7 @@ const statusClass = status => {
       }
 
       &-value {
-        flex: 1 1 58%;
+        flex: 1 1 60%;
 
         min-width: 0;
         max-width: 100%;
@@ -1006,7 +961,8 @@ const statusClass = status => {
 
       &_skin {
         .profile-layout__skins {
-          flex: 1 1 58%;
+          flex: 1 1 60%;
+
           width: auto;
           min-width: 0;
         }
@@ -1016,7 +972,6 @@ const statusClass = status => {
         }
 
         .profile-layout__skin-info {
-          flex: 0 1 auto;
           text-align: right;
         }
       }
@@ -1028,10 +983,8 @@ const statusClass = status => {
       }
 
       &_action {
-        align-items: center;
-
         .profile-layout__action {
-          flex: 1 1 58%;
+          flex: 1 1 60%;
           justify-content: flex-end;
         }
       }
@@ -1057,25 +1010,7 @@ const statusClass = status => {
       padding: 14px 12px;
     }
 
-    &__td {
-      gap: 10px;
-
-      &-label {
-        flex-basis: 40%;
-      }
-
-      &-value {
-        flex-basis: 60%;
-      }
-    }
-
     &__bottom {
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    &__per-page {
-      width: 100%;
       justify-content: center;
     }
 

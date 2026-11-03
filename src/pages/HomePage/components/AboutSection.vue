@@ -6,7 +6,7 @@
       </div>
       <div class="about__top">
         <div class="about__subtitle _h3">
-          <span>{{ $t('The WipeVault Market') }}</span>
+          <span>{{ $t('The Wastelandcore Market') }}</span>
         </div>
         <div class="about__title _h1">
           {{ $t('Trade Smarter.') }}
