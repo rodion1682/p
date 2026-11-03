@@ -44,6 +44,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  variant: {
+    type: String,
+    default: 'default',
+  },
   id: {
     type: String,
     default: () => `select-${Math.random().toString(36).substring(2, 9)}`,
@@ -93,6 +97,7 @@ const containerClasses = computed(() => ({
   'has-error': Boolean(props.error),
   'is-disabled': props.disabled || props.loading,
   regular: props.regular,
+  'variant-products': props.variant === 'products',
 }))
 
 const scrollActiveIntoView = async () => {
@@ -212,7 +217,6 @@ const onKeydown = event => {
     )
 
     scrollActiveIntoView()
-
     return
   }
 
@@ -262,7 +266,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="base-select-wrap" :class="{ 'is-open': isOpen }">
+  <div
+    ref="rootRef"
+    class="base-select-wrap"
+    :class="{
+      'is-open': isOpen,
+      'variant-products': variant === 'products',
+    }"
+  >
     <div v-if="label" class="base-select__label" :class="{ error: error }">
       {{ label }}
     </div>
@@ -281,7 +292,9 @@ onBeforeUnmount(() => {
       <div class="base-select__control">
         <div
           class="base-select__placeholder"
-          :class="{ 'is-raised': hasValue || isOpen }"
+          :class="{
+            'is-raised': hasValue || isOpen,
+          }"
         >
           {{ placeholder }}
         </div>
@@ -357,10 +370,8 @@ onBeforeUnmount(() => {
 
 .base-select {
   position: relative;
-
   display: flex;
   align-items: center;
-
   width: 100%;
 
   @include adaptiveValue('min-height', 44, 40);
@@ -369,11 +380,8 @@ onBeforeUnmount(() => {
   border-radius: 6px;
 
   background-color: var(--bg-ninth-color);
-
   color: var(--primary-color);
-
   cursor: pointer;
-
   outline: none;
 
   transition:
@@ -434,7 +442,6 @@ onBeforeUnmount(() => {
 
   &__control {
     position: relative;
-
     display: flex;
     align-items: center;
 
@@ -466,21 +473,18 @@ onBeforeUnmount(() => {
 
   &__placeholder {
     position: absolute;
-
     top: 50%;
     left: 18px;
 
     max-width: calc(100% - 65px);
-
     transform: translateY(-50%);
-
     pointer-events: none;
 
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    color: var(--seconday-color);
+    color: var(--secondary-color);
 
     font-family: var(--font-open-sans);
     font-size: 14px;
@@ -499,7 +503,6 @@ onBeforeUnmount(() => {
 
     &.is-raised {
       top: 10px;
-
       font-size: 10px;
       line-height: 10px;
     }
@@ -507,7 +510,6 @@ onBeforeUnmount(() => {
 
   &__suffix {
     position: absolute;
-
     top: 50%;
     right: 15px;
 
@@ -516,13 +518,11 @@ onBeforeUnmount(() => {
     justify-content: center;
 
     transform: translateY(-50%);
-
     pointer-events: none;
   }
 
   &__caret {
     flex: 0 0 11px;
-
     width: 11px;
     min-width: 11px;
     height: 7px;
@@ -554,29 +554,24 @@ onBeforeUnmount(() => {
 
   &__dropdown {
     position: absolute;
-
     top: calc(100% + 4px);
     left: 0;
 
     min-width: 100%;
     width: 100%;
-
     z-index: 101;
 
     border: 1px solid var(--border-secondary-color);
     border-radius: 6px;
 
     background-color: var(--bg-primary-color);
-
     overflow: hidden;
   }
 
   &__list {
     max-height: 300px;
-
     overflow-y: auto;
     overflow-x: hidden;
-
     scrollbar-width: thin;
     -webkit-overflow-scrolling: touch;
   }
@@ -587,13 +582,10 @@ onBeforeUnmount(() => {
 
     width: 100%;
     min-height: 40px;
-
     padding: 8px 15px;
-
     border: 0;
 
     background-color: transparent;
-
     color: var(--secondary-color);
 
     font-family: var(--font-open-sans);
@@ -602,7 +594,6 @@ onBeforeUnmount(() => {
     line-height: 1.2;
 
     text-align: left;
-
     cursor: pointer;
 
     transition:
@@ -628,8 +619,7 @@ onBeforeUnmount(() => {
 
   &__empty {
     padding: 12px 15px;
-
-    color: var(--seconday-color);
+    color: var(--secondary-color);
 
     font-family: var(--font-open-sans);
     font-size: 14px;
@@ -638,8 +628,40 @@ onBeforeUnmount(() => {
 
   &__error {
     margin-top: 6px;
-
     @include adaptiveValue('padding-left', 18, 15);
+  }
+}
+
+// Products variant
+.base-select-wrap.variant-products {
+  .base-select {
+    min-height: 44px;
+
+    background-color: var(--bg-third-color);
+    border-color: var(--border-primary-color);
+
+    @media (any-hover: hover) {
+      &:hover {
+        border-color: var(--hint-primary-color);
+      }
+    }
+
+    &.is-open {
+      border-color: var(--hint-primary-color);
+    }
+  }
+
+  .base-select__control {
+    padding-top: 0;
+  }
+
+  .base-select__placeholder.is-raised {
+    display: none;
+  }
+
+  .base-select__dropdown {
+    background-color: var(--bg-third-color);
+    border-color: var(--border-primary-color);
   }
 }
 

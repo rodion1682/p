@@ -27,7 +27,7 @@ export const DEFAULT_FILTERS = {
     max: null,
   },
   page: 1,
-  perPage: 28,
+  perPage: 15,
 
   type: '',
   quality: '',

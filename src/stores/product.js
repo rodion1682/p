@@ -2,7 +2,7 @@ import axios from '@/plugins/axios'
 import { defineStore } from 'pinia'
 
 const RUST_CATEGORY = 'rust'
-const DEFAULT_LIMIT = 18
+const DEFAULT_LIMIT = 15
 
 export const useProductStore = defineStore('product', {
   state: () => ({

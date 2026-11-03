@@ -4,46 +4,48 @@
     class="card"
     v-bind="$attrs"
     :class="{ 'in-cart': isInCart }"
-    :style="{ '--quality-color': qualityColor }"
     @click="handleProductClick"
   >
-    <div class="card__top">
+    <div class="card__image _ibg-contain">
+      <img
+        v-if="product.img"
+        :src="productImage"
+        :alt="product.name"
+        loading="lazy"
+      />
+    </div>
+
+    <div class="card__details">
+      <div class="card__name">
+        {{ product.name }}
+      </div>
+
       <div v-if="product.category" class="card__category">
         {{ product.category }}
       </div>
-      <PriceFormatter
-        v-if="product.price_internal"
-        :price="product.price_internal"
-        size="size-14"
-        class="card__price"
-      />
-    </div>
-    <div v-if="product.name" class="card__name">
-      {{ product.name }}
-    </div>
-
-    <div v-if="product.img" class="card__image _ibg-contain">
-      <img :src="productImage" :alt="product.name" />
     </div>
 
     <div class="card__bottom">
+      <PriceFormatter
+        :price="product.price_internal ?? product.price ?? 0"
+        size="size-12"
+        class="card__price"
+      />
+
       <BaseButton
         class="card__add"
-        :variant="!isInCart ? 'bordered' : 'trash'"
+        :variant="isInCart ? 'trash' : 'priamry'"
         :disabled="isLoading"
+        :aria-label="isInCart ? t('Remove') : t('Add')"
         @click="handleCartClick"
       >
-        <template v-if="isLoading"> ... </template>
+        <span v-if="isLoading">…</span>
 
-        <template v-else>
-          <SvgIcon
-            :icon="!isInCart ? CartIcon : TrashIcon"
-            class="card__add-icon"
-          />
-          <span>
-            {{ !isInCart ? $t('Add') : $t('Remove') }}
-          </span>
-        </template>
+        <SvgIcon
+          v-else
+          :icon="isInCart ? TrashIcon : CartIcon"
+          class="card__add-icon"
+        />
       </BaseButton>
     </div>
   </div>
@@ -162,7 +164,6 @@ const qualityColor = computed(() => {
 
 const openSteamLoginModal = () => {
   showModal.value = false
-
   isSteamLoginModalOpen.value = true
 }
 
@@ -176,7 +177,6 @@ const handleProductClick = () => {
 
 const handleCartClick = event => {
   event.stopPropagation()
-
   handleCartAction()
 }
 
@@ -190,12 +190,10 @@ const handleCartAction = async () => {
 
     if (success) {
       toast.success(t('Item removed from cart'))
-
       return
     }
 
     toast.error(error || t('Failed to remove item'))
-
     return
   }
 
@@ -204,19 +202,16 @@ const handleCartAction = async () => {
 
   if (success) {
     toast.success(t('Item added to cart'))
-
     return
   }
 
   if (isUnauthorized) {
     openSteamLoginModal()
-
     return
   }
 
   if (isAlreadyInCart) {
     toast.warning(message)
-
     return
   }
 
@@ -227,82 +222,108 @@ const handleCartAction = async () => {
 <style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
-@use '@/assets/styles/components/classes' as *;
 
 .card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+
   @include adaptiveValue('padding', 14, 10);
 
-  background-color: #12181c;
-  border-radius: 6px;
+  background: var(--bg-third-color);
+  border-radius: 5px;
   border: 1px solid transparent;
-  transition: border 0.3s ease 0s;
   cursor: pointer;
+
+  transition: all 0.3s ease 0s;
   @media (any-hover: hover) {
     &:hover {
-      border: 1px solid var(--bg-sixth-color);
-    }
-  }
-  &.in-cart {
-  }
-
-  &__top {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    justify-content: space-between;
-    &:not(:last-child) {
-      margin-bottom: 8px;
-    }
-  }
-
-  &__category {
-    line-height: 14px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: capitalize;
-    color: var(--seconday-color);
-  }
-
-  &__price {
-  }
-
-  &__name {
-    line-height: 120%;
-    font-weight: 700;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 15);
+      transform: translateY(-2px);
+      .card__image {
+        background-color: var(--bg-seventh-color);
+      }
     }
   }
 
   &__image {
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content;
-    min-width: 90px;
-    height: 90px;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 15);
+    width: 100%;
+    @include adaptiveValue('height', 166, 115);
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+    background-color: transparent;
+    transition: background-color 0.3s ease 0s;
+    border-radius: 6px;
+
+    img {
+      object-fit: contain;
     }
+  }
+
+  &__details {
+    min-width: 0;
+    margin-top: auto;
+    margin-bottom: 12px;
+  }
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color);
+
+    margin-bottom: 4px;
+  }
+
+  &__category {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 12px;
+    color: var(--hint-third-color);
   }
 
   &__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    min-height: 39px;
+    padding: 4px 5px 4px 10px;
+
+    border-radius: 5px;
+    background: var(--bg-primary-color);
+  }
+
+  &__price {
+    min-width: 0;
+    color: var(--primary-color);
   }
 
   &__add {
+    flex: 0 0 31px;
+    width: 31px;
+    min-width: 31px;
+    height: 31px;
+    min-height: 31px;
+    padding: 0 !important;
+
     display: flex;
     align-items: center;
-    border-radius: 10px;
-    span {
-      line-height: 14px;
-      font-weight: 700;
-      font-family: var(--font-condensed);
-    }
+    justify-content: center;
+
+    border-radius: 4px;
+    background: var(--hint-primary-color);
+    color: var(--secondary-color);
+
     &-icon {
-      min-width: 16px;
+      width: 16px;
       height: 16px;
     }
   }

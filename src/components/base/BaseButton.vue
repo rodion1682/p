@@ -13,7 +13,7 @@ import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { computed, useSlots } from 'vue'
 
 const props = defineProps({
-  variant: { type: String, default: 'primary' }, // primary | dark | shadow
+  variant: { type: String, default: 'primary' }, // primary | dark | shadow | trash
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
@@ -165,6 +165,17 @@ const buttonClasses = computed(() => [
               inset 0 4px 10px #2a3f2f;
           }
         }
+      }
+    }
+  }
+  &.trash {
+    background-color: var(--bg-primary-color);
+    color: var(--primary-color);
+    border-color: var(--border-primary-color);
+    @media (any-hover: hover) {
+      &:hover {
+        color: var(--secondary-color);
+        background-color: var(--hint-primary-color);
       }
     }
   }
