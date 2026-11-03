@@ -116,6 +116,7 @@ const copyServerIP = async () => {
   &__inner {
     @include adaptiveValue('padding-left', 46, 10, 1430, 768, 1);
     @include adaptiveValue('padding-right', 49, 10, 1430, 768, 1);
+    text-shadow: 1px 1px 2px var(--secondary-color);
   }
 
   &__title {
@@ -169,6 +170,7 @@ const copyServerIP = async () => {
     align-items: center;
     text-transform: uppercase;
     padding: 4px 4px 4px 10px;
+    text-shadow: none;
     color: var(--secondary-color);
     border-radius: 6px;
     background-color: var(--bg-secondary-color);

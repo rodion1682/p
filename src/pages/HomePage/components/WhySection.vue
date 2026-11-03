@@ -74,7 +74,7 @@
   z-index: 1;
   @include adaptiveValue('padding-top', 91, 30);
   @include adaptiveValue('padding-bottom', 100, 30);
-  text-shadow: 1px 1px 1px var(--primary-color);
+  text-shadow: 1px 1px 2px var(--primary-color);
   &__inner {
   }
 
