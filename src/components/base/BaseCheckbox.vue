@@ -289,7 +289,9 @@ const capitalizeWords = text => {
       display: inline-block !important;
       text-transform: capitalize !important;
       margin: 0 4px;
-
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
       transition: color 0.3s ease;
 
       @media (any-hover: hover) {

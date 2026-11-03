@@ -1,143 +1,161 @@
 <template>
   <BaseModal
     :show="show"
+    wrapper-classes="checkout__inner"
     @close="handleClose"
-    :wrapperClasses="['checkout__inner']"
   >
     <div class="checkout">
       <div class="checkout__info">
-        <button @click="handleClose" class="checkout__back">
+        <BaseButton
+          variant="bordered"
+          class="checkout__back"
+          @click="handleClose"
+        >
           <SvgIcon :icon="ChevronDownIcon" class="checkout__back-icon" />
-          <span>{{ $t('Back') }}</span>
-        </button>
-        <div class="checkout__title _h3">
+          <span>{{ $t('Back to cart') }}</span>
+        </BaseButton>
+
+        <h2 class="checkout__title _h2">
           {{ $t('Payment details') }}
-        </div>
+        </h2>
+
         <div class="checkout__inputs">
           <BaseInput
             v-model="localForm.name"
-            :placeholder="$t('Name')"
+            :label="$t('Name')"
             :error="errors.name"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('name')"
           />
+
           <BaseInput
             v-model="localForm.surname"
-            :placeholder="$t('Surname')"
+            :label="$t('Surname')"
             :error="errors.surname"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('surname')"
           />
-          <BaseInput
-            v-model="localForm.email"
-            :placeholder="$t('Email')"
-            type="email"
-            :error="errors.email"
-            class="checkout__input"
-            :disabled="isSubmitting"
-            @blur="validateField('email')"
-          />
+
           <BaseInput
             v-model="localForm.phone"
-            :placeholder="$t('Phone')"
-            type="tel"
-            inputmode="tel"
-            autocomplete="tel"
+            :label="$t('Phone')"
             :error="errors.phone"
+            type="tel"
+            autocomplete="tel"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('phone')"
           />
+
+          <BaseInput
+            v-model="localForm.email"
+            :label="$t('Email')"
+            :error="errors.email"
+            type="email"
+            variant="checkout"
+            class="checkout__input"
+            :disabled="isSubmitting"
+            @blur="validateField('email')"
+          />
+
           <BaseSelect
             v-model="localForm.country"
+            :label="$t('Country')"
             :options="countries"
             option-label="name"
             option-value="value"
-            :placeholder="$t('Country')"
+            :placeholder="$t('Choose country')"
             :error="errors.country"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
           />
+
           <BaseInput
             v-model="localForm.city"
-            :placeholder="$t('City')"
+            :label="$t('City')"
             :error="errors.city"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('city')"
           />
+
           <BaseInput
             v-model="localForm.address"
-            :placeholder="$t('Address line')"
+            :label="$t('Address line')"
             :error="errors.address"
+            variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('address')"
           />
+
           <BaseInput
             v-model="localForm.postCode"
-            :placeholder="$t('Zip code')"
+            :label="$t('Zip code')"
             :error="errors.postCode"
-            class="checkout__input checkout__input_post"
+            variant="checkout"
+            class="checkout__input"
             :disabled="isSubmitting"
             @blur="validateField('postCode')"
           />
         </div>
+      </div>
+
+      <div class="checkout__summary summary">
+        <div class="summary__heading">
+          <h3 class="summary__title _h4">
+            {{ $t('Checkout') }}
+          </h3>
+
+          <span class="summary__count">
+            ({{ cartStore.cartItemsCount }} {{ $t('items') }})
+          </span>
+        </div>
+
+        <div class="summary__total">
+          <div class="summary__subtitle">
+            {{ $t('Total to pay:') }}
+          </div>
+
+          <PriceFormatter
+            :price="totalCoins"
+            size="size-20"
+            class="summary__coin"
+          />
+
+          <PriceFormatter
+            :price="totalFiat"
+            size="size-14"
+            is-currency
+            class="summary__fiat"
+          />
+        </div>
+
         <BaseCheckbox
           v-model="localForm.acceptTerms"
           :error="errors.acceptTerms"
-          class="checkout__checkbox"
           :disabled="isSubmitting"
+          class="summary__terms"
           terms
         />
-      </div>
-      <div class="checkout__summary summary">
-        <div class="summary__top">
-          <div class="summary__title _h5">{{ $t('Checkout') }}</div>
-          <div class="summary__subtitle">{{ $t('Total to pay:') }}</div>
-          <PriceFormatter
-            size="size-32"
-            class="summary__coin"
-            :price="totalCoins"
-          />
-          <PriceFormatter
-            class="summary__fiat"
-            is-currency
-            size="size-12"
-            :price="totalFiat"
-          />
-          <div class="summary__conversion">
-            <PriceFormatter
-              :price="oneCoinFiatValue"
-              :currency-code="currencyStore.currentCurrencyCode"
-              size="size-12"
-              reverse
-            />
-            <span>=</span>
-            <PriceFormatter
-              :price="1"
-              :currency-code="currencyStore.currentCurrencyCode"
-              is-currency
-              raw-fiat
-              reverse
-              skip-conversion
-              size="size-12"
-            />
-          </div>
-        </div>
 
         <div v-if="submitError" class="summary__error _text-error">
           {{ submitError }}
         </div>
+
         <div class="summary__methods">
           <div class="summary__method">
             <BaseButton
               type="button"
+              variant="primary"
               class="summary__submit"
-              :loading="isSubmitting && selectedPaymentMethod === 'balance'"
-              variant="bordered"
               :disabled="isSubmitting || !isFormComplete || !hasEnoughBalance"
               @click="submit('balance')"
             >
@@ -151,6 +169,7 @@
               {{ $t('Not enough balance for purchase!') }}
             </div>
           </div>
+
           <div
             v-for="method in availablePaymentMethods"
             :key="method.code"
@@ -158,9 +177,8 @@
           >
             <BaseButton
               type="button"
-              :variant="isCard(method.code) ? 'bordered' : 'white'"
               class="summary__submit"
-              :loading="isSubmitting && selectedPaymentMethod === method.code"
+              :variant="isCard(method.code) ? 'primary' : 'bordered'"
               :disabled="isSubmitting || !isFormComplete"
               @click="submit(method.code)"
             >
@@ -182,6 +200,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -194,9 +213,10 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 
 import { ChevronDownIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
+
 import { useStaticPages } from '@/composables/useStaticPages'
 import { useToast } from '@/composables/useToast'
-import { useAuthStore } from '@/stores/auth'
+
 import { useCartStore } from '@/stores/cart'
 import { useCountriesStore } from '@/stores/countries'
 import { useCurrencyStore } from '@/stores/currency'
@@ -208,9 +228,18 @@ import { useUserStore } from '@/stores/user'
 const STORAGE_KEY = 'cart_checkout_contact_form'
 
 const props = defineProps({
-  show: { type: Boolean, default: false },
-  totalCoins: { type: [Number, String], default: 0 },
-  totalFiat: { type: [Number, String], default: 0 },
+  show: {
+    type: Boolean,
+    default: false,
+  },
+  totalCoins: {
+    type: [Number, String],
+    default: 0,
+  },
+  totalFiat: {
+    type: [Number, String],
+    default: 0,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -220,7 +249,6 @@ const router = useRouter()
 const toast = useToast()
 const { ensurePages } = useStaticPages()
 
-const authStore = useAuthStore()
 const cartStore = useCartStore()
 const countryStore = useCountriesStore()
 const purchaseStore = usePurchaseStore()
@@ -258,40 +286,30 @@ const errors = reactive({
 })
 
 const norm = value => String(value ?? '').trim()
+
 const emailRe = /^\S+@\S+\.\S+$/
 const nameRe = /^[\p{L}][\p{L}\p{M}' -]{1,}$/u
 
-const selectedCurrencyRate = computed(() => {
-  return Number(currencyStore.currentCurrency?.value || 1)
-})
-
-const creditsConversionRate = computed(() => {
-  return Number(settingsStore.creditsConversionRate || 0)
-})
-
-const oneCoinFiatValue = computed(() => {
-  return selectedCurrencyRate.value * creditsConversionRate.value
-})
-
-const userBalance = computed(
-  () =>
+const userBalance = computed(() => {
+  return (
     Number(
       currencyStore.isInternalCurrencyEnabled
         ? userStore.user?.balance_internal
         : userStore.user?.balance,
-    ) || 0,
-)
+    ) || 0
+  )
+})
 
 const hasEnoughBalance = computed(() => {
   return userBalance.value >= Number(props.totalCoins || 0)
 })
 
-const countries = computed(() =>
-  (countryStore.countries || []).map(country => ({
+const countries = computed(() => {
+  return (countryStore.countries || []).map(country => ({
     name: country.title,
     value: country.id,
-  })),
-)
+  }))
+})
 
 const normCode = code =>
   String(code || '')
@@ -303,32 +321,17 @@ const isCard = code =>
 
 const isBalance = code => normCode(code) === 'balance'
 
-const isApplePay = code =>
-  ['apple_pay', 'apple-pay', 'applepay'].includes(normCode(code))
-
-const isGooglePay = code =>
-  ['google_pay', 'google-pay', 'googlepay'].includes(normCode(code))
-
-const getDisplayImage = method => {
-  if (isApplePay(method.code)) return method.image
-  if (isGooglePay(method.code)) return method.image
-  return method.image || null
-}
-
 const availablePaymentMethods = computed(() => {
   const methods = settingsStore.paymentMethods || []
-  const currentCurrency = currencyStore.currentCurrencyCode
+  const currency = currencyStore.currentCurrencyCode
 
-  return methods
-    .filter(method => {
-      if (!method.currencies || method.currencies.length === 0) return true
-      return method.currencies.includes(currentCurrency)
-    })
-    .filter(method => !isBalance(method.code))
-    .map(method => ({
-      ...method,
-      image: getDisplayImage(method),
-    }))
+  return methods.filter(method => {
+    if (isBalance(method.code)) return false
+
+    if (!method.currencies?.length) return true
+
+    return method.currencies.includes(currency)
+  })
 })
 
 const getStoragePayload = () => ({
@@ -343,11 +346,22 @@ const getStoragePayload = () => ({
 })
 
 const saveFormToStorage = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getStoragePayload()))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(getStoragePayload()))
+  } catch (error) {
+    console.warn('Could not save checkout form', error)
+  }
 }
 
 const prefillFromStorage = () => {
-  const saved = localStorage.getItem(STORAGE_KEY)
+  let saved
+
+  try {
+    saved = localStorage.getItem(STORAGE_KEY)
+  } catch {
+    localForm.acceptTerms = false
+    return
+  }
 
   if (!saved) {
     localForm.acceptTerms = false
@@ -367,22 +381,23 @@ const prefillFromStorage = () => {
     localForm.postCode = data.postCode || ''
     localForm.acceptTerms = false
   } catch {
-    localStorage.removeItem(STORAGE_KEY)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Storage unavailable.
+    }
+
     localForm.acceptTerms = false
   }
 }
-
-const sanitizeName = value => norm(value)
-const sanitizeSurname = value => norm(value)
 
 const isValidPhone = phone => {
   const value = norm(phone)
   const digits = value.replace(/\D/g, '')
 
-  if (digits.length < 7 || digits.length > 15) return false
-  if (!/^[+0-9()\-\s]+$/.test(value)) return false
-
-  return true
+  return (
+    digits.length >= 7 && digits.length <= 15 && /^[+0-9()\-\s]+$/.test(value)
+  )
 }
 
 const clearErrors = () => {
@@ -396,96 +411,79 @@ const clearErrors = () => {
 const validateField = field => {
   errors[field] = ''
 
-  if (field === 'name') {
-    if (!norm(localForm.name)) {
-      errors.name = t('First name is required')
-      return
-    }
+  const value = norm(localForm[field])
 
-    if (!nameRe.test(norm(localForm.name))) {
-      errors.name = t('Invalid name')
-    }
+  switch (field) {
+    case 'name':
+      if (!value) {
+        errors.name = t('First name is required')
+      } else if (!nameRe.test(value)) {
+        errors.name = t('Invalid name')
+      }
+      break
 
-    return
-  }
+    case 'surname':
+      if (!value) {
+        errors.surname = t('Last name is required')
+      } else if (!nameRe.test(value)) {
+        errors.surname = t('Invalid surname')
+      }
+      break
 
-  if (field === 'surname') {
-    if (!norm(localForm.surname)) {
-      errors.surname = t('Last name is required')
-      return
-    }
+    case 'email':
+      if (!value) {
+        errors.email = t('Email is required')
+      } else if (!emailRe.test(value)) {
+        errors.email = t('Invalid email format')
+      }
+      break
 
-    if (!nameRe.test(norm(localForm.surname))) {
-      errors.surname = t('Invalid surname')
-    }
+    case 'phone':
+      if (!value) {
+        errors.phone = t('Phone is required')
+      } else if (!isValidPhone(value)) {
+        errors.phone = t('Invalid phone number')
+      }
+      break
 
-    return
-  }
+    case 'country':
+      if (!value) errors.country = t('Country is required')
+      break
 
-  if (field === 'email') {
-    if (!localForm.email) {
-      errors.email = t('Email is required')
-      return
-    }
+    case 'city':
+      if (!value) errors.city = t('City is required')
+      break
 
-    if (!emailRe.test(localForm.email)) {
-      errors.email = t('Invalid email format')
-    }
+    case 'address':
+      if (!value) {
+        errors.address = t('Address line is required')
+      }
+      break
 
-    return
-  }
+    case 'postCode':
+      if (!value) {
+        errors.postCode = t('Post Code is required')
+      }
+      break
 
-  if (field === 'phone') {
-    if (!localForm.phone) {
-      errors.phone = t('Phone is required')
-      return
-    }
-
-    if (!isValidPhone(localForm.phone)) {
-      errors.phone = t('Invalid phone number')
-    }
-
-    return
-  }
-
-  if (field === 'country' && !localForm.country) {
-    errors.country = t('Country is required')
-  }
-
-  if (field === 'city' && !localForm.city) {
-    errors.city = t('City is required')
-  }
-
-  if (field === 'address' && !localForm.address) {
-    errors.address = t('Address line is required')
-  }
-
-  if (field === 'postCode' && !localForm.postCode) {
-    errors.postCode = t('Post Code is required')
-  }
-
-  if (field === 'acceptTerms' && !localForm.acceptTerms) {
-    errors.acceptTerms = t('You must accept the Terms of Use')
+    case 'acceptTerms':
+      if (!localForm.acceptTerms) {
+        errors.acceptTerms = t('You must accept the Terms of Use')
+      }
+      break
   }
 }
 
 const validateForm = () => {
   clearErrors()
 
-  validateField('name')
-  validateField('surname')
-  validateField('email')
-  validateField('phone')
-  validateField('country')
-  validateField('city')
-  validateField('address')
-  validateField('postCode')
-  validateField('acceptTerms')
+  Object.keys(errors).forEach(validateField)
 
   if (Object.values(errors).some(Boolean)) {
     submitError.value = t(
       'Please fill in all required fields correctly and accept terms.',
     )
+
     return false
   }
 
@@ -493,17 +491,16 @@ const validateForm = () => {
 }
 
 const isFormComplete = computed(() => {
-  return (
-    norm(localForm.name) &&
-    norm(localForm.surname) &&
-    localForm.email &&
-    emailRe.test(localForm.email) &&
+  return Boolean(
+    nameRe.test(norm(localForm.name)) &&
+    nameRe.test(norm(localForm.surname)) &&
+    emailRe.test(norm(localForm.email)) &&
     isValidPhone(localForm.phone) &&
     localForm.country &&
-    localForm.city &&
-    localForm.address &&
-    localForm.postCode &&
-    localForm.acceptTerms
+    norm(localForm.city) &&
+    norm(localForm.address) &&
+    norm(localForm.postCode) &&
+    localForm.acceptTerms,
   )
 })
 
@@ -515,6 +512,7 @@ const submit = async methodCode => {
 
   if (isBalance(methodCode) && !hasEnoughBalance.value) {
     const message = t('Not enough funds')
+
     submitError.value = message
     toast.error(message)
     return
@@ -526,14 +524,14 @@ const submit = async methodCode => {
     saveFormToStorage()
 
     const purchaseData = {
-      name: sanitizeName(localForm.name),
-      surname: sanitizeSurname(localForm.surname),
-      email: localForm.email,
-      phone: localForm.phone,
+      name: norm(localForm.name),
+      surname: norm(localForm.surname),
+      email: norm(localForm.email),
+      phone: norm(localForm.phone),
       country: localForm.country,
-      city: localForm.city,
-      address: localForm.address,
-      postCode: localForm.postCode,
+      city: norm(localForm.city),
+      address: norm(localForm.address),
+      postCode: norm(localForm.postCode),
       paymentMethod: methodCode,
       paymentType: methodCode,
       directPayment: !isBalance(methodCode),
@@ -549,12 +547,17 @@ const submit = async methodCode => {
       }
 
       emit('close')
-      router.push({ name: 'SuccessPaymentPage' })
+
+      await router.push({
+        name: 'SuccessPaymentPage',
+      })
+
       return
     }
 
     const errorMessage =
       response.error || t('An error occurred during checkout')
+
     submitError.value = errorMessage
     toast.error(errorMessage)
   } catch (error) {
@@ -582,12 +585,16 @@ watch(
   async isOpen => {
     if (!isOpen) return
 
-    await Promise.all([
-      ensurePages(),
-      settingsStore.fetchSettings(),
-      countryStore.fetchCountries(),
-      cartStore.fetchCartContent(),
-    ])
+    try {
+      await Promise.all([
+        ensurePages(),
+        settingsStore.fetchSettings(),
+        countryStore.fetchCountries(),
+        cartStore.fetchCartContent(),
+      ])
+    } catch (error) {
+      console.error('Failed to initialize checkout', error)
+    }
 
     prefillFromStorage()
     clearErrors()
@@ -596,7 +603,7 @@ watch(
 )
 
 watch(
-  () => ({ ...localForm }),
+  localForm,
   () => {
     saveFormToStorage()
   },
@@ -609,176 +616,249 @@ watch(
 )
 
 onMounted(async () => {
-  if (!settingsStore.settings) await settingsStore.fetchSettings()
-  if (!countryStore.countries?.length) await countryStore.fetchCountries()
+  try {
+    if (!settingsStore.settings) {
+      await settingsStore.fetchSettings()
+    }
+
+    if (!countryStore.countries?.length) {
+      await countryStore.fetchCountries()
+    }
+  } catch (error) {
+    console.error('Failed to initialize checkout data', error)
+  }
 
   prefillFromStorage()
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
+@use '@/assets/styles/components/classes' as *;
+
+// BaseModal teleports its content to body.
+:global(.checkout__inner) {
+  width: calc(100% - 32px);
+  max-width: 1072px;
+  border-radius: 6px;
+  background: var(--bg-third-color);
+}
+
+:global(.checkout__inner .modal__content) {
+  @include adaptiveValue('padding-top', 34, 18);
+  @include adaptiveValue('padding-bottom', 34, 18);
+  @include adaptiveValue('padding-left', 34, 15);
+  @include adaptiveValue('padding-right', 34, 15);
+
+  background: var(--bg-third-color);
+  border-radius: 6px;
+}
+
+:global(.checkout__inner .modal__close) {
+  top: 12px;
+  right: 12px;
+  color: var(--primary-color);
+}
 
 .checkout {
-  @media (min-width: $md4) {
-    display: flex;
-    @include adaptiveValue('gap', 32, 20, 1400, 992, 1);
-  }
-  &__info {
-    flex: 0 1 60%;
-    @media (max-width: $md4) {
-      &:not(:last-child) {
-        margin-bottom: 15px;
-      }
-    }
-  }
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+
+  @include adaptiveValue('gap', 40, 16);
+
+  &__info,
   &__summary {
-    flex: 0 1 40%;
-    @media (max-width: $md4) {
-      max-width: 400px;
-      margin: 0 auto;
-    }
+    min-width: 0;
   }
 
   &__back {
-    background-color: transparent;
-    @include adaptiveValue('font-size', 20, 18);
-    line-height: 100%;
-    font-weight: 700;
-    text-transform: capitalize;
-    display: flex;
-    align-items: center;
-    @include adaptiveValue('gap', 20, 15);
-    color: var(--seconday-color);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
-    }
-    transition: color 0.3s ease 0s;
-    @media (any-hover: hover) {
-      &:hover {
-        color: var(--primary-color);
-      }
-    }
+    width: fit-content;
+
+    @include adaptiveValue('min-height', 38, 34);
+    @include adaptiveValue('margin-bottom', 28, 18);
+
+    padding: 8px 12px;
+    background: transparent;
+    color: var(--primary-color);
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+
     &-icon {
-      min-width: 13px;
-      height: 13px;
+      width: 12px;
+      min-width: 12px;
+      height: 12px;
       transform: rotate(90deg);
     }
   }
 
   &__title {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
-    }
+    color: var(--primary-color);
+
+    @include adaptiveValue('margin-bottom', 30, 18);
   }
 
   &__inputs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 20);
-    }
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @include adaptiveValue('gap', 18, 10);
   }
 
   &__input {
-    flex: 0 1 calc(50% - 6px);
-    @media (max-width: $md7) {
-      flex: 1 1 100%;
-    }
-    &_post {
+    min-width: 0;
+  }
+
+  &__summary {
+    @include adaptiveValue('margin-top', 56, 0, 1430, 768, 1);
+  }
+
+  @media (max-width: 767px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    &__summary {
+      margin-top: 0;
     }
   }
 
-  &__checkbox {
+  @media (max-width: 480px) {
+    &__inputs {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 }
 
 .summary {
-  display: block !important;
-  &__top {
-    @include adaptiveValue('border-radius', 10, 6);
-    background-color: var(--bg-primary-color);
-    @include adaptiveValue('padding', 32, 10);
-    text-align: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
-    }
+  min-width: 0;
+
+  @include adaptiveValue('padding', 24, 14);
+
+  border: 1px solid var(--border-primary-color);
+  border-radius: 6px;
+  background: var(--bg-fourth-color);
+
+  &__heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    @include adaptiveValue('margin-bottom', 24, 16);
   }
 
   &__title {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 30, 15);
-    }
+    color: var(--primary-color);
+    text-transform: uppercase;
+  }
+
+  &__count {
+    flex-shrink: 0;
+    color: var(--hint-third-color);
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__total {
+    position: relative;
+    @include adaptiveValue('margin-bottom', 30, 20);
   }
 
   &__subtitle {
-    color: var(--seconday-color);
+    font-family: var(--font-inter);
+    font-size: 13px;
+    color: var(--hint-third-color);
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 16, 15);
+      @include adaptiveValue('margin-bottom', 12, 8);
     }
   }
 
   &__coin {
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
+    justify-content: flex-end;
+
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 13, 15);
+      margin-bottom: 8px;
     }
   }
 
   &__fiat {
-    color: var(--seconday-color);
-    justify-content: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 42, 20);
-    }
+    justify-content: flex-end;
+    color: var(--primary-color);
   }
 
-  &__conversion {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 12px;
-    line-height: 12px;
-    font-weight: 700;
-    color: var(--primary-color) !important;
+  &__terms {
+    @include adaptiveValue('margin-bottom', 24, 16);
+
+    :deep(.base-checkbox__row) {
+      gap: 16px;
+    }
+
+    :deep(.base-checkbox__label) {
+      font-family: var(--font-inter);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--primary-color);
+    }
+
+    :deep(.base-checkbox__box) {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+    }
   }
 
   &__error {
-    margin-bottom: 8px;
+    @include adaptiveValue('margin-bottom', 12, 8);
   }
 
   &__methods {
+    display: grid;
+    gap: 10px;
   }
 
   &__method {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 8, 4);
-    }
+    min-width: 0;
   }
 
   &__submit {
-    position: relative;
-    text-transform: uppercase;
-    font-size: 14px;
-    font-family: var(--font-condensed);
+    width: 100%;
+    border-radius: 5px;
+
     @include adaptiveValue('min-height', 44, 40);
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+
     &-warn {
+      margin-top: 8px;
       text-align: center;
-      @include adaptiveValue('margin-top', 12, 8);
+      font-family: var(--font-inter);
+      font-size: 12px;
     }
+
     &-image {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 65%;
-      height: 90%;
+      width: 130px;
+      max-width: 70%;
+      height: 26px;
+      margin: auto;
+
+      img {
+        object-fit: contain;
+      }
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout__back {
+    transition: none;
   }
 }
 </style>

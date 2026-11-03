@@ -3,36 +3,89 @@ import { PasswordIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 import { computed, onMounted, ref, useAttrs, useSlots } from 'vue'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const props = defineProps({
-  modelValue: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: '' },
-  type: { type: String, default: 'text' },
-  disabled: { type: Boolean, default: false },
-  readonly: { type: Boolean, default: false },
-  steam: { type: Boolean, default: false },
-  error: { type: String, default: '' },
-  required: { type: Boolean, default: false },
-  regular: { type: Boolean, default: false },
-  empty: { type: Boolean, default: false },
-  regularPrefix: { type: Boolean, default: false },
-  autocomplete: { type: String, default: 'on' },
-  label: { type: String, default: '' },
+  modelValue: {
+    type: [String, Number],
+    default: '',
+  },
+  placeholder: {
+    type: String,
+    default: '',
+  },
+  type: {
+    type: String,
+    default: 'text',
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  readonly: {
+    type: Boolean,
+    default: false,
+  },
+  steam: {
+    type: Boolean,
+    default: false,
+  },
+  error: {
+    type: String,
+    default: '',
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  regular: {
+    type: Boolean,
+    default: false,
+  },
+  empty: {
+    type: Boolean,
+    default: false,
+  },
+  regularPrefix: {
+    type: Boolean,
+    default: false,
+  },
+  autocomplete: {
+    type: String,
+    default: 'on',
+  },
+  label: {
+    type: String,
+    default: '',
+  },
   id: {
     type: String,
     default: () => `input-${Math.random().toString(36).substring(2, 9)}`,
   },
-  actionable: { type: Boolean, default: false },
-  loading: { type: Boolean, default: false },
+  actionable: {
+    type: Boolean,
+    default: false,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
   variant: {
     type: String,
     default: 'left',
-    validator: v => ['left', 'center'].includes(v),
+    validator: value => ['left', 'center', 'checkout'].includes(value),
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'action', 'enter'])
-
-defineOptions({ inheritAttrs: false })
+const emit = defineEmits([
+  'update:modelValue',
+  'action',
+  'enter',
+  'blur',
+  'focus',
+])
 
 const attrs = useAttrs()
 const slots = useSlots()
@@ -42,42 +95,46 @@ const passwordVisible = ref(false)
 const isInitiallyFilled = ref(false)
 
 const computedType = computed(() => {
-  if (props.type === 'password')
+  if (props.type === 'password') {
     return passwordVisible.value ? 'text' : 'password'
+  }
+
   return props.type
 })
 
 const hasAction = computed(() => props.actionable && !!slots['action-icon'])
 
 const hasValue = computed(() => {
-  const v = props.modelValue
-  return v !== null && v !== undefined && String(v).length > 0
+  const value = props.modelValue
+
+  return value !== null && value !== undefined && String(value).length > 0
 })
 
-const isFilled = computed(
-  () => isFocused.value || hasValue.value || isInitiallyFilled.value,
-)
+const isFilled = computed(() => {
+  return isFocused.value || hasValue.value || isInitiallyFilled.value
+})
 
-const hasSuffix = computed(
-  () => props.loading || props.type === 'password' || !!slots.suffix,
-)
+const hasSuffix = computed(() => {
+  return props.loading || props.type === 'password' || !!slots.suffix
+})
 
 const hasPrefix = computed(() => !!slots.prefix)
 
 const inputClasses = computed(() => ({
   'is-center': props.variant === 'center',
+  'is-checkout': props.variant === 'checkout',
   'has-prefix': hasPrefix.value,
   'has-suffix': hasSuffix.value,
   'is-steam': props.steam,
 }))
 
 const containerClasses = computed(() => ({
-  'base-input': true,
   'is-focused': isFocused.value,
   'is-filled': isFilled.value,
   'is-steam': props.steam,
-  'has-error': !!props.error,
+  'has-error': Boolean(props.error),
   'is-disabled': props.disabled || props.loading,
+  'is-checkout': props.variant === 'checkout',
   regular: props.regular,
   empty: props.empty,
   regularPrefix: props.regularPrefix,
@@ -86,7 +143,7 @@ const containerClasses = computed(() => ({
 }))
 
 const attrsExceptClass = computed(() => {
-  const { class: _c, ...rest } = attrs
+  const { class: _class, ...rest } = attrs
   return rest
 })
 
@@ -94,9 +151,19 @@ const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value
 }
 
-const onInput = e => emit('update:modelValue', e.target.value)
-const onFocus = () => (isFocused.value = true)
-const onBlur = () => (isFocused.value = false)
+const onInput = event => {
+  emit('update:modelValue', event.target.value)
+}
+
+const onFocus = event => {
+  isFocused.value = true
+  emit('focus', event)
+}
+
+const onBlur = event => {
+  isFocused.value = false
+  emit('blur', event)
+}
 
 const onAction = () => emit('action')
 const onEnter = () => emit('enter')
@@ -107,26 +174,36 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="base-input-wrap" :class="attrs.class" v-bind="attrs">
-    <div v-if="label" class="base-input__label" :class="{ error: error }">
+  <div
+    class="base-input-wrap"
+    :class="[attrs.class, { 'variant-checkout': variant === 'checkout' }]"
+  >
+    <label
+      v-if="label"
+      :for="id"
+      class="base-input__label"
+      :class="{ error: error }"
+    >
       {{ label }}
-    </div>
+    </label>
 
     <div class="base-input" :class="containerClasses">
       <div v-if="steam" class="base-input__steam _ibg-contain">
-        <img src="@/assets/img/icons/steam.svg" />
+        <img src="@/assets/img/icons/steam.svg" alt="" />
       </div>
+
       <div v-if="$slots.prefix" class="base-input__prefix">
         <slot name="prefix" />
       </div>
+
       <button
         v-else-if="hasAction"
         type="button"
         class="base-input__icon-btn"
-        @click="onAction"
         :disabled="disabled || loading"
         aria-label="Search"
         title="Search"
+        @click="onAction"
       >
         <slot name="action-icon" />
       </button>
@@ -141,7 +218,7 @@ onMounted(() => {
         :disabled="disabled || loading"
         :autocomplete="autocomplete"
         :required="required"
-        placeholder=""
+        :placeholder="variant === 'checkout' ? placeholder : ''"
         v-bind="attrsExceptClass"
         @input="onInput"
         @focus="onFocus"
@@ -150,25 +227,25 @@ onMounted(() => {
       />
 
       <div
+        v-if="variant !== 'checkout'"
         class="base-input__placeholder"
-        :class="{ 'is-raised': isFilled, 'has-prefix': hasPrefix }"
+        :class="{
+          'is-raised': isFilled,
+          'has-prefix': hasPrefix,
+        }"
       >
         {{ placeholder }}
       </div>
 
       <div v-if="hasSuffix" class="base-input__suffix">
-        <div
-          v-if="loading"
-          class="base-input__spinner"
-          aria-hidden="true"
-        ></div>
+        <div v-if="loading" class="base-input__spinner" aria-hidden="true" />
 
         <button
           v-else-if="type === 'password'"
           type="button"
           class="base-input__toggle"
-          @click="togglePasswordVisibility"
           :disabled="disabled || loading"
+          @click="togglePasswordVisibility"
         >
           <slot name="password-icon">
             <SvgIcon class="base-input__toggle-icon" :icon="PasswordIcon" />
@@ -194,21 +271,28 @@ onMounted(() => {
 
 .base-input-wrap {
   width: 100%;
+  min-width: 0;
 }
 
 .base-input {
   position: relative;
-  background-color: var(--bg-ninth-color);
-  border: 1px solid var(--border-secondary-color);
   display: flex;
   align-items: center;
-  transition: all 0.3s ease;
   overflow: hidden;
-  @include adaptiveValue('min-height', 44, 40);
+
+  background-color: var(--bg-ninth-color);
+  border: 1px solid var(--border-secondary-color);
   border-radius: 6px;
+
+  @include adaptiveValue('min-height', 44, 40);
+
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 
   &.is-focused {
     border-color: var(--hint-primary-color);
+
     .base-input__placeholder {
       font-size: 10px;
       line-height: 14px;
@@ -217,108 +301,75 @@ onMounted(() => {
       color: var(--hint-primary-color);
     }
   }
+
   &.has-error {
     border-color: var(--error-color);
+
     .base-input__placeholder {
       font-size: 10px;
       line-height: 10px;
       top: 10px;
-      opacity: 1;
       color: var(--error-color);
     }
   }
-  &.has-action {
-    .base-input__placeholder {
-      left: 45px;
-    }
-  }
-  &.has-prefix {
-    .base-input__placeholder {
-      left: 45px;
-    }
-  }
+
+  &.has-action,
+  &.has-prefix,
   &.is-steam {
     .base-input__placeholder {
       left: 45px;
     }
   }
+
   &.is-disabled {
     opacity: 0.5;
     pointer-events: none;
   }
-  &__prefix {
-    @include adaptiveValue('left', 18, 15);
-    font-weight: 400;
-    transform: translateY(50%);
-  }
+
   &.empty {
     .base-input__control {
-      padding-top: 0px;
+      padding-top: 0;
     }
   }
+
   &__label {
+    display: block;
     line-height: 150%;
     font-weight: 500;
-    transition: color 0.3s ease 0s;
     color: var(--primary-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
+
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 8, 4);
     }
+
     &.error {
       color: var(--error-color);
     }
   }
-  &__control[type='number'] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-  }
-  &__control[type='number']::-webkit-outer-spin-button,
-  &__control[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  &__steam {
-    top: 50%;
-    min-width: 18px;
-    min-height: 18px;
-    @include adaptiveValue('left', 18, 15);
-  }
-  &__suffix,
-  &__prefix {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    display: flex;
-    align-items: center;
-    transform: translateY(-50%);
-    @include adaptiveValue('gap', 14, 10);
-  }
-  &__suffix {
-    @include adaptiveValue('right', 25, 15);
-  }
 
   &__control {
-    background: transparent;
-    outline: none;
-    border: none;
     width: 100%;
     height: 100%;
-    font-weight: 400;
-    font-size: 14px;
-    overflow: hidden;
-    color: var(--primary-color);
+    min-width: 0;
+
+    border: 0;
+    outline: none;
+    background: transparent;
+
     font-family: var(--font-open-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--primary-color);
+
     padding-top: 9px;
+
     @include adaptiveValue('padding-left', 18, 15);
     @include adaptiveValue('padding-right', 18, 15);
 
     &.has-prefix {
       padding-left: 45px;
-    }
-    &.is-steam {
-      @include adaptiveValue('padding-left', 18, 15);
     }
 
     &.has-suffix {
@@ -338,50 +389,93 @@ onMounted(() => {
     }
   }
 
+  &__control[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  &__control[type='number']::-webkit-outer-spin-button,
+  &__control[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   &__placeholder {
     position: absolute;
     pointer-events: none;
+
     top: 50%;
     transform: translateY(-50%);
+
+    font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 400;
-    color: var(--seconday-color);
-    font-family: var(--font-open-sans);
-    transition: all 0.3s ease;
+    color: var(--secondary-color);
+
     @include adaptiveValue('left', 18, 15);
+
+    max-width: calc(100% - 45px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 14px;
-    max-width: calc(100% - 45px);
-    &.has-prefix {
-      @include adaptiveValue('left', 18, 15);
-    }
+
+    transition: all 0.3s ease;
+
     &.is-raised {
+      top: 10px;
       font-size: 10px;
       line-height: 10px;
-      top: 10px;
-      font-weight: 400;
-      opacity: 1;
     }
   }
+
+  &__prefix,
+  &__suffix {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+
+    display: flex;
+    align-items: center;
+
+    transform: translateY(-50%);
+    @include adaptiveValue('gap', 14, 10);
+  }
+
+  &__prefix {
+    @include adaptiveValue('left', 18, 15);
+  }
+
+  &__suffix {
+    @include adaptiveValue('right', 25, 15);
+  }
+
+  &__steam {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
+    min-width: 18px;
+    height: 18px;
+
+    @include adaptiveValue('left', 18, 15);
+  }
+
   &__icon-btn {
-    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    border-radius: 6px;
+
     @include adaptiveValue('min-height', 36, 40);
     @include adaptiveValue('min-width', 36, 40);
-    border-radius: 6px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    :deep(.body__input-icon) {
-      min-width: 16px;
-      height: 16px;
-    }
+
     :deep(path) {
       stroke: var(--primary-color);
-      transition: stroke 0.3s ease 0s;
+      transition: stroke 0.3s ease;
     }
+
     @media (any-hover: hover) {
       &:hover {
         :deep(path) {
@@ -390,60 +484,75 @@ onMounted(() => {
       }
     }
   }
-  &__error {
-    margin-top: 6px;
-    @include adaptiveValue('padding-left', 18, 15);
-  }
 
   &__toggle {
-    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
+
+    background: transparent;
+    border-radius: 6px;
     cursor: pointer;
+
     @include adaptiveValue('height', 36, 40);
     @include adaptiveValue('min-width', 36, 40);
-    border-radius: 6px;
-    background-color: transparent;
-    pointer-events: auto;
-    transition: all 0.3s ease 0s;
-    &:disabled {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-    @media (any-hover: hover) {
-      &:hover {
-        background-color: var(--hint-primary-color);
-      }
-    }
+
     &-icon {
       min-width: 16px;
       height: 16px;
       color: var(--primary-color);
     }
   }
-}
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  &__error {
+    margin-top: 6px;
+    @include adaptiveValue('padding-left', 18, 15);
   }
 }
 
-@keyframes autofillStart {
+// Checkout variant
+.base-input-wrap.variant-checkout {
+  .base-input__label {
+    margin-bottom: 3px;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--hint-third-color);
+  }
+
+  .base-input {
+    min-height: 44px;
+    border-color: var(--border-primary-color);
+    background-color: var(--bg-third-color);
+
+    &.is-focused {
+      border-color: var(--hint-primary-color);
+    }
+
+    &.has-error {
+      border-color: var(--error-color);
+    }
+  }
+
+  .base-input__control {
+    padding-top: 0;
+    font-family: var(--font-inter);
+
+    &::placeholder {
+      color: var(--hint-third-color);
+    }
+  }
+
+  .base-input__placeholder {
+    display: none;
+  }
 }
 
-.base-input__control:-webkit-autofill {
-  animation-name: autofillStart;
-  animation-duration: 0.01s;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-text-fill-color: var(--primary-color);
-  -webkit-box-shadow: 0 0 0 1000px transparent inset;
-  transition: background-color 5000s ease-in-out 0s;
+@media (prefers-reduced-motion: reduce) {
+  .base-input,
+  .base-input__placeholder {
+    transition: none;
+  }
 }
 </style>

@@ -1,7 +1,8 @@
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { ChevronDownIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -47,6 +48,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'default',
+    validator: value => ['default', 'products', 'checkout'].includes(value),
   },
   id: {
     type: String,
@@ -57,10 +59,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const rootRef = ref(null)
+const triggerRef = ref(null)
 const listRef = ref(null)
 
 const isOpen = ref(false)
 const selectedIndex = ref(-1)
+
+const isDisabled = computed(() => props.disabled || props.loading)
 
 const selectedOption = computed(() => {
   if (
@@ -79,15 +84,9 @@ const selectedOption = computed(() => {
   )
 })
 
-const hasValue = computed(() => {
-  return Boolean(selectedOption.value)
-})
+const hasValue = computed(() => Boolean(selectedOption.value))
 
 const displayValue = computed(() => {
-  if (!selectedOption.value) {
-    return ''
-  }
-
   return String(selectedOption.value?.[props.optionLabel] ?? '')
 })
 
@@ -95,9 +94,10 @@ const containerClasses = computed(() => ({
   'is-open': isOpen.value,
   'is-filled': hasValue.value,
   'has-error': Boolean(props.error),
-  'is-disabled': props.disabled || props.loading,
+  'is-disabled': isDisabled.value,
   regular: props.regular,
   'variant-products': props.variant === 'products',
+  'variant-checkout': props.variant === 'checkout',
 }))
 
 const scrollActiveIntoView = async () => {
@@ -117,9 +117,7 @@ const scrollActiveIntoView = async () => {
 }
 
 const open = async () => {
-  if (props.disabled || props.loading) {
-    return
-  }
+  if (isDisabled.value || isOpen.value) return
 
   isOpen.value = true
 
@@ -138,47 +136,41 @@ const close = () => {
   selectedIndex.value = -1
 }
 
-const toggle = async () => {
-  if (props.disabled || props.loading) {
-    return
-  }
+const toggle = () => {
+  if (isDisabled.value) return
 
   if (isOpen.value) {
     close()
-    return
+  } else {
+    open()
   }
-
-  await open()
 }
 
 const selectOption = option => {
-  if (!option) {
-    return
-  }
+  if (!option) return
 
-  emit('update:modelValue', option?.[props.optionValue])
+  emit('update:modelValue', option[props.optionValue])
 
   close()
+  triggerRef.value?.focus()
 }
 
 const onClickOutside = event => {
-  if (!rootRef.value) {
-    return
-  }
-
-  if (!rootRef.value.contains(event.target)) {
+  if (!rootRef.value?.contains(event.target)) {
     close()
   }
 }
 
 const onKeydown = event => {
-  if (props.disabled || props.loading) {
-    return
-  }
+  if (isDisabled.value) return
 
   if (event.key === 'Escape') {
-    event.preventDefault()
-    close()
+    if (isOpen.value) {
+      event.preventDefault()
+      close()
+      triggerRef.value?.focus()
+    }
+
     return
   }
 
@@ -190,12 +182,7 @@ const onKeydown = event => {
       return
     }
 
-    const option = props.options[selectedIndex.value]
-
-    if (option) {
-      selectOption(option)
-    }
-
+    selectOption(props.options[selectedIndex.value])
     return
   }
 
@@ -204,10 +191,6 @@ const onKeydown = event => {
 
     if (!isOpen.value) {
       open()
-      return
-    }
-
-    if (!props.options.length) {
       return
     }
 
@@ -228,33 +211,15 @@ const onKeydown = event => {
       return
     }
 
-    if (!props.options.length) {
-      return
-    }
-
     selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
 
     scrollActiveIntoView()
   }
 }
 
-watch(
-  () => props.disabled,
-  value => {
-    if (value) {
-      close()
-    }
-  },
-)
-
-watch(
-  () => props.loading,
-  value => {
-    if (value) {
-      close()
-    }
-  },
-)
+watch(isDisabled, disabled => {
+  if (disabled) close()
+})
 
 onMounted(() => {
   document.addEventListener('mousedown', onClickOutside)
@@ -272,34 +237,43 @@ onBeforeUnmount(() => {
     :class="{
       'is-open': isOpen,
       'variant-products': variant === 'products',
+      'variant-checkout': variant === 'checkout',
     }"
   >
-    <div v-if="label" class="base-select__label" :class="{ error: error }">
+    <label
+      v-if="label"
+      :for="id"
+      class="base-select__label"
+      :class="{ error: error }"
+    >
       {{ label }}
-    </div>
+    </label>
 
     <div
+      ref="triggerRef"
       :id="id"
       class="base-select"
       :class="containerClasses"
-      tabindex="0"
+      :tabindex="isDisabled ? -1 : 0"
       role="combobox"
+      aria-haspopup="listbox"
       :aria-expanded="isOpen"
-      :aria-disabled="disabled || loading"
+      :aria-disabled="isDisabled"
       @click="toggle"
       @keydown="onKeydown"
     >
       <div class="base-select__control">
         <div
+          v-if="!hasValue"
           class="base-select__placeholder"
           :class="{
-            'is-raised': hasValue || isOpen,
+            'is-raised': isOpen,
           }"
         >
           {{ placeholder }}
         </div>
 
-        <div v-if="displayValue" class="base-select__value">
+        <div v-if="hasValue" class="base-select__value">
           {{ displayValue }}
         </div>
       </div>
@@ -361,6 +335,7 @@ onBeforeUnmount(() => {
 .base-select-wrap {
   position: relative;
   width: 100%;
+  min-width: 0;
   z-index: 1;
 
   &.is-open {
@@ -370,9 +345,12 @@ onBeforeUnmount(() => {
 
 .base-select {
   position: relative;
+
   display: flex;
   align-items: center;
+
   width: 100%;
+  min-width: 0;
 
   @include adaptiveValue('min-height', 44, 40);
 
@@ -396,23 +374,16 @@ onBeforeUnmount(() => {
   }
 
   &:focus-visible {
-    border-color: var(--hint-primary-color);
+    outline: 2px solid var(--hint-primary-color);
+    outline-offset: 2px;
   }
 
   &.is-open {
     border-color: var(--hint-primary-color);
-
-    .base-select__placeholder {
-      color: var(--hint-primary-color);
-    }
   }
 
   &.has-error {
     border-color: var(--error-color);
-
-    .base-select__placeholder {
-      color: var(--error-color);
-    }
   }
 
   &.is-disabled {
@@ -422,14 +393,13 @@ onBeforeUnmount(() => {
   }
 
   &__label {
-    color: var(--primary-color);
+    display: block;
 
+    color: var(--primary-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 500;
     line-height: 150%;
-
-    transition: color 0.3s ease;
 
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 8, 4);
@@ -452,60 +422,35 @@ onBeforeUnmount(() => {
     @include adaptiveValue('padding-left', 18, 15);
 
     padding-right: 50px;
-    padding-top: 9px;
   }
 
   &__value {
-    min-width: 0;
     width: 100%;
+    min-width: 0;
 
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     color: var(--primary-color);
-
     font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 400;
-    line-height: 1;
+    line-height: 1.2;
   }
 
   &__placeholder {
-    position: absolute;
-    top: 50%;
-    left: 18px;
-
-    max-width: calc(100% - 65px);
-    transform: translateY(-50%);
-    pointer-events: none;
+    max-width: 100%;
 
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    color: var(--secondary-color);
-
+    color: var(--hint-third-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 400;
-    line-height: 1;
-
-    transition:
-      top 0.3s ease,
-      font-size 0.3s ease,
-      line-height 0.3s ease,
-      color 0.3s ease;
-
-    @media (max-width: $md6) {
-      left: 15px;
-    }
-
-    &.is-raised {
-      top: 10px;
-      font-size: 10px;
-      line-height: 10px;
-    }
+    line-height: 1.2;
   }
 
   &__suffix {
@@ -522,22 +467,15 @@ onBeforeUnmount(() => {
   }
 
   &__caret {
-    flex: 0 0 11px;
     width: 11px;
     min-width: 11px;
     height: 7px;
 
     color: var(--primary-color);
-
-    svg {
-      transform: rotate(0deg);
-      transition: transform 0.3s ease;
-    }
+    transition: transform 0.3s ease;
 
     &.is-open {
-      svg {
-        transform: rotate(180deg);
-      }
+      transform: rotate(180deg);
     }
   }
 
@@ -557,21 +495,22 @@ onBeforeUnmount(() => {
     top: calc(100% + 4px);
     left: 0;
 
-    min-width: 100%;
     width: 100%;
+    min-width: 100%;
     z-index: 101;
+
+    overflow: hidden;
 
     border: 1px solid var(--border-secondary-color);
     border-radius: 6px;
-
     background-color: var(--bg-primary-color);
-    overflow: hidden;
   }
 
   &__list {
     max-height: 300px;
     overflow-y: auto;
     overflow-x: hidden;
+
     scrollbar-width: thin;
     -webkit-overflow-scrolling: touch;
   }
@@ -583,11 +522,11 @@ onBeforeUnmount(() => {
     width: 100%;
     min-height: 40px;
     padding: 8px 15px;
+
     border: 0;
-
     background-color: transparent;
-    color: var(--secondary-color);
 
+    color: var(--primary-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
     font-weight: 400;
@@ -602,28 +541,25 @@ onBeforeUnmount(() => {
 
     @media (any-hover: hover) {
       &:hover {
-        color: var(--primary-color);
         background-color: var(--bg-fourth-color);
       }
     }
 
     &.is-active {
-      color: var(--primary-color);
       background-color: var(--bg-fourth-color);
     }
 
     &.is-selected {
       color: var(--hint-primary-color);
+      font-weight: 600;
     }
   }
 
   &__empty {
     padding: 12px 15px;
-    color: var(--secondary-color);
-
+    color: var(--hint-third-color);
     font-family: var(--font-open-sans);
     font-size: 14px;
-    font-weight: 400;
   }
 
   &__error {
@@ -632,11 +568,9 @@ onBeforeUnmount(() => {
   }
 }
 
-// Products variant
+// Shop variant
 .base-select-wrap.variant-products {
   .base-select {
-    min-height: 44px;
-
     background-color: var(--bg-third-color);
     border-color: var(--border-primary-color);
 
@@ -645,18 +579,40 @@ onBeforeUnmount(() => {
         border-color: var(--hint-primary-color);
       }
     }
+  }
+
+  .base-select__dropdown {
+    background-color: var(--bg-third-color);
+    border-color: var(--border-primary-color);
+  }
+}
+
+// Checkout variant
+.base-select-wrap.variant-checkout {
+  .base-select__label {
+    margin-bottom: 3px;
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--hint-third-color);
+  }
+
+  .base-select {
+    min-height: 44px;
+
+    background-color: var(--bg-third-color);
+    border-color: var(--border-primary-color);
 
     &.is-open {
       border-color: var(--hint-primary-color);
     }
   }
 
-  .base-select__control {
-    padding-top: 0;
-  }
-
-  .base-select__placeholder.is-raised {
-    display: none;
+  .base-select__value,
+  .base-select__placeholder {
+    font-family: var(--font-inter);
   }
 
   .base-select__dropdown {
@@ -678,15 +634,18 @@ onBeforeUnmount(() => {
   transform: translateY(-4px);
 }
 
-.base-select-dropdown-enter-to,
-.base-select-dropdown-leave-from {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 @keyframes base-select-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-select,
+  .base-select__caret,
+  .base-select-dropdown-enter-active,
+  .base-select-dropdown-leave-active {
+    transition: none;
   }
 }
 </style>

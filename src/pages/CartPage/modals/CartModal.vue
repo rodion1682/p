@@ -40,12 +40,12 @@
               <PriceFormatter
                 class="cart-modal__coins"
                 :price="totalCoins"
-                size="size-12"
+                size="size-20"
               />
               <PriceFormatter
                 class="cart-modal__fiat"
                 :price="totalFiat"
-                size="size-12"
+                size="size-14"
                 is-currency
               />
             </div>
@@ -59,7 +59,7 @@
             "
             @click="openCheckout"
           >
-            {{ $t('Buy') }}
+            {{ $t('Continue') }}
           </BaseButton>
         </div>
 

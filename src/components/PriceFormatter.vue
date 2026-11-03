@@ -38,7 +38,7 @@ const props = defineProps({
   hint: { type: Boolean, default: false },
   isOld: { type: Boolean, default: false },
   isBold: { type: Boolean, default: true },
-  size: { type: String, default: 'size-12 ' }, // size-12
+  size: { type: String, default: 'size-12 ' }, // size-12 | size-14 | size-20
 
   currencySymbol: { type: String, default: '' },
   currencyCode: { type: String, default: '' },
@@ -156,6 +156,33 @@ const formattedPrice = computed(() => {
     .price__icon {
       min-width: 18px;
       height: 18px;
+    }
+  }
+  &.size-14 {
+    gap: 6px;
+    .price__currency,
+    .price__value {
+      font-size: 14px;
+      line-height: 14px;
+      font-weight: 400;
+    }
+
+    .price__icon {
+      min-width: 18px;
+      height: 18px;
+    }
+  }
+  &.size-20 {
+    gap: 6px;
+    .price__currency,
+    .price__value {
+      font-size: 20px;
+      line-height: 20px;
+    }
+
+    .price__icon {
+      min-width: 28px;
+      height: 28px;
     }
   }
 }
