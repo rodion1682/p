@@ -1,74 +1,62 @@
 <template>
   <BaseModal
     :show="show"
-    :wrapperClasses="['product-modal__inner']"
+    wrapper-classes="product-modal__inner"
     @close="handleClose"
   >
     <div v-if="product" class="product-modal">
-      <div class="product-modal__image-wrapper">
+      <div class="product-modal__visual">
         <div v-if="productImage" class="product-modal__image _ibg-contain">
-          <img :src="productImage" :alt="product.name" />
+          <img :src="productImage" :alt="product.name || $t('Product')" />
         </div>
       </div>
 
       <div class="product-modal__content">
-        <div class="product-modal__top">
-          <span class="product-modal__category">
+        <div class="product-modal__details">
+          <div v-if="product.category" class="product-modal__category">
             {{ product.category }}
-          </span>
-          <div class="product-modal__name">
+          </div>
+
+          <h2 class="product-modal__name">
             {{ product.name }}
-          </div>
-          <div class="product-modal__info">
+          </h2>
+
+          <p class="product-modal__availability">
             {{ $t('Product available on all servers') }}
-          </div>
+          </p>
         </div>
-        <div class="product-modal__bottom">
+
+        <div class="product-modal__purchase">
           <PriceFormatter
             class="product-modal__price"
             :price="priceInternal"
-            size="size-32"
+            size="size-12"
           />
+
           <BaseButton
             class="product-modal__button"
-            :variant="!isInCart ? 'bordered' : 'trash'"
+            :variant="isInCart ? 'trash' : 'primary'"
             :disabled="isLoading"
+            :aria-label="isInCart ? t('Remove') : t('Add to cart')"
             @click="handleCartAction"
           >
-            <template v-if="isLoading"> ... </template>
+            <span v-if="isLoading">...</span>
 
             <template v-else>
               <SvgIcon
-                :icon="!isInCart ? CartIcon : TrashIcon"
+                :icon="isInCart ? TrashIcon : CartIcon"
                 class="product-modal__button-icon"
               />
-
               <span>
-                {{ !isInCart ? $t('Add') : $t('Remove') }}
+                {{ isInCart ? $t('Remove') : $t('Add to cart') }}
               </span>
             </template>
           </BaseButton>
         </div>
-        <PriceFormatter
-          v-if="!showInternalPrice && price && false"
-          class="product-modal__price"
-          :price="price"
-          size="size-46"
-        />
-
-        <PriceFormatter
-          v-if="oldPrice && false"
-          class="product-modal__old-price"
-          :price="oldPrice"
-          reverse
-          :is-currency="!showInternalPrice"
-          isOld
-        />
       </div>
     </div>
   </BaseModal>
 
-  <!-- LOGIN MODAL -->
   <SteamLoginModal
     :show="isSteamLoginModalOpen"
     @close="closeSteamLoginModal"
@@ -81,23 +69,19 @@ import { useI18n } from 'vue-i18n'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
+import { CartIcon, TrashIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 import SteamLoginModal from '@/components/modals/SteamLoginModal.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
 
 import { useToast } from '@/composables/useToast'
 import { useCartStore } from '@/stores/cart'
-import { useCurrencyStore } from '@/stores/currency'
-import { CartIcon, TrashIcon } from '../icons'
-import SvgIcon from '../icons/SvgIcon.vue'
-
-const VITE_STATIC_DOMAIN = import.meta.env.VITE_STATIC_DOMAIN
 
 const props = defineProps({
   show: {
     type: Boolean,
     required: true,
   },
-
   product: {
     type: Object,
     default: null,
@@ -107,75 +91,46 @@ const props = defineProps({
 const emit = defineEmits(['close', 'update:show'])
 
 const cartStore = useCartStore()
-const currencyStore = useCurrencyStore()
-
 const toast = useToast()
 const { t } = useI18n()
 
 const isSteamLoginModalOpen = ref(false)
 
-const productId = computed(() => {
-  return props.product?.id
-})
+const productId = computed(() => props.product?.id)
 
-const showInternalPrice = computed(() => {
-  return currencyStore.isInternalCurrencyEnabled
-})
+const priceInternal = computed(() =>
+  Number(props.product?.price_internal ?? props.product?.price ?? 0),
+)
 
-const isInCart = computed(() => {
-  if (!productId.value) {
-    return false
-  }
+const isInCart = computed(() =>
+  productId.value != null ? cartStore.isItemInCart(productId.value) : false,
+)
 
-  return cartStore.isItemInCart(productId.value)
-})
-
-const isLoading = computed(() => {
-  if (!productId.value) {
-    return false
-  }
-
-  return cartStore.isItemLoading(productId.value)
-})
+const isLoading = computed(() =>
+  productId.value != null ? cartStore.isItemLoading(productId.value) : false,
+)
 
 const productImage = computed(() => {
-  const image = props.product?.img || ''
+  const image = String(props.product?.img || '').trim()
 
-  if (!image) {
-    return ''
-  }
+  if (!image) return ''
 
-  if (image.startsWith('http://') || image.startsWith('https://')) {
+  if (/^(https?:\/\/|data:|blob:)/i.test(image)) {
     return image
   }
 
+  const staticDomain = String(import.meta.env.VITE_STATIC_DOMAIN || '').replace(
+    /\/+$/,
+    '',
+  )
+
   const normalizedImage = image.replace(/^\/+/, '')
 
-  const hasExtension = /\.(jpg|jpeg|png|webp|svg)$/i.test(normalizedImage)
-
-  const staticDomain = String(VITE_STATIC_DOMAIN || '').replace(/\/+$/, '')
+  const hasExtension = /\.(jpe?g|png|webp|svg|gif|avif)(\?.*)?$/i.test(
+    normalizedImage,
+  )
 
   return `${staticDomain}/${normalizedImage}${hasExtension ? '' : '.png'}`
-})
-
-const price = computed(() => {
-  return Number(props.product?.price || 0)
-})
-
-const priceInternal = computed(() => {
-  return Number(props.product?.price_internal || 0)
-})
-
-const oldPriceInternal = computed(() => {
-  return Number(props.product?.old_price_internal || 0)
-})
-
-const oldPrice = computed(() => {
-  if (showInternalPrice.value) {
-    return oldPriceInternal.value
-  }
-
-  return Number(props.product?.old_price || 0)
 })
 
 const handleClose = () => {
@@ -184,12 +139,7 @@ const handleClose = () => {
 }
 
 const openSteamLoginModal = () => {
-  /*
-   * Close the product details modal first,
-   * then show the Steam login modal.
-   */
   handleClose()
-
   isSteamLoginModalOpen.value = true
 }
 
@@ -198,57 +148,39 @@ const closeSteamLoginModal = () => {
 }
 
 const handleCartAction = async () => {
-  if (!productId.value || isLoading.value) {
+  if (productId.value == null || isLoading.value) {
     return
   }
 
-  /*
-   * REMOVE FROM CART
-   */
-  if (isInCart.value) {
-    const { success, error } = await cartStore.removeFromCart(productId.value)
+  try {
+    if (isInCart.value) {
+      const { success, error } = await cartStore.removeFromCart(productId.value)
 
-    if (success) {
-      toast.success(t('Item removed from cart'))
+      if (success) {
+        toast.success(t('Item removed from cart'))
+      } else {
+        toast.error(error || t('Failed to remove item'))
+      }
 
       return
     }
 
-    toast.error(error || t('Failed to remove item'))
+    const { success, isAlreadyInCart, message, isUnauthorized } =
+      await cartStore.addToCart(productId.value)
 
-    return
+    if (success) {
+      toast.success(t('Item added to cart'))
+    } else if (isUnauthorized) {
+      openSteamLoginModal()
+    } else if (isAlreadyInCart) {
+      toast.warning(message || t('Item is already in cart'))
+    } else {
+      toast.error(message || t('Failed to add item to cart'))
+    }
+  } catch (error) {
+    console.error(error)
+    toast.error(t('Failed to add item to cart'))
   }
-
-  /*
-   * ADD TO CART
-   */
-  const { success, isAlreadyInCart, message, isUnauthorized } =
-    await cartStore.addToCart(productId.value)
-
-  if (success) {
-    toast.success(t('Item added to cart'))
-
-    return
-  }
-
-  /*
-   * NOT LOGGED IN:
-   * open Steam login modal instead
-   * of redirecting to LoginPage.
-   */
-  if (isUnauthorized) {
-    openSteamLoginModal()
-
-    return
-  }
-
-  if (isAlreadyInCart) {
-    toast.warning(message || t('Item is already in cart'))
-
-    return
-  }
-
-  toast.error(message || t('Failed to add item to cart'))
 }
 </script>
 
@@ -257,92 +189,186 @@ const handleCartAction = async () => {
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
+// Override BaseModal only for this product modal.
+// BaseModal teleports its content to body.
+:global(.product-modal__inner) {
+  max-width: 630px;
+  width: calc(100% - 32px);
+  border-radius: 6px;
+  background: var(--bg-third-color);
+}
+
+:global(.product-modal__inner .modal__content) {
+  background: var(--bg-third-color);
+  border-radius: 6px;
+
+  @include adaptiveValue('padding-top', 25, 18);
+  @include adaptiveValue('padding-bottom', 25, 18);
+  @include adaptiveValue('padding-left', 24, 15);
+  @include adaptiveValue('padding-right', 24, 15);
+}
+
+:global(.product-modal__inner .modal__close) {
+  right: 9px;
+  top: 7px;
+  color: var(--primary-color);
+}
+
 .product-modal {
-  @media (min-width: $md6) {
-    display: flex;
-    @include adaptiveValue('gap', 32, 20, 1400, 768, 1);
-  }
-  &__image-wrapper {
-    flex: 0 1 50%;
-    @include adaptiveValue('padding-top', 44, 10);
-    padding-left: 10px;
-    padding-right: 10px;
-    @include adaptiveValue('padding-bottom', 44, 10);
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 60%);
+  align-items: stretch;
+  min-width: 0;
+
+  @include adaptiveValue('gap', 20, 12, 1430, 768, 1);
+
+  &__visual {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-primary-color);
-    @include adaptiveValue('border-radius', 10, 6);
-    @media (max-width: $md6) {
-      &:not(:last-child) {
-        margin-bottom: 15px;
-      }
-    }
+
+    min-width: 0;
+    min-height: 216px;
   }
 
   &__image {
-    max-width: 194px;
     width: 100%;
+    max-width: 220px;
     aspect-ratio: 1;
+
+    img {
+      object-fit: contain;
+    }
   }
 
   &__content {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    min-width: 0;
+    padding-top: 18px;
+
+    @include adaptiveValue('gap', 38, 20);
   }
 
-  &__top {
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
+  &__details {
+    min-width: 0;
   }
 
   &__category {
-    color: var(--seconday-color);
-    text-transform: capitalize;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 15);
-    }
+    font-family: var(--font-inter);
+    font-size: 12px;
+    color: var(--hint-third-color);
+    line-height: 1.4;
+    margin-bottom: 8px;
   }
 
   &__name {
-    font-size: 20px;
+    font-family: var(--font-inter);
+
+    @include adaptiveValue('font-size', 30, 23);
+
     font-weight: 700;
-    line-height: 120%;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 18, 15);
-    }
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    color: var(--primary-color);
+
+    margin-bottom: 22px;
   }
 
-  &__info {
+  &__availability {
     color: var(--success-color);
+    font-family: var(--font-inter);
+    font-size: 14px;
+    line-height: 1.4;
   }
-  &__bottom {
+
+  &__purchase {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    min-width: 0;
+    gap: 10px;
+
+    padding: 4px 5px 4px 14px;
+    border-radius: 5px;
+
+    background-color: var(--bg-primary-color);
   }
+
   &__price {
-    justify-content: center;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 32, 15);
+    min-width: 0;
+    gap: 8px;
+    color: var(--primary-color);
+
+    :deep(.price__icon) {
+      width: 23px;
+      min-width: 23px;
+      height: 23px;
+    }
+
+    :deep(.price__value) {
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 500;
     }
   }
 
   &__button {
-    display: flex;
-    align-items: center;
-    @media (max-width: $md5) {
-      max-width: 300px;
-      margin: 0 auto;
-    }
-    span {
-      line-height: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      font-family: var(--font-condensed);
-    }
+    width: auto;
+    flex: 0 0 auto;
+    min-height: 38px;
+
+    padding: 8px 13px;
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 500;
+
+    border-radius: 5px;
+    white-space: nowrap;
+    gap: 9px;
+
     &-icon {
+      width: 16px;
       min-width: 16px;
       height: 16px;
+    }
+  }
+
+  @media (max-width: $md6) {
+    grid-template-columns: 1fr;
+
+    &__visual {
+      min-height: 0;
+    }
+
+    &__image {
+      max-width: 190px;
+    }
+
+    &__content {
+      padding-top: 0;
+      gap: 20px;
+    }
+
+    &__name {
+      margin-bottom: 12px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    &__purchase {
+      padding-left: 8px;
+      gap: 6px;
+    }
+
+    &__button {
+      padding: 8px;
+      font-size: 11px;
+      gap: 5px;
     }
   }
 }

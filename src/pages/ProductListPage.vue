@@ -414,7 +414,7 @@ onBeforeUnmount(() => {
   &__items {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    @include adaptiveValue('gap', 10, 7);
+    @include adaptiveValue('gap', 10, 4);
   }
   &__loading {
     margin: 50px auto;
@@ -472,7 +472,7 @@ onBeforeUnmount(() => {
   }
   @media (max-width: 360px) {
     &__items {
-      grid-template-columns: 1fr;
+      // grid-template-columns: 1fr;
     }
   }
 }
