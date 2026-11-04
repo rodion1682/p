@@ -1,175 +1,261 @@
 <template>
   <BaseModal
     :show="show"
-    @close="close"
-    :wrapperClasses="['contact-info__inner']"
+    :persistent="isSubmitting"
+    :wrapper-classes="[
+      'withdraw-modal__inner',
+      { 'withdraw-modal__inner--sepa': isSepaStep },
+    ]"
+    @close="handleClose"
   >
-    <div class="contact-info">
-      <div class="contact-info__top">
-        <div class="contact-info__title _l">
-          {{ $t('Withdraw') }}
-        </div>
-        <PriceFormatter
-          class="contact-info__value"
-          is-currency
-          :price="selectedAmount"
-          :currency-code="selectedCurrency"
-        />
-      </div>
+    <div class="withdraw-modal" :class="{ 'withdraw-modal--sepa': isSepaStep }">
+      <div class="withdraw-modal__info">
+        <BaseButton
+          type="button"
+          variant="bordered"
+          class="withdraw-modal__back"
+          :disabled="isSubmitting"
+          @click="handleBack"
+        >
+          <SvgIcon :icon="ChevronDownIcon" class="withdraw-modal__back-icon" />
 
-      <div class="contact-info__form">
-        <div class="contact-info__block">
-          <div class="contact-info__subtitle _l">
-            <span>{{ $t('Payment information') }}</span>
-          </div>
+          <span>
+            {{ isSepaStep ? $t('Change Payment Method') : $t('Back') }}
+          </span>
+        </BaseButton>
 
-          <div class="contact-info__content"></div>
-        </div>
-        <div class="contact-info__block contact-info__block_margin">
-          <div class="contact-info__subtitle _l"></div>
-          <div class="contact-info__content">
-            <div class="contact-info__row">
-              <BaseInput
-                v-model="formData.firstName"
-                :placeholder="$t('Name')"
-                :error="formErrors.firstName"
-                :disabled="isLoading"
-                class="contact-info__input"
-                @blur="validateField('firstName')"
-              />
+        <h2 class="withdraw-modal__title _h2">
+          {{ isSepaStep ? $t('SEPA') : $t('Withdraw') }}
+        </h2>
 
-              <BaseInput
-                v-model="formData.lastName"
-                :placeholder="$t('Surname')"
-                :error="formErrors.lastName"
-                :disabled="isLoading"
-                class="contact-info__input"
-                @blur="validateField('lastName')"
-              />
-            </div>
+        <form
+          v-if="!isSepaStep"
+          class="withdraw-modal__form"
+          novalidate
+          @submit.prevent
+        >
+          <div class="withdraw-modal__inputs">
             <BaseInput
-              v-model="formData.email"
-              type="email"
-              autocomplete="email"
-              :placeholder="$t('Email')"
-              :error="formErrors.email"
-              :disabled="isLoading"
-              class="contact-info__input"
-              @blur="validateField('email')"
+              v-model="form.name"
+              :label="$t('Name')"
+              :error="errors.name"
+              variant="checkout"
+              class="withdraw-modal__input"
+              autocomplete="given-name"
+              :disabled="isSubmitting"
+              @blur="validateField('name')"
             />
+
             <BaseInput
-              v-model="formData.phone"
+              v-model="form.surname"
+              :label="$t('Surname')"
+              :error="errors.surname"
+              variant="checkout"
+              class="withdraw-modal__input"
+              autocomplete="family-name"
+              :disabled="isSubmitting"
+              @blur="validateField('surname')"
+            />
+
+            <BaseInput
+              v-model="form.phone"
+              :label="$t('Phone')"
+              :error="errors.phone"
+              variant="checkout"
+              class="withdraw-modal__input"
               type="tel"
+              inputmode="tel"
               autocomplete="tel"
-              :placeholder="$t('Phone')"
-              :error="formErrors.phone"
-              :disabled="isLoading"
-              class="contact-info__input"
+              :disabled="isSubmitting"
               @blur="validateField('phone')"
             />
 
-            <BaseSelect
-              v-model="formData.country"
-              :options="countryOptions"
-              optionLabel="title"
-              optionValue="id"
-              :placeholder="$t('Country')"
-              :error="formErrors.country"
-              :disabled="isLoading"
-              class="contact-info__input"
-              @blur="validateField('country')"
+            <BaseInput
+              v-model="form.email"
+              :label="$t('Email')"
+              :error="errors.email"
+              variant="checkout"
+              class="withdraw-modal__input"
+              type="email"
+              autocomplete="email"
+              :disabled="isSubmitting"
+              @blur="validateField('email')"
             />
 
-            <div class="contact-info__row">
-              <BaseInput
-                v-model="formData.city"
-                :placeholder="$t('City')"
-                :error="formErrors.city"
-                :disabled="isLoading"
-                class="contact-info__input"
-                @blur="validateField('city')"
-              />
-
-              <BaseInput
-                v-model="formData.postCode"
-                :placeholder="$t('Post Code')"
-                :error="formErrors.postCode"
-                :disabled="isLoading"
-                class="contact-info__input"
-                @blur="validateField('postCode')"
-              />
-            </div>
+            <BaseSelect
+              v-model="form.country"
+              :label="$t('Country')"
+              :options="countries"
+              option-label="name"
+              option-value="value"
+              :placeholder="$t('Choose country')"
+              :error="errors.country"
+              variant="checkout"
+              class="withdraw-modal__input"
+              :disabled="isSubmitting"
+            />
 
             <BaseInput
-              v-model="formData.address"
-              :placeholder="$t('Address')"
-              :error="formErrors.address"
-              :disabled="isLoading"
-              class="contact-info__input"
+              v-model="form.city"
+              :label="$t('City')"
+              :error="errors.city"
+              variant="checkout"
+              class="withdraw-modal__input"
+              autocomplete="address-level2"
+              :disabled="isSubmitting"
+              @blur="validateField('city')"
+            />
+
+            <BaseInput
+              v-model="form.address"
+              :label="$t('Address line')"
+              :error="errors.address"
+              variant="checkout"
+              class="withdraw-modal__input"
+              autocomplete="street-address"
+              :disabled="isSubmitting"
               @blur="validateField('address')"
             />
-          </div>
-        </div>
 
-        <div class="contact-info__block contact-info__block_margin">
-          <div class="contact-info__subtitle"></div>
-
-          <div class="contact-info__content">
-            <BaseCheckbox
-              class="contact-info__terms"
-              v-model="formData.termsAccepted"
-              :error="formErrors.termsAccepted"
-              :disabled="isLoading"
-              terms
+            <BaseInput
+              v-model="form.postCode"
+              :label="$t('Zip code')"
+              :error="errors.postCode"
+              variant="checkout"
+              class="withdraw-modal__input"
+              autocomplete="postal-code"
+              :disabled="isSubmitting"
+              @blur="validateField('postCode')"
             />
           </div>
-        </div>
+        </form>
 
-        <div class="contact-info__block">
-          <div class="contact-info__subtitle _l">
-            <span>{{ $t('Payment Method') }}</span>
-          </div>
+        <form
+          v-else
+          class="withdraw-modal__form withdraw-modal__form--sepa"
+          novalidate
+          @submit.prevent="submitSepa"
+        >
+          <BaseInput
+            v-model="form.accountHolderName"
+            :label="$t('Name')"
+            :error="errors.accountHolderName"
+            variant="checkout"
+            class="withdraw-modal__input"
+            autocomplete="name"
+            :disabled="isSubmitting"
+            @blur="validateField('accountHolderName')"
+          />
 
-          <div class="contact-info__content">
-            <div
-              v-if="formErrors.general"
-              class="contact-info__error _text-error"
-            >
-              {{ formErrors.general }}
-            </div>
-
-            <div class="contact-info__methods">
-              <BaseButton
-                type="button"
-                variant="bordered"
-                class="contact-info__submit"
-                :disabled="isLoading"
-                @click="handleSepa"
-              >
-                <span v-if="isLoading">{{ $t('Loading') }}...</span>
-                <span v-else>{{ $t('SEPA') }}</span>
-              </BaseButton>
-              <BaseButton
-                type="button"
-                variant="bordered"
-                class="contact-info__submit"
-                :disabled="isLoading"
-                @click="handleCard"
-              >
-                <span v-if="isLoading">{{ $t('Loading') }}...</span>
-                <span v-else>{{ $t('Credit/Debit card') }}</span>
-              </BaseButton>
-            </div>
-          </div>
-        </div>
+          <BaseInput
+            v-model="form.iban"
+            :label="$t('IBAN')"
+            :error="errors.iban"
+            variant="checkout"
+            class="withdraw-modal__input"
+            autocomplete="off"
+            :disabled="isSubmitting"
+            @blur="validateField('iban')"
+          />
+        </form>
       </div>
+
+      <aside class="withdraw-modal__aside">
+        <div class="withdraw-modal__summary">
+          <h3 class="withdraw-modal__summary-title _h4">
+            {{ $t('Total to withdraw:') }}
+          </h3>
+
+          <div class="withdraw-modal__totals">
+            <div class="withdraw-modal__total">
+              <span class="withdraw-modal__total-label">
+                {{ $t('You get:') }}
+              </span>
+
+              <PriceFormatter
+                class="withdraw-modal__total-value"
+                :price="withdrawAmountFiat"
+                :currency-code="currencyCode"
+                is-currency
+                raw-fiat
+                skip-conversion
+                size="size-20"
+              />
+            </div>
+          </div>
+
+          <BaseCheckbox
+            v-model="form.acceptTerms"
+            class="withdraw-modal__terms"
+            :error="errors.acceptTerms"
+            :disabled="isSubmitting"
+            terms
+          />
+
+          <p
+            v-if="submitError"
+            class="withdraw-modal__error _text-error"
+            role="alert"
+          >
+            {{ submitError }}
+          </p>
+
+          <div class="withdraw-modal__methods">
+            <template v-if="!isSepaStep">
+              <BaseButton
+                v-if="cardEnabled"
+                type="button"
+                variant="primary"
+                class="withdraw-modal__submit"
+                :loading="isSubmitting && activeMethod === 'card-form'"
+                :disabled="isSubmitting"
+                @click="submitCard"
+              >
+                {{ $t('Credit/Debit Card') }}
+              </BaseButton>
+
+              <BaseButton
+                v-if="sepaEnabled"
+                type="button"
+                variant="primary"
+                class="withdraw-modal__submit"
+                :disabled="isSubmitting"
+                @click="openSepa"
+              >
+                {{ $t('SEPA') }}
+              </BaseButton>
+
+              <p
+                v-if="!cardEnabled && !sepaEnabled && !settingsStore.loading"
+                class="withdraw-modal__no-methods"
+              >
+                {{ $t('No withdrawal methods available') }}
+              </p>
+            </template>
+
+            <BaseButton
+              v-else
+              type="button"
+              variant="primary"
+              class="withdraw-modal__submit"
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+              @click="submitSepa"
+            >
+              {{ $t('Confirm') }}
+            </BaseButton>
+          </div>
+        </div>
+      </aside>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import axios from '@/plugins/axios'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
@@ -178,369 +264,568 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import PriceFormatter from '@/components/PriceFormatter.vue'
 
+import { ChevronDownIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
+
 import { useStaticPages } from '@/composables/useStaticPages'
 import { useCountriesStore } from '@/stores/countries'
-import { useModalStore } from '@/stores/modal'
-import { useOfferFlowStore } from '@/stores/offerFlow'
-import { useUserStore } from '@/stores/user'
+import { useCurrencyStore } from '@/stores/currency'
+import { useSettingsStore } from '@/stores/settings'
+
+const STORAGE_KEY = 'checkout_contact_form'
+const LEGACY_STORAGE_KEY = 'cart_checkout_contact_form'
 
 const props = defineProps({
-  show: { type: Boolean, required: true },
+  show: {
+    type: Boolean,
+    default: false,
+  },
+
+  balance: {
+    type: [Number, String],
+    default: 0,
+  },
+
+  selectedAmount: {
+    type: [Number, String],
+    default: 0,
+  },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'success'])
 
 const { t } = useI18n()
-
-const modalStore = useModalStore()
-const userStore = useUserStore()
-const countriesStore = useCountriesStore()
-const offerFlowStore = useOfferFlowStore()
 const { ensurePages } = useStaticPages()
 
-const isLoading = ref(false)
+const settingsStore = useSettingsStore()
+const currencyStore = useCurrencyStore()
+const countryStore = useCountriesStore()
 
-const selectedOffer = computed(
-  () => offerFlowStore.selectedOffer || offerFlowStore.getSelectedOffer || null,
-)
+const step = ref('contact')
+const isSubmitting = ref(false)
+const activeMethod = ref('')
+const submitError = ref('')
+const withdrawRequestId = ref(null)
 
-const selectedAmount = computed(() => offerFlowStore?.selectedOffer?.fiat_price)
-const selectedCurrency = computed(
-  () => offerFlowStore?.selectedOffer?.fiat_currency,
-)
-
-const countryOptions = computed(() => countriesStore.countries || [])
-
-const formData = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
+const form = reactive({
+  name: '',
+  surname: '',
   phone: '',
+  email: '',
   country: '',
   city: '',
-  postCode: '',
   address: '',
-  termsAccepted: false,
+  postCode: '',
+  accountHolderName: '',
+  iban: '',
+  acceptTerms: false,
 })
 
-const formErrors = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
+const errors = reactive({
+  name: '',
+  surname: '',
   phone: '',
+  email: '',
   country: '',
   city: '',
-  postCode: '',
   address: '',
-  termsAccepted: '',
-  general: '',
+  postCode: '',
+  accountHolderName: '',
+  iban: '',
+  acceptTerms: '',
 })
 
-const norm = value => String(value ?? '').trim()
+const emailPattern = /^\S+@\S+\.\S+$/
+const namePattern = /^[\p{L}][\p{L}\p{M}' -]*$/u
 
-const toId = value => {
-  const n = Number(value)
-  return Number.isFinite(n) && n > 0 ? n : ''
+const clean = value => String(value ?? '').trim()
+
+const isSepaStep = computed(() => {
+  return step.value === 'sepa'
+})
+
+const amountValue = computed(() => {
+  const value = Number(props.selectedAmount)
+
+  return Number.isFinite(value) ? value : 0
+})
+
+const balanceValue = computed(() => {
+  const value = Number(props.balance)
+
+  return Number.isFinite(value) ? value : 0
+})
+
+const currencyCode = computed(() => {
+  return currencyStore.currentCurrencyCode || 'EUR'
+})
+
+const currencyRate = computed(() => {
+  return Number(currencyStore.currentCurrency?.value || 1)
+})
+
+const creditsConversionRate = computed(() => {
+  return Number(settingsStore.creditsConversionRate || 0)
+})
+
+const withdrawAmountFiat = computed(() => {
+  if (creditsConversionRate.value <= 0) {
+    return 0
+  }
+
+  return Number(
+    (
+      (amountValue.value * currencyRate.value) /
+      creditsConversionRate.value
+    ).toFixed(2),
+  )
+})
+
+const countries = computed(() => {
+  return (countryStore.countries || []).map(country => ({
+    name: country.title,
+    value: country.id,
+  }))
+})
+
+const payoutMethods = computed(() => {
+  const methods = settingsStore.settings?.payout_methods
+
+  if (!Array.isArray(methods)) {
+    return []
+  }
+
+  return methods.map(method => {
+    const value =
+      typeof method === 'string' ? method : method.code || method.type || ''
+
+    return String(value).trim().toLowerCase()
+  })
+})
+
+const cardEnabled = computed(() => {
+  return payoutMethods.value.some(method =>
+    ['card', 'card-form'].includes(method),
+  )
+})
+
+const sepaEnabled = computed(() => {
+  return payoutMethods.value.some(method =>
+    ['sepa', 'sepa-manual'].includes(method),
+  )
+})
+
+const normalizeIban = value => {
+  return clean(value).replace(/\s+/g, '').toUpperCase()
+}
+
+const isValidIban = value => {
+  const iban = normalizeIban(value)
+
+  if (!/^[A-Z]{2}[0-9A-Z]{13,32}$/.test(iban)) {
+    return false
+  }
+
+  const rearranged = iban.slice(4) + iban.slice(0, 4)
+  let remainder = 0
+
+  for (const character of rearranged) {
+    const digits =
+      character >= 'A' && character <= 'Z'
+        ? String(character.charCodeAt(0) - 55)
+        : character
+
+    for (const digit of digits) {
+      remainder = (remainder * 10 + Number(digit)) % 97
+    }
+  }
+
+  return remainder === 1
 }
 
 const clearErrors = () => {
-  formErrors.value = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    country: '',
-    city: '',
-    postCode: '',
-    address: '',
-    termsAccepted: '',
-    general: '',
-  }
-}
-
-const saveContactInfoToStore = () => {
-  offerFlowStore.updateContactInfo({
-    firstName: norm(formData.value.firstName),
-    lastName: norm(formData.value.lastName),
-    email: norm(formData.value.email),
-    phone: norm(formData.value.phone),
-    country: formData.value.country,
-    city: norm(formData.value.city),
-    address: norm(formData.value.address),
-    postCode: norm(formData.value.postCode),
+  Object.keys(errors).forEach(key => {
+    errors[key] = ''
   })
-}
 
-const prefillForm = () => {
-  const stored = offerFlowStore.contactInfo || {}
-  const user = userStore.user || {}
-
-  formData.value = {
-    firstName: stored.firstName || user.name || '',
-    lastName: stored.lastName || user.surname || '',
-    email: stored.email || user.email || '',
-    phone: stored.phone || user.phone || '',
-    country: stored.country || toId(user.country_id || user.country) || '',
-    city: stored.city || user.city || '',
-    postCode: stored.postCode || user.post_code || user.zip || '',
-    address: stored.address || user.address || '',
-    termsAccepted: false,
-  }
-
-  clearErrors()
+  submitError.value = ''
 }
 
 const validateField = field => {
-  formErrors.value[field] = ''
+  errors[field] = ''
 
-  if (field === 'firstName') {
-    if (!norm(formData.value.firstName)) {
-      formErrors.value.firstName = t('First name is required')
+  const value = clean(form[field])
+
+  if (field === 'acceptTerms') {
+    if (!form.acceptTerms) {
+      errors.acceptTerms = t('You must accept the Terms of Use')
     }
+
     return
   }
 
-  if (field === 'lastName') {
-    if (!norm(formData.value.lastName)) {
-      formErrors.value.lastName = t('Last name is required')
+  if (!value) {
+    const messages = {
+      name: 'First name is required',
+      surname: 'Last name is required',
+      phone: 'Phone is required',
+      email: 'Email is required',
+      country: 'Country is required',
+      city: 'City is required',
+      address: 'Address line is required',
+      postCode: 'Post Code is required',
+      accountHolderName: 'Name is required',
+      iban: 'IBAN is required',
     }
+
+    errors[field] = t(messages[field] || 'Required')
+
     return
   }
 
-  if (field === 'email') {
-    if (!norm(formData.value.email)) {
-      formErrors.value.email = t('Email is required')
-      return
-    }
+  if (
+    ['name', 'surname', 'accountHolderName'].includes(field) &&
+    !namePattern.test(value)
+  ) {
+    errors[field] = t('Invalid name')
+  }
 
-    if (!/^\S+@\S+\.\S+$/.test(formData.value.email)) {
-      formErrors.value.email = t('Invalid email format')
-    }
-    return
+  if (field === 'email' && !emailPattern.test(value)) {
+    errors.email = t('Invalid email format')
   }
 
   if (field === 'phone') {
-    if (!norm(formData.value.phone)) {
-      formErrors.value.phone = t('Phone number is required')
+    const digits = value.replace(/\D/g, '')
+
+    if (
+      digits.length < 7 ||
+      digits.length > 15 ||
+      !/^[+0-9()\-\s]+$/.test(value)
+    ) {
+      errors.phone = t('Invalid phone number')
     }
-    return
   }
 
-  if (field === 'country') {
-    if (!formData.value.country) {
-      formErrors.value.country = t('Country is required')
-    }
-    return
-  }
-
-  if (field === 'city') {
-    if (!norm(formData.value.city)) {
-      formErrors.value.city = t('City is required')
-    }
-    return
-  }
-
-  if (field === 'postCode') {
-    if (!norm(formData.value.postCode)) {
-      formErrors.value.postCode = t('Post code is required')
-    }
-    return
-  }
-
-  if (field === 'address') {
-    if (!norm(formData.value.address)) {
-      formErrors.value.address = t('Address is required')
-    }
-    return
-  }
-
-  if (field === 'termsAccepted') {
-    if (!formData.value.termsAccepted) {
-      formErrors.value.termsAccepted = t('You must accept the terms')
-    }
+  if (field === 'iban' && !isValidIban(value)) {
+    errors.iban = t('Invalid IBAN')
   }
 }
 
-const validateForm = () => {
+const validate = fields => {
   clearErrors()
 
-  validateField('firstName')
-  validateField('lastName')
-  validateField('email')
-  validateField('phone')
-  validateField('country')
-  validateField('city')
-  validateField('postCode')
-  validateField('address')
-  validateField('termsAccepted')
+  if (
+    amountValue.value <= 0 ||
+    amountValue.value > balanceValue.value ||
+    withdrawAmountFiat.value <= 0
+  ) {
+    submitError.value = t('Invalid withdrawal amount')
 
-  return Object.values(formErrors.value).every(value => !value)
+    return false
+  }
+
+  fields.forEach(validateField)
+
+  if (fields.some(field => Boolean(errors[field]))) {
+    submitError.value = t(
+      'Please fill in all required fields correctly and accept terms.',
+    )
+
+    return false
+  }
+
+  return true
 }
 
-const payoutAmount = computed(() => {
-  const offer = selectedOffer.value
+const contactFields = [
+  'name',
+  'surname',
+  'phone',
+  'email',
+  'country',
+  'city',
+  'address',
+  'postCode',
+  'acceptTerms',
+]
 
-  if (!offer) return null
+const getSavedContact = () => {
+  try {
+    const saved =
+      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_STORAGE_KEY)
 
-  const amount = Number(offer.service_price ?? offer.user_price ?? 0)
+    return saved ? JSON.parse(saved) : null
+  } catch (error) {
+    console.error(error)
 
-  return {
-    amount,
-    currency: offer.currency || '',
+    return null
   }
-})
+}
 
-const close = () => {
+const saveContact = () => {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        name: form.name,
+        surname: form.surname,
+        phone: form.phone,
+        email: form.email,
+        country: form.country,
+        city: form.city,
+        address: form.address,
+        postCode: form.postCode,
+      }),
+    )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const restoreContact = () => {
+  const saved = getSavedContact()
+
+  if (!saved) {
+    return
+  }
+
+  form.name = saved.name ?? ''
+  form.surname = saved.surname ?? ''
+  form.phone = saved.phone ?? ''
+  form.email = saved.email ?? ''
+  form.country = saved.country ?? ''
+  form.city = saved.city ?? ''
+  form.address = saved.address ?? ''
+  form.postCode = saved.postCode ?? ''
+}
+
+const reset = () => {
+  step.value = 'contact'
+
+  withdrawRequestId.value = null
+  activeMethod.value = ''
+
+  form.accountHolderName = ''
+  form.iban = ''
+  form.acceptTerms = false
+
   clearErrors()
+}
+
+const initialize = async () => {
+  reset()
+  restoreContact()
+
+  const requests = [ensurePages()]
+
+  if (!settingsStore.settings) {
+    requests.push(settingsStore.fetchSettings())
+  }
+
+  if (!countryStore.countries?.length) {
+    requests.push(countryStore.fetchCountries())
+  }
+
+  await Promise.allSettled(requests)
+}
+
+const handleClose = () => {
+  if (isSubmitting.value) {
+    return
+  }
+
+  saveContact()
+  reset()
+
   emit('close')
 }
 
-const openSepaPaymentModal = async () => {
-  const payout = payoutAmount.value
+const handleBack = () => {
+  if (isSubmitting.value) {
+    return
+  }
 
-  close()
+  if (isSepaStep.value) {
+    step.value = 'contact'
+    clearErrors()
 
-  modalStore.open('payment', {
-    amount: payout?.amount ?? 0,
-    currency: payout?.currency ?? '',
+    return
+  }
+
+  handleClose()
+}
+
+const getContactPayload = () => ({
+  name: clean(form.name),
+  surname: clean(form.surname),
+  phone: clean(form.phone),
+  email: clean(form.email),
+  country: form.country,
+  city: clean(form.city),
+  address: clean(form.address),
+  postCode: clean(form.postCode),
+  currency: currencyCode.value,
+})
+
+const getOrCreateWithdrawRequest = async () => {
+  if (withdrawRequestId.value) {
+    return withdrawRequestId.value
+  }
+
+  const { data } = await axios.post('/user/withdraw-requests', {
+    amount: amountValue.value,
   })
+
+  if (data?.status !== 'OK') {
+    throw new Error(data?.message || t('Failed to create withdraw request'))
+  }
+
+  const id = data?.payload?.id ?? data?.id
+
+  if (!id) {
+    throw new Error(t('Withdraw request ID is missing'))
+  }
+
+  withdrawRequestId.value = id
+
+  return id
 }
 
-const handleSepa = async () => {
-  if (!validateForm()) {
-    formErrors.value.general = t('Please fill all required fields')
+const submitCard = async () => {
+  if (isSubmitting.value || !validate(contactFields)) {
     return
   }
+
+  isSubmitting.value = true
+  activeMethod.value = 'card-form'
 
   try {
-    isLoading.value = true
-    saveContactInfoToStore()
-    //const saveResult = await offerFlowStore.saveUserOfferData()
-    //if (!saveResult.success) {
-    //  formErrors.value.general =
-    //    saveResult.message || t('Failed to save payout data')
-    //  return
-    //}
+    saveContact()
 
-    openSepaPaymentModal()
-  } catch (error) {
-    console.error(error)
-    formErrors.value.general = t('Something went wrong')
-  } finally {
-    isLoading.value = false
-  }
-}
+    const requestId = await getOrCreateWithdrawRequest()
 
-const handleCard = async () => {
-  formErrors.value.general = ''
+    const { data } = await axios.post(
+      `/user/withdraw-requests/${requestId}/payout/card-form`,
+      getContactPayload(),
+    )
 
-  if (!validateForm()) {
-    formErrors.value.general = t('Please fill all required fields')
-    return
-  }
-
-  const offerId = selectedOffer.value?.id
-
-  if (!offerId) {
-    formErrors.value.general = t('No offer selected')
-    return
-  }
-
-  try {
-    isLoading.value = true
-    saveContactInfoToStore()
-
-    //const saveResult = await offerFlowStore.saveUserOfferData(offerId)
-    //if (!saveResult.success) {
-    //  formErrors.value.general =
-    //    saveResult.message || t('Failed to save payout data')
-    //  return
-    //}
-
-    const result = await offerFlowStore.requestPayout(offerId, 'card-form')
-
-    if (!result?.success) {
-      const messages = Array.isArray(result?.messages) ? result.messages : []
-
-      formErrors.value.general = messages.length
-        ? messages.join('\n')
-        : result?.message || t('Failed to start card payout')
-
-      return
+    if (data?.status !== 'OK') {
+      throw new Error(data?.message || t('Failed to initiate withdrawal'))
     }
 
-    close()
+    if (!data?.redirect_url) {
+      throw new Error(t('Payment redirect URL is missing'))
+    }
+
+    window.location.assign(data.redirect_url)
   } catch (error) {
-    console.error(error)
-    formErrors.value.general = t('Something went wrong')
+    submitError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      t('An error occurred during withdrawal')
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
+    activeMethod.value = ''
   }
 }
 
-watch(
-  () => formData.value.firstName,
-  () => validateField('firstName'),
-)
-watch(
-  () => formData.value.lastName,
-  () => validateField('lastName'),
-)
-watch(
-  () => formData.value.email,
-  () => validateField('email'),
-)
-watch(
-  () => formData.value.phone,
-  () => validateField('phone'),
-)
-watch(
-  () => formData.value.country,
-  () => validateField('country'),
-)
-watch(
-  () => formData.value.city,
-  () => validateField('city'),
-)
-watch(
-  () => formData.value.postCode,
-  () => validateField('postCode'),
-)
-watch(
-  () => formData.value.address,
-  () => validateField('address'),
-)
-watch(
-  () => formData.value.termsAccepted,
-  () => validateField('termsAccepted'),
-)
+const openSepa = () => {
+  if (isSubmitting.value || !validate(contactFields)) {
+    return
+  }
+
+  saveContact()
+
+  form.accountHolderName = [clean(form.name), clean(form.surname)]
+    .filter(Boolean)
+    .join(' ')
+
+  form.iban = ''
+
+  clearErrors()
+  step.value = 'sepa'
+}
+
+const submitSepa = async () => {
+  if (
+    isSubmitting.value ||
+    !validate(['accountHolderName', 'iban', 'acceptTerms'])
+  ) {
+    return
+  }
+
+  isSubmitting.value = true
+  activeMethod.value = 'sepa-manual'
+
+  try {
+    const requestId = await getOrCreateWithdrawRequest()
+
+    const parts = clean(form.accountHolderName).split(/\s+/)
+
+    const firstName = parts.shift() || ''
+
+    const lastName = parts.join(' ') || clean(form.surname)
+
+    const { data } = await axios.post(
+      `/user/withdraw-requests/${requestId}/payout/sepa-manual`,
+      {
+        first_name: firstName,
+        last_name: lastName,
+        account_number: normalizeIban(form.iban),
+      },
+    )
+
+    if (data?.status !== 'OK') {
+      throw new Error(data?.message || t('Failed to process SEPA withdrawal'))
+    }
+
+    saveContact()
+
+    emit('success', data)
+  } catch (error) {
+    submitError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      t('An error occurred during withdrawal')
+  } finally {
+    isSubmitting.value = false
+    activeMethod.value = ''
+  }
+}
 
 watch(
   () => props.show,
-  async isOpen => {
-    if (!isOpen) return
-
-    await ensurePages()
-
-    if (!countriesStore.countries?.length) {
-      try {
-        await countriesStore.fetchCountries()
-      } catch (error) {
-        console.error('Failed to fetch countries:', error)
-      }
+  isOpen => {
+    if (isOpen) {
+      initialize()
     }
-
-    if (!userStore.user) {
-      try {
-        await userStore.fetchProfile?.()
-      } catch (error) {
-        console.error('Failed to fetch profile:', error)
-      }
-    }
-
-    prefillForm()
   },
 )
+
+watch(
+  () => form.country,
+  () => {
+    if (errors.country) {
+      validateField('country')
+    }
+  },
+)
+
+watch(
+  () => form.acceptTerms,
+  accepted => {
+    if (accepted) {
+      errors.acceptTerms = ''
+    }
+  },
+)
+
+onMounted(() => {
+  if (props.show) {
+    initialize()
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -548,154 +833,371 @@ watch(
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.contact-info {
+:global(.modal__inner.withdraw-modal__inner--sepa) {
+  max-width: 793px;
+}
+
+.withdraw-modal {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(0, 1fr);
+
+  align-items: start;
+
   width: 100%;
-  margin: 0 auto;
-  max-width: 652px;
-  &__top {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    justify-content: space-between;
-    background-color: var(--bg-primary-color);
-    @include adaptiveValue('border-radius', 12, 10);
-    @include adaptiveValue('padding', 15, 10);
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 25, 10);
-    }
+  min-width: 0;
+
+  @include adaptiveValue('gap', 40, 20);
+
+  &__info,
+  &__aside {
+    width: 100%;
+    min-width: 0;
   }
+
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: fit-content;
+    min-width: 0;
+    min-height: 38px;
+
+    gap: 9px;
+    padding: 8px 13px;
+
+    color: var(--primary-color);
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+
+    text-transform: uppercase;
+
+    @include adaptiveValue('margin-bottom', 28, 18);
+  }
+
+  &__back-icon {
+    width: 12px;
+    min-width: 12px;
+    height: 12px;
+
+    transform: rotate(90deg);
+  }
+
   &__title {
-    text-align: center;
+    margin: 0;
+
+    color: var(--primary-color);
+    text-transform: uppercase;
+
+    @include adaptiveValue('margin-bottom', 34, 22);
   }
 
   &__form {
+    width: 100%;
+    min-width: 0;
   }
 
-  &__block {
-    &_margin {
-      &:not(:last-child) {
-        @include adaptiveValue('margin-bottom', 43, 25);
-      }
-    }
+  &__inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    @media (min-width: $md5) {
-      display: flex;
-      @include adaptiveValue('gap', 70, 20, 1820, 768, 1);
-    }
-  }
+    align-items: start;
 
-  &__subtitle {
-    flex: 0 1 32%;
+    width: 100%;
+    min-width: 0;
 
-    span {
-      text-align: left;
-      display: block;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 19px;
-
-      @media (min-width: $md5) {
-        @include adaptiveValue('padding-bottom', 23, 15);
-        border-bottom: 1px solid var(--bg-secondary-color);
-      }
-      @media (max-width: $md5) {
-        margin-bottom: 10px;
-      }
-    }
-  }
-
-  &__content {
-    flex: 0 1 68%;
-    margin-left: auto;
-  }
-
-  &__summary {
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 20, 15);
-    }
-  }
-
-  &__summary-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-
-    &:not(:last-child) {
-      margin-bottom: 10px;
-    }
-  }
-
-  &__label {
-    line-height: 130%;
-    height: fit-content;
-    color: var(--secondary-color);
-  }
-
-  &__value {
-    :deep(.price__value),
-    :deep(.price__currency) {
-      font-weight: 700;
-    }
-  }
-
-  &__row {
-    @media (min-width: $md5) {
-      display: flex;
-      @include adaptiveValue('gap', 14, 10);
-    }
-    @media (max-width: $md5) {
-      &:not(:last-child) {
-        margin-bottom: 14px;
-      }
-    }
+    @include adaptiveValue('column-gap', 38, 14);
+    @include adaptiveValue('row-gap', 18, 14);
   }
 
   &__input {
-    :deep(.base-select),
-    :deep(.base-input) {
-      border: 1px solid var(--bg-secondary-color);
+    width: 100%;
+    min-width: 0;
 
-      &:focus,
-      &:focus-within {
-        border: 1px solid var(--hint-color);
-      }
+    :deep(.base-input),
+    :deep(.base-select) {
+      width: 100%;
+      min-width: 0;
     }
 
-    &:not(:last-child) {
-      margin-bottom: 14px;
+    :deep(.base-input__label),
+    :deep(.base-select__label) {
+      color: var(--hint-third-color);
+
+      font-family: var(--font-inter);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    :deep(.base-input__control) {
+      min-width: 0;
+
+      color: var(--primary-color);
+
+      font-family: var(--font-inter);
+      font-size: 13px;
+    }
+
+    :deep(input::placeholder) {
+      color: var(--hint-third-color);
+    }
+  }
+
+  &__aside {
+    @include adaptiveValue('padding-top', 58, 0);
+  }
+
+  &__summary {
+    width: 100%;
+    min-width: 0;
+
+    @include adaptiveValue('padding', 24, 16);
+
+    border: 1px solid var(--border-primary-color);
+    border-radius: 6px;
+
+    background-color: var(--bg-fourth-color);
+  }
+
+  &__summary-title {
+    margin: 0;
+
+    color: var(--primary-color);
+    text-transform: uppercase;
+
+    @include adaptiveValue('margin-bottom', 24, 18);
+  }
+
+  &__totals {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    gap: 10px;
+
+    @include adaptiveValue('margin-bottom', 44, 28);
+  }
+
+  &__total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    min-width: 0;
+
+    gap: 12px;
+  }
+
+  &__total-label {
+    color: var(--hint-third-color);
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  &__total-value {
+    justify-content: flex-end;
+
+    min-width: 0;
+
+    color: var(--primary-color);
+
+    :deep(.price__value) {
+      color: var(--primary-color);
+
+      font-family: var(--font-inter);
+      font-weight: 500;
+
+      @include adaptiveValue('font-size', 19, 16);
+    }
+
+    :deep(.price__icon) {
+      width: 16px;
+      min-width: 16px;
+      height: 16px;
     }
   }
 
   &__terms {
+    width: 100%;
+    min-width: 0;
+
+    @include adaptiveValue('margin-bottom', 24, 18);
+
+    :deep(.base-checkbox__row) {
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    :deep(.base-checkbox__box) {
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+    }
+
+    :deep(.base-checkbox__label) {
+      min-width: 0;
+
+      color: var(--primary-color);
+
+      font-family: var(--font-inter);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.6;
+
+      overflow-wrap: anywhere;
+    }
+
+    :deep(.base-checkbox__label a) {
+      color: #4285ff;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
   }
 
   &__error {
-    white-space: pre-line;
+    margin-bottom: 14px;
 
-    &:not(:last-child) {
-      margin-bottom: 8px;
-    }
+    color: var(--error-color);
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
   }
 
   &__methods {
-    @media (min-width: $md7) {
-      display: flex;
-      @include adaptiveValue('gap', 22, 10);
-    }
-  }
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
 
-  &__method {
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
   &__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     width: 100%;
-    position: relative;
-    z-index: 1;
-    @include adaptiveValue('min-height', 46, 45);
-    @media (max-width: $md7) {
-      &:not(:last-child) {
-        margin-bottom: 4px;
+    min-width: 0;
+
+    @include adaptiveValue('min-height', 44, 40);
+
+    padding: 9px 12px;
+
+    border-radius: 5px;
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  &__no-methods {
+    padding: 12px;
+
+    color: var(--hint-third-color);
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  &--sepa {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1.45fr);
+
+    gap: 68px;
+
+    .withdraw-modal__form--sepa {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+  }
+
+  @media (max-width: $md3) {
+    grid-template-columns:
+      minmax(0, 1.35fr)
+      minmax(0, 1fr);
+
+    &__inputs {
+      column-gap: 14px;
+    }
+
+    &--sepa {
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1.45fr);
+
+      gap: 28px;
+    }
+  }
+
+  @media (max-width: $md4) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+
+    &__aside {
+      padding-top: 0;
+    }
+
+    &__totals {
+      margin-bottom: 24px;
+    }
+
+    &--sepa {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__back {
+      min-height: 34px;
+      margin-bottom: 20px;
+    }
+
+    &__title {
+      margin-bottom: 20px;
+    }
+
+    &__inputs {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 14px;
+    }
+
+    &__summary {
+      padding: 16px 12px;
+    }
+
+    &__total {
+      gap: 8px;
+    }
+
+    &__terms {
+      :deep(.base-checkbox__row) {
+        gap: 10px;
+      }
+
+      :deep(.base-checkbox__label) {
+        font-size: 13px;
       }
     }
   }
