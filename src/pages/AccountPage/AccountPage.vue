@@ -276,13 +276,12 @@ onMounted(async () => {
 
   display: flex;
   flex-direction: column;
-
+  flex: 1 1 100%;
   width: 100%;
   min-width: 0;
-  min-height: 80vh;
 
-  @include adaptiveValue('padding-top', 55, 24);
-  @include adaptiveValue('padding-bottom', 80, 35);
+  @include adaptiveValue('padding-top', 114, 80);
+  @include adaptiveValue('padding-bottom', 80, 30);
 
   &__background {
     position: absolute;
