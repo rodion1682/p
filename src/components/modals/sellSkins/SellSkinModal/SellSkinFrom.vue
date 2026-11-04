@@ -5,6 +5,16 @@
         {{ $t('Sell Items') }}
       </h2>
 
+      <div
+        v-if="is_debug_sell_items_active"
+        class="sell-skins__debug"
+        role="status"
+      >
+        {{
+          $t('Debug inventory preview — no real sell request will be created.')
+        }}
+      </div>
+
       <div v-if="isInventoryLoading" class="sell-skins__state">
         <LoadingSpinner />
       </div>
@@ -82,7 +92,7 @@
                   :model-value="item.quantity"
                   :min="1"
                   :max="item.available"
-                  :loading="isLoading"
+                  :loading="isLoading || isInventoryLoading"
                   @change="quantity => updateQuantity(item, quantity)"
                 />
               </div>
@@ -146,10 +156,18 @@
             class="sell-skins__submit"
             :disabled="isLoading || !isFormValid"
           >
-            {{ $t('Create New Offer') }}
+            {{
+              is_debug_sell_items_active
+                ? $t('Preview Offer')
+                : $t('Create New Offer')
+            }}
           </BaseButton>
         </div>
       </template>
+
+      <p v-if="debugSubmitted" class="sell-skins__preview" role="status">
+        {{ $t('Preview complete. No request was sent to the API.') }}
+      </p>
 
       <p
         v-if="errors.general && selectedItems.length"
@@ -181,7 +199,64 @@ import { useModalStore } from '@/stores/modal'
 import { useOfferFlowStore } from '@/stores/offerFlow'
 import { useSettingsStore } from '@/stores/settings'
 
-const props = defineProps({
+const is_debug_sell_items_active = true
+
+const debugInventory = [
+  {
+    short_name: 'stones',
+    amount: 1000,
+    skin: 0,
+    game_name: 'Rock',
+    in_catalog: true,
+    catalog_item: {
+      id: 1,
+      name: 'Rock',
+      price: 0.25,
+      price_internal: 0.25,
+    },
+  },
+  {
+    short_name: 'torch',
+    amount: 10,
+    skin: 0,
+    game_name: 'Torch',
+    in_catalog: true,
+    catalog_item: {
+      id: 2,
+      name: 'Torch',
+      price: 0.5,
+      price_internal: 0.5,
+    },
+  },
+  {
+    short_name: 'spiderweb',
+    amount: 10,
+    skin: 0,
+    game_name: 'Spider webs',
+    in_catalog: true,
+    catalog_item: {
+      id: 3,
+      name: 'Spider webs',
+      price: 0.75,
+      price_internal: 0.75,
+    },
+  },
+  {
+    short_name: 'spider',
+    amount: 100,
+    skin: 0,
+    game_name: 'Spider',
+    in_catalog: true,
+    catalog_item: {
+      id: 4,
+      name: 'Spider',
+      price: 1.25,
+      price_internal: 1.25,
+    },
+  },
+]
+
+defineProps({
   showTitle: {
     type: Boolean,
     default: false,
@@ -191,7 +266,6 @@ const props = defineProps({
 const emit = defineEmits(['success', 'cancel'])
 
 const { t } = useI18n()
-
 const modalStore = useModalStore()
 const offerFlowStore = useOfferFlowStore()
 const currencyStore = useCurrencyStore()
@@ -199,113 +273,73 @@ const settingsStore = useSettingsStore()
 
 const { currentCurrencyCode } = storeToRefs(currencyStore)
 
-const isDebugItemsActive = false
-
-const debugInventory = [
-  {
-    short_name: 'stones',
-    skin: 0,
-    amount: 1000,
-    catalog_item: {
-      name: 'Rock',
-      price: 0.02,
-    },
-  },
-  {
-    short_name: 'torch',
-    skin: 0,
-    amount: 10,
-    catalog_item: {
-      name: 'Torch',
-      price: 0.05,
-    },
-  },
-  {
-    short_name: 'spiderweb',
-    skin: 0,
-    amount: 10,
-    catalog_item: {
-      name: 'Spider webs',
-      price: 0.1,
-    },
-  },
-  {
-    short_name: 'spider',
-    skin: 0,
-    amount: 100,
-    catalog_item: {
-      name: 'Spider',
-      price: 0.15,
-    },
-  },
-]
-
 const inventory = ref([])
 const selectedItems = ref([])
-
 const acceptApproval = ref(false)
 const isLoading = ref(false)
 const isInventoryLoading = ref(false)
+const debugSubmitted = ref(false)
 
 const errors = reactive({
   acceptApproval: '',
   general: '',
 })
 
-const selectedCurrencyRate = computed(() => {
-  return Number(currencyStore.currentCurrency?.value || 1)
+const currencyRate = computed(() => {
+  const rate = Number(currencyStore.currentCurrency?.value)
+  return Number.isFinite(rate) && rate > 0 ? rate : 1
 })
 
-const creditsConversionRate = computed(() => {
-  return Number(settingsStore.creditsConversionRate || 0)
+const creditsRate = computed(() => {
+  const rate = Number(settingsStore.creditsConversionRate)
+  return Number.isFinite(rate) && rate > 0 ? rate : 1
 })
 
-const oneCoinFiatValue = computed(() => {
-  return selectedCurrencyRate.value * creditsConversionRate.value
-})
+const roundMoney = value => Number((Number(value) || 0).toFixed(2))
+
+const getItemKey = item => `${item.short_name}:${item.skin}`
+
+const getItemTotal = item => {
+  return roundMoney(Number(item.unitCredits) * Number(item.quantity))
+}
+
+const getItemFiatTotal = item => {
+  return roundMoney(Number(item.unitFiat) * Number(item.quantity))
+}
 
 const totalPrice = computed(() => {
-  const total = selectedItems.value.reduce((sum, item) => {
-    return sum + getItemTotal(item)
-  }, 0)
-
-  return Number(total.toFixed(2))
+  return roundMoney(
+    selectedItems.value.reduce((sum, item) => {
+      return sum + Number(item.unitCredits) * Number(item.quantity)
+    }, 0),
+  )
 })
 
 const totalFiat = computed(() => {
-  return Number((totalPrice.value * oneCoinFiatValue.value).toFixed(2))
+  return roundMoney(
+    selectedItems.value.reduce((sum, item) => {
+      return sum + Number(item.unitFiat) * Number(item.quantity)
+    }, 0),
+  )
 })
 
 const isFormValid = computed(() => {
-  if (!selectedItems.value.length) return false
-  if (!acceptApproval.value) return false
-  if (totalPrice.value <= 0) return false
-
-  return selectedItems.value.every(item => {
-    const quantity = Number(item.quantity)
-    const price = Number(item.price)
-
-    return (
-      Boolean(item.short_name) &&
-      Number.isInteger(quantity) &&
-      quantity >= 1 &&
-      quantity <= item.available &&
-      Number.isFinite(price) &&
-      price > 0
-    )
-  })
+  return (
+    acceptApproval.value &&
+    selectedItems.value.length > 0 &&
+    totalFiat.value > 0 &&
+    selectedItems.value.every(item => {
+      return (
+        Boolean(item.short_name) &&
+        Number.isInteger(item.quantity) &&
+        item.quantity >= 1 &&
+        item.quantity <= item.available &&
+        Number.isFinite(item.price) &&
+        item.price >= 0.01
+      )
+    })
+  )
 })
-
-const getItemKey = item => {
-  return `${item.short_name}:${item.skin}`
-}
-
-const getItemTotal = item => {
-  const price = Number(item.price) || 0
-  const quantity = Number(item.quantity) || 0
-
-  return Number((price * quantity).toFixed(2))
-}
 
 const normalizeItemTitle = value => {
   return String(value || '')
@@ -318,72 +352,86 @@ const normalizeItemTitle = value => {
 }
 
 const normalizeInventoryItem = item => {
-  const rawName =
-    item.catalog_item?.name ||
-    item.game_name ||
-    item.item?.name ||
-    item.title ||
-    item.short_name ||
-    ''
-
-  const available = Number(item.amount ?? item.available ?? item.count ?? 0)
+  const catalog = item?.catalog_item
+  const availableValue = Number(item?.amount ?? item?.available ?? 0)
+  const unitFiat = Number(catalog?.price)
+  const internalValue = Number(catalog?.price_internal)
+  const unitBasePrice = roundMoney(unitFiat / currencyRate.value)
+  const unitCredits =
+    catalog?.price_internal != null && Number.isFinite(internalValue)
+      ? internalValue
+      : roundMoney(unitBasePrice * creditsRate.value)
 
   return {
-    short_name: item.short_name || item.item?.short_name || '',
-
-    skin: Number(item.skin ?? item.item?.skin ?? 0),
-
-    name: normalizeItemTitle(rawName),
-
-    available: Number.isFinite(available)
-      ? Math.max(0, Math.floor(available))
+    short_name: String(item?.short_name || '').trim(),
+    skin: Number(item?.skin ?? 0),
+    name: normalizeItemTitle(
+      catalog?.name || item?.game_name || item?.short_name,
+    ),
+    available: Number.isFinite(availableValue)
+      ? Math.max(0, Math.floor(availableValue))
       : 0,
-
     quantity: 1,
-
-    price: Number(item.catalog_item?.price ?? item.price ?? 0),
+    unitFiat: Number.isFinite(unitFiat) ? unitFiat : 0,
+    unitCredits: Number.isFinite(unitCredits) ? unitCredits : 0,
+    price: unitBasePrice,
+    inCatalog: item?.in_catalog === true || Boolean(catalog),
   }
 }
 
-const clearErrors = () => {
-  errors.acceptApproval = ''
-  errors.general = ''
-}
-
-const updateQuantity = (item, value) => {
-  const quantity = Number.parseInt(value, 10)
-
-  if (!Number.isFinite(quantity)) return
-
-  item.quantity = Math.max(1, Math.min(quantity, item.available))
-
-  errors.general = ''
+const setInventory = source => {
+  const previous = new Map(
+    selectedItems.value.map(item => [getItemKey(item), item.quantity]),
+  )
+  inventory.value = source
+  selectedItems.value = source
+    .map(normalizeInventoryItem)
+    .filter(item => {
+      return (
+        item.inCatalog &&
+        item.short_name &&
+        item.available > 0 &&
+        item.price >= 0.01
+      )
+    })
+    .map(item => ({
+      ...item,
+      quantity: Math.max(
+        1,
+        Math.min(previous.get(getItemKey(item)) || 1, item.available),
+      ),
+    }))
 }
 
 const fetchInventory = async () => {
+  if (isInventoryLoading.value) return
+
   isInventoryLoading.value = true
   errors.general = ''
+  debugSubmitted.value = false
 
   try {
-    if (isDebugItemsActive) {
-      inventory.value = debugInventory
-    } else {
-      const { data } = await axios.get('/user/inventory')
-
-      if (data?.status !== 'OK') {
-        throw new Error(data?.message || t('Failed to load inventory'))
-      }
-
-      inventory.value = Array.isArray(data?.payload) ? data.payload : []
+    if (is_debug_sell_items_active) {
+      setInventory(debugInventory)
+      return
     }
 
-    selectedItems.value = inventory.value
-      .map(normalizeInventoryItem)
-      .filter(item => item.available > 0)
+    const { data } = await axios.get('/user/inventory')
+
+    if (data?.status !== 'OK') {
+      throw new Error(data?.message || t('Failed to load inventory'))
+    }
+
+    const payload = Array.isArray(data?.payload)
+      ? data.payload
+      : Array.isArray(data?.payload?.data)
+        ? data.payload.data
+        : []
+
+    setInventory(payload)
   } catch (error) {
     inventory.value = []
     selectedItems.value = []
-
     errors.general =
       error?.response?.data?.message ||
       error?.message ||
@@ -391,6 +439,20 @@ const fetchInventory = async () => {
   } finally {
     isInventoryLoading.value = false
   }
+}
+
+const updateQuantity = (item, value) => {
+  const quantity = Number.parseInt(value, 10)
+  if (!Number.isFinite(quantity)) return
+
+  item.quantity = Math.max(1, Math.min(quantity, item.available))
+  errors.general = ''
+  debugSubmitted.value = false
+}
+
+const clearErrors = () => {
+  errors.acceptApproval = ''
+  errors.general = ''
 }
 
 const validate = () => {
@@ -415,26 +477,26 @@ const validate = () => {
 }
 
 const submit = async () => {
-  if (isLoading.value || isInventoryLoading.value) {
+  if (isLoading.value || isInventoryLoading.value || !validate()) return false
+
+  if (is_debug_sell_items_active) {
+    debugSubmitted.value = true
     return false
   }
 
-  if (!validate()) return false
+  isLoading.value = true
 
   try {
-    isLoading.value = true
-
     const result = await offerFlowStore.createSellOrder({
       items: selectedItems.value.map(item => ({
         short_name: item.short_name,
-        quantity: Number(item.quantity),
-        price: Number(item.price),
+        quantity: item.quantity,
+        price: item.price,
       })),
     })
 
     if (!result?.success) {
       const validationErrors = result?.validationErrors
-
       const firstValidationError =
         validationErrors && typeof validationErrors === 'object'
           ? Object.values(validationErrors).flat().find(Boolean)
@@ -444,25 +506,19 @@ const submit = async () => {
         firstValidationError ||
         result?.error ||
         t('Failed to create sell request')
-
       return false
     }
 
     acceptApproval.value = false
-
     await fetchInventory()
-
     emit('success', result)
-
     modalStore.open('sellConfirmation')
-
     return true
   } catch (error) {
     errors.general =
       error?.response?.data?.message ||
       error?.message ||
       t('Failed to create sell request')
-
     return false
   } finally {
     isLoading.value = false
@@ -471,11 +527,17 @@ const submit = async () => {
 
 const reset = () => {
   acceptApproval.value = false
+  debugSubmitted.value = false
   clearErrors()
-
   selectedItems.value = inventory.value
     .map(normalizeInventoryItem)
-    .filter(item => item.available > 0)
+    .filter(
+      item =>
+        item.inCatalog &&
+        item.short_name &&
+        item.available > 0 &&
+        item.price >= 0.01,
+    )
 }
 
 const cancel = () => {
@@ -483,10 +545,9 @@ const cancel = () => {
   emit('cancel')
 }
 
-watch(acceptApproval, value => {
-  if (value) {
-    errors.acceptApproval = ''
-  }
+watch(acceptApproval, accepted => {
+  if (accepted) errors.acceptApproval = ''
+  debugSubmitted.value = false
 })
 
 onMounted(async () => {
@@ -522,6 +583,28 @@ defineExpose({
   &__form {
     width: 100%;
     min-width: 0;
+  }
+
+  &__debug,
+  &__preview {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
+    background-color: var(--bg-fourth-color);
+    color: var(--hint-primary-color);
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &__debug {
+    margin-bottom: 14px;
+  }
+
+  &__preview {
+    margin-top: 14px;
+    text-align: center;
   }
 
   &__title {

@@ -988,7 +988,7 @@ onMounted(() => {
     display: grid;
     gap: 12px;
 
-    @include adaptiveValue('margin-bottom', 54, 30);
+    @include adaptiveValue('margin-bottom', 84, 30);
   }
 
   &__total-row {
