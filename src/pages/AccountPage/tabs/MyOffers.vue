@@ -1,64 +1,64 @@
 <template>
   <div class="offers">
     <ProfileTableLayout
-      show-skin-name
-      show-id-column
-      show-quantity
-      show-action
-      show-items-per-page
       :rows="paginatedRows"
       :is-loading="isLoading"
       :empty-text="$t('No offers found')"
-      :loading-text="`${$t('Loading')}...`"
-      total-label="Price"
-      :total-as-currency="false"
       :total-pages="totalPages"
       :current-page="currentPage"
-      :items-per-page="itemsPerPage"
-      :per-page-options="PER_PAGE_OPTIONS"
       :expanded-row-key="openedDetailsKey"
+      row-key="_key"
+      total-label="Total Price"
+      show-id-column
+      show-skin-name
+      show-quantity
+      show-action
+      :show-order-image="false"
+      :total-as-currency="true"
       @update:current-page="onPageChange"
-      @update:items-per-page="onItemsPerPageChange"
     >
-      <template #expanded="{ row }">
-        <OfferDetailsInline
-          :row="row"
-          :offer="selectedOffer"
-          :is-loading="isDetailsLoading && openedDetailsKey === row._key"
-          :is-submitting="isSubmitting"
-          @accept="handleOfferAccept"
-          @decline="handleOfferDecline"
-        />
-      </template>
-
       <template #action="{ row }">
         <BaseButton
           v-if="row.statusKey === 'counter_offer'"
-          class="offers__button offers__button_offer"
+          class="offers__button"
           variant="primary"
+          :disabled="isSubmitting"
+          :aria-expanded="openedDetailsKey === row._key"
           @click="toggleDetails(row)"
         >
           {{ $t('Offer') }}
 
           <SvgIcon
+            :icon="ChevronDownIcon"
             class="offers__button-icon"
             :class="{
               'is-open': openedDetailsKey === row._key,
             }"
-            :icon="ChevronDownIcon"
           />
         </BaseButton>
 
         <BaseButton
           v-else-if="row.statusKey === 'ready_for_payout'"
-          class="offers__button offers__button_payout"
+          class="offers__button"
           variant="primary"
+          :disabled="isSubmitting"
           @click="openPayout(row)"
         >
           {{ $t('Payout') }}
-
-          <SvgIcon class="offers__button-icon" :icon="ChevronDownIcon" />
         </BaseButton>
+
+        <span v-else class="offers__action-empty" aria-hidden="true"> — </span>
+      </template>
+
+      <template #expanded="{ row }">
+        <OfferDetailsInline
+          :row="row"
+          :offer="openedDetailsKey === row._key ? selectedOffer : null"
+          :is-loading="isDetailsLoading && openedDetailsKey === row._key"
+          :is-submitting="isSubmitting"
+          @accept="handleOfferAccept"
+          @decline="handleOfferDecline"
+        />
       </template>
     </ProfileTableLayout>
 
@@ -79,202 +79,159 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+
+import BaseButton from '@/components/base/BaseButton.vue'
+import OfferDetailsInline from '@/pages/AccountPage/components/OfferDetailsInline.vue'
+import ProfileTableLayout from '@/pages/AccountPage/components/ProfileTableLayout.vue'
+
+import ContactInfoModal from '@/components/modals/sellSkins/ContactInfoModal.vue'
+import PaymentModal from '@/components/modals/sellSkins/PaymentModal.vue'
+
+import { ChevronDownIcon } from '@/components/icons'
+import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 import { useToast } from '@/composables/useToast'
 import { useModalStore } from '@/stores/modal'
 import { useOfferFlowStore } from '@/stores/offerFlow'
 import { useSettingsStore } from '@/stores/settings'
 
-import BaseButton from '@/components/base/BaseButton.vue'
-
-import ContactInfoModal from '@/components/modals/sellSkins/ContactInfoModal.vue'
-import PaymentModal from '@/components/modals/sellSkins/PaymentModal.vue'
-
-import {
-  ChevronDownIcon,
-  ErrorIcon,
-  PendingIcon,
-  SuccessIcon,
-} from '@/components/icons'
-
-import SvgIcon from '@/components/icons/SvgIcon.vue'
-
-import OfferDetailsInline from '@/pages/AccountPage/components/OfferDetailsInline.vue'
-import ProfileTableLayout from '@/pages/AccountPage/components/ProfileTableLayout.vue'
-
-const PER_PAGE_OPTIONS = [6, 12, 18]
+const PAGE_SIZE = 10
 
 const { t } = useI18n()
-const route = useRoute()
 const toast = useToast()
 
 const offerFlowStore = useOfferFlowStore()
-
 const modalStore = useModalStore()
-
 const settingsStore = useSettingsStore()
 
 const isLoading = ref(true)
-
 const isDetailsLoading = ref(false)
-
 const isSubmitting = ref(false)
 
-const isSellFormVisible = ref(false)
-
-const sellSkinFormRef = ref(null)
-
+const currentPage = ref(1)
 const openedDetailsKey = ref(null)
 
-const currentPage = ref(1)
-
-const itemsPerPage = ref(5)
-
 const isOfferEnabled = computed(() => {
-  const value = settingsStore?.settings?.offer_enabled
+  const enabled = settingsStore.settings?.offer_enabled
 
-  return value === undefined ? true : !!value
+  return enabled === undefined ? true : Boolean(enabled)
 })
 
 const offersList = computed(() => {
-  return offerFlowStore.getOffers || []
+  return Array.isArray(offerFlowStore.getOffers) ? offerFlowStore.getOffers : []
 })
 
 const selectedOffer = computed(() => {
-  return offerFlowStore.getSelectedOffer
+  return offerFlowStore.getSelectedOffer || null
 })
 
-const UI_STATUS = {
+const statusLabels = {
   pending: 'Pending',
-  counter_offer: 'Offer',
-  offer: 'Offer',
-  awaiting_item: 'Awaiting Item',
-  ready_for_payout: 'Ready for Payout',
-  payout_processing: 'Payout Processing',
   approved: 'Approved',
-  completed: 'Completed',
   rejected: 'Rejected',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  canceled: 'Cancelled',
+  counter_offer: 'Offer',
   user_declined: 'Declined',
   declined_by_user: 'Declined',
   declined_by_service: 'Declined',
+  awaiting_item: 'Awaiting Item',
+  ready_for_payout: 'Ready for Payout',
+  payout_processing: 'Payout Processing',
 }
 
-const normalizeStatusKey = raw => {
-  const value = String(raw || '')
+const normalizeStatus = value => {
+  const status = String(value ?? '')
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/-/g, '_')
+    .replace(/[\s-]+/g, '_')
 
-  if (!value) {
-    return 'pending'
+  if (status === 'counteroffer') {
+    return 'counter_offer'
   }
 
-  if (value === 'declined') {
+  if (status === 'offer') {
+    return 'counter_offer'
+  }
+
+  if (status === 'declined') {
     return 'user_declined'
   }
 
-  if (value === 'counteroffer') {
-    return 'counter_offer'
-  }
-
-  if (value === 'counter_offer') {
-    return 'counter_offer'
-  }
-
-  return value
+  return status || 'pending'
 }
 
-const normalizeOfferStatus = statusKey => {
-  return UI_STATUS[statusKey] || statusKey || UI_STATUS.pending
+const getStatusLabel = status => {
+  const label = statusLabels[status]
+
+  if (label) return t(label)
+
+  return status
+    .split('_')
+    .filter(Boolean)
+    .map(part => {
+      return part.charAt(0).toUpperCase() + part.slice(1)
+    })
+    .join(' ')
 }
 
-const statusClassByKey = statusKey => {
-  const value = String(statusKey || '')
-    .toLowerCase()
-    .trim()
+const toTimestamp = value => {
+  if (!value) return 0
 
-  if (
-    value === 'approved' ||
-    value === 'completed' ||
-    value === 'ready_for_payout'
-  ) {
-    return 'is-success'
+  const numeric = Number(value)
+
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return numeric < 10_000_000_000 ? numeric * 1000 : numeric
   }
 
-  if (value.includes('declined') || value === 'rejected') {
-    return 'is-danger'
-  }
+  const parsed = new Date(value).getTime()
 
-  return 'is-warn'
-}
-
-const statusIcon = statusKey => {
-  const value = String(statusKey || '')
-    .toLowerCase()
-    .trim()
-
-  if (
-    value === 'approved' ||
-    value === 'completed' ||
-    value === 'ready_for_payout'
-  ) {
-    return SuccessIcon
-  }
-
-  if (value.includes('declined') || value === 'rejected') {
-    return ErrorIcon
-  }
-
-  return PendingIcon
-}
-
-const toMs = value => {
-  const number = Number(value ?? 0)
-
-  if (!number) {
-    return 0
-  }
-
-  return number < 10_000_000_000 ? number * 1000 : number
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 const mapOffer = (offer, index) => {
-  const statusKey = normalizeStatusKey(offer.status)
+  const statusKey = normalizeStatus(offer.status)
+
+  const items = Array.isArray(offer.items) ? offer.items : []
+
+  const hasCounterOffer =
+    offer.counter_offer_amount !== null &&
+    offer.counter_offer_amount !== undefined
+
+  const amount = hasCounterOffer
+    ? offer.counter_offer_amount
+    : offer.total_amount
+
+  const numericAmount = Number(amount)
 
   return {
     _key: `offer-${offer.id ?? index}`,
 
-    id: String(offer.id ?? '—'),
+    id: offer.id ?? '—',
 
-    createdAt: toMs(offer.created_at),
+    createdAt: toTimestamp(offer.created_at),
 
-    skinItems: (offer.items || []).map(item => ({
+    skinItems: items.map(item => ({
       title: item.short_name || '—',
-
       image: '',
-
-      quality: '',
+      quantity: Number(item.quantity) || 0,
+      price: Number(item.price) || 0,
     })),
 
-    quantity: (offer.items || []).reduce(
-      (sum, item) => sum + Number(item.quantity || 0),
-      0,
-    ),
+    quantity: items.reduce((sum, item) => {
+      return sum + (Number(item.quantity) || 0)
+    }, 0),
 
-    total: Number(offer.counter_offer_amount ?? offer.total_amount ?? 0),
+    total: Number.isFinite(numericAmount) ? numericAmount : null,
 
-    currency: offer.currency ?? 'EUR',
+    currency: offer.currency || 'EUR',
+    currencyCode: offer.currency || 'EUR',
 
-    status: normalizeOfferStatus(statusKey),
-
+    status: getStatusLabel(statusKey),
     statusKey,
-
-    statusClass: statusClassByKey(statusKey),
-
-    statusIcon: statusIcon(statusKey),
 
     _source: offer,
   }
@@ -287,122 +244,76 @@ const allRows = computed(() => {
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(allRows.value.length / itemsPerPage.value) || 1
+  return Math.max(1, Math.ceil(allRows.value.length / PAGE_SIZE))
 })
 
 const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
+  const start = (currentPage.value - 1) * PAGE_SIZE
 
-  const end = start + itemsPerPage.value
-
-  return allRows.value.slice(start, end)
+  return allRows.value.slice(start, start + PAGE_SIZE)
 })
 
-const getHeaderHeight = () => {
-  const header = document.querySelector('.header')
-
-  return header?.offsetHeight || 0
+const getTableTop = () => {
+  return document.querySelector('.profile__offers-history')
 }
 
-const scrollToProfileContentTop = async () => {
+const scrollToOffers = async () => {
   await nextTick()
 
-  const profileContent = document.querySelector('.profile__content')
+  const element = getTableTop()
 
-  if (!profileContent) {
-    return
-  }
+  if (!element) return
 
-  const headerHeight = getHeaderHeight()
+  const header = document.querySelector('.header')
+
+  const headerHeight = header?.offsetHeight || 0
 
   const top =
-    profileContent.getBoundingClientRect().top +
-    window.scrollY -
-    headerHeight -
-    10
+    element.getBoundingClientRect().top + window.scrollY - headerHeight - 12
 
   window.scrollTo({
-    top,
+    top: Math.max(0, top),
     behavior: 'smooth',
   })
 }
 
-const focusSellFormTitle = async () => {
-  await nextTick()
+const setSelectedOffer = row => {
+  const offer = row._source || row
 
-  sellSkinFormRef.value?.focusTitle?.()
-}
-
-const showSellForm = async () => {
-  if (!isOfferEnabled.value) {
-    return
+  if (typeof offerFlowStore.setSelectedOffer === 'function') {
+    offerFlowStore.setSelectedOffer(offer)
+  } else {
+    offerFlowStore.selectedOffer = offer
   }
-
-  openedDetailsKey.value = null
-
-  isSellFormVisible.value = true
-
-  await scrollToProfileContentTop()
-
-  await focusSellFormTitle()
-}
-
-const hideSellForm = () => {
-  sellSkinFormRef.value?.reset?.()
-
-  isSellFormVisible.value = false
-}
-
-const submitSellForm = async () => {
-  if (!sellSkinFormRef.value?.submit) {
-    return
-  }
-
-  try {
-    await sellSkinFormRef.value.submit()
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const setSelectedOfferSafe = row => {
-  const payload = row._source || row
-
-  if (offerFlowStore.setSelectedOffer) {
-    offerFlowStore.setSelectedOffer(payload)
-
-    return
-  }
-
-  offerFlowStore.selectedOffer = payload
 }
 
 const toggleDetails = async row => {
-  isSellFormVisible.value = false
+  if (isSubmitting.value) return
 
   if (openedDetailsKey.value === row._key) {
     openedDetailsKey.value = null
-
     return
   }
 
   openedDetailsKey.value = row._key
-
-  setSelectedOfferSafe(row)
+  setSelectedOffer(row)
 
   const offerId = row._source?.id
 
-  if (!offerId || !offerFlowStore.fetchOfferDetails) {
+  if (offerId === null || offerId === undefined) {
     return
   }
 
   isDetailsLoading.value = true
 
   try {
-    await offerFlowStore.fetchOfferDetails(offerId)
-  } catch (error) {
-    console.error('Failed to fetch offer details:', error)
+    const result = await offerFlowStore.fetchOfferDetails(offerId)
 
+    if (!result) {
+      toast.error(t('Failed to fetch offer details'))
+    }
+  } catch (error) {
+    console.error(error)
     toast.error(t('Failed to fetch offer details'))
   } finally {
     isDetailsLoading.value = false
@@ -410,201 +321,208 @@ const toggleDetails = async row => {
 }
 
 const openPayout = row => {
-  isSellFormVisible.value = false
+  if (isSubmitting.value) return
 
-  setSelectedOfferSafe(row)
+  openedDetailsKey.value = null
+
+  setSelectedOffer(row)
 
   modalStore.open('contactInfo')
 }
 
-const handleOfferAccept = async () => {
-  if (!selectedOffer.value?.id) {
-    return
+const refreshOffers = async () => {
+  const result = await offerFlowStore.fetchOffers()
+
+  if (result?.success === false) {
+    throw new Error(result.error || 'Failed to fetch offers')
   }
+}
+
+const handleOfferAccept = async () => {
+  const offerId = selectedOffer.value?.id
+
+  if (!offerId || isSubmitting.value) return
 
   isSubmitting.value = true
 
   try {
-    const success = await offerFlowStore.acceptOffer(selectedOffer.value.id)
+    const success = await offerFlowStore.acceptOffer(offerId)
 
-    if (success) {
-      toast.success(
-        t('Offer accepted! Please provide your details for payout.'),
-      )
+    if (!success) return
 
-      openedDetailsKey.value = null
+    openedDetailsKey.value = null
 
-      await offerFlowStore.fetchOffers()
-    }
+    toast.success(t('Offer accepted! Please provide your details for payout.'))
+
+    await refreshOffers()
+  } catch (error) {
+    console.error(error)
+    toast.error(t('Failed to accept offer'))
   } finally {
     isSubmitting.value = false
   }
 }
 
 const handleOfferDecline = async () => {
-  if (!selectedOffer.value?.id) {
-    return
-  }
+  const offerId = selectedOffer.value?.id
+
+  if (!offerId || isSubmitting.value) return
 
   isSubmitting.value = true
 
   try {
-    const success = await offerFlowStore.declineOffer(selectedOffer.value.id)
+    const success = await offerFlowStore.declineOffer(offerId)
 
-    if (success) {
-      toast.success(t('Offer declined successfully'))
+    if (!success) return
 
-      openedDetailsKey.value = null
+    openedDetailsKey.value = null
 
-      await offerFlowStore.fetchOffers()
-    }
+    toast.success(t('Offer declined successfully'))
+
+    await refreshOffers()
+  } catch (error) {
+    console.error(error)
+    toast.error(t('Failed to decline offer'))
   } finally {
     isSubmitting.value = false
   }
 }
 
-const onPageChange = page => {
-  currentPage.value = Number(page)
+const onPageChange = async page => {
+  const nextPage = Number(page)
 
-  openedDetailsKey.value = null
-
-  isSellFormVisible.value = false
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  })
-}
-
-const onItemsPerPageChange = value => {
-  itemsPerPage.value = Number(value)
-
-  currentPage.value = 1
-
-  openedDetailsKey.value = null
-
-  isSellFormVisible.value = false
-}
-
-const openSellFormFromRoute = async () => {
-  if (route.query.sell !== '1') {
+  if (
+    !Number.isInteger(nextPage) ||
+    nextPage < 1 ||
+    nextPage > totalPages.value
+  ) {
     return
   }
 
-  await showSellForm()
+  currentPage.value = nextPage
+  openedDetailsKey.value = null
+
+  await scrollToOffers()
 }
 
-onMounted(async () => {
-  try {
-    await offerFlowStore.fetchOffers()
+watch(offersList, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value
+  }
 
-    await openSellFormFromRoute()
+  if (
+    openedDetailsKey.value &&
+    !allRows.value.some(row => row._key === openedDetailsKey.value)
+  ) {
+    openedDetailsKey.value = null
+  }
+})
+
+onMounted(async () => {
+  isLoading.value = true
+
+  try {
+    await refreshOffers()
   } catch (error) {
     console.error(error)
-
     toast.error(t('Failed to fetch offers'))
   } finally {
     isLoading.value = false
   }
 })
-
-watch(
-  () => route.query.sell,
-  async value => {
-    if (value === '1') {
-      await showSellForm()
-    }
-  },
-)
-
-watch(offersList, () => {
-  currentPage.value = 1
-
-  openedDetailsKey.value = null
-})
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
 .offers {
-  &__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 20px;
-
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 28, 15);
-    }
-  }
-
-  &__title {
-    flex: 0 1 50%;
-
-    font-weight: 700;
-
-    @include adaptiveValue('padding-top', 10, 4);
-
-    @include adaptiveValue('padding-bottom', 23, 10);
-
-    border-bottom: 2px solid var(--bg-secondary-color);
-  }
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-
-    flex: 0 1 50%;
-
-    @include adaptiveValue('gap', 14, 4);
-  }
-
-  &__action {
-    position: relative;
-
-    z-index: 1;
-
-    width: 100%;
-    max-width: 142px;
-
-    min-height: 39px;
-
-    &_show {
-      max-width: 209px;
-    }
-  }
-
-  &__form {
-    @include adaptiveValue('padding-bottom', 44, 20);
-
-    @include adaptiveValue('margin-bottom', 44, 20);
-
-    border-bottom: 2px solid var(--border-color);
-  }
+  width: 100%;
+  min-width: 0;
 
   &__button {
-    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    z-index: 1;
+    flex: 0 1 auto;
 
-    padding: 4px 10px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
 
-    @include adaptiveValue('min-height', 44, 40);
+    @include adaptiveValue('min-height', 32, 30);
+
+    padding: 6px 9px;
+
+    border-radius: 5px;
+
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    gap: 6px;
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--primary-color);
+      }
+    }
   }
 
   &__button-icon {
+    width: 11px;
     min-width: 11px;
-    height: 7px;
+    height: 11px;
 
     transition: transform 0.3s ease;
 
     &.is-open {
       transform: rotate(180deg);
     }
+  }
+
+  &__action-empty {
+    display: inline-block;
+
+    color: var(--hint-third-color);
+
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  :deep(.profile-layout__td_action) {
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  :deep(.profile-layout__action) {
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: $md4) {
+    &__button {
+      min-height: 32px;
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__button {
+      padding: 7px 11px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offers__button-icon {
+    transition: none;
   }
 }
 </style>

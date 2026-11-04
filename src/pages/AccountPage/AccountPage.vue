@@ -1,15 +1,15 @@
 <template>
   <main class="profile">
-    <div class="profile__background _ibg">
-      <img src="@/assets/img/products-bg.png" />
+    <div class="profile__background _ibg" aria-hidden="true">
+      <img src="@/assets/img/products-bg.png" alt="" />
     </div>
 
     <div class="profile__inner _cnt-home">
       <h1 class="profile__title _h2">
-        {{ $t('Profile') }}
+        {{ isOffersPage ? $t('Sell Items') : $t('Profile') }}
       </h1>
 
-      <template v-if="route.name === 'account-balance'">
+      <template v-if="isBalancePage">
         <div class="profile__overview">
           <section class="profile__account">
             <div class="profile__avatar">
@@ -46,30 +46,33 @@
             </div>
 
             <div class="profile__account-status">
-              <div class="profile__status-heading">
-                {{ $t('Account status:') }}
-              </div>
-
-              <div
-                class="profile__status"
-                :class="{
-                  'profile__status--connected': authStore.isAuthenticated,
-                }"
-              >
-                <span class="profile__status-dot" aria-hidden="true" />
-
-                <span>
-                  {{
-                    authStore.isAuthenticated
-                      ? $t('Connected')
-                      : $t('Disconnected')
-                  }}
+              <div class="profile__status-info">
+                <span class="profile__label">
+                  {{ $t('Account status:') }}
                 </span>
+
+                <div
+                  class="profile__status"
+                  :class="{
+                    'is-connected': authStore.isAuthenticated,
+                  }"
+                >
+                  <span class="profile__status-dot" aria-hidden="true" />
+
+                  <span>
+                    {{
+                      authStore.isAuthenticated
+                        ? $t('Connected')
+                        : $t('Disconnected')
+                    }}
+                  </span>
+                </div>
               </div>
 
               <BaseButton
-                variant="bordered"
                 class="profile__logout"
+                variant="bordered"
+                :disabled="isLoggingOut"
                 @click="handleLogout"
               >
                 <SvgIcon :icon="LogoutIcon" class="profile__logout-icon" />
@@ -80,12 +83,8 @@
           </section>
 
           <section class="profile__wallet">
-            <div class="profile__wallet-content">
+            <div class="profile__wallet-inner">
               <MyBalance />
-            </div>
-
-            <div class="profile__topup-heading">
-              {{ $t('Top up') }}
             </div>
           </section>
         </div>
@@ -93,7 +92,7 @@
         <div class="profile__histories">
           <section class="profile__history">
             <h2 class="profile__section-title">
-              {{ $t('Purchase history') }}
+              {{ $t('Purchase History') }}
             </h2>
 
             <div class="profile__table">
@@ -103,7 +102,7 @@
 
           <section class="profile__history">
             <h2 class="profile__section-title">
-              {{ $t('Payment history') }}
+              {{ $t('Payment History') }}
             </h2>
 
             <div class="profile__table">
@@ -113,74 +112,89 @@
         </div>
       </template>
 
-      <template
-        v-else-if="
-          route.name === 'account-offers' && settingsStore.payoutEnabled
-        "
-      >
-        <div class="profile__offers">
-          <section class="profile__offers-overview">
-            <div class="profile__offers-create">
-              <h2 class="profile__section-title">
-                {{ $t('Sell Item') }}
-              </h2>
-
-              <BaseButton
-                variant="primary"
-                class="profile__create"
-                @click="openSellSkinModal"
-              >
-                <SvgIcon :icon="PlusIcon" class="profile__create-icon" />
-
-                {{ $t('Create new offer') }}
-              </BaseButton>
-            </div>
-
-            <div class="profile__withdraw">
+      <template v-else-if="isOffersPage">
+        <div v-if="settingsStore.payoutEnabled" class="profile__sell-layout">
+          <div class="profile__sell-left">
+            <section class="profile__withdraw">
               <MyWithdraw />
-            </div>
-          </section>
+            </section>
 
-          <section class="profile__offers-history">
+            <section class="profile__sell-panel">
+              <button
+                type="button"
+                class="profile__sell-toggle"
+                :aria-expanded="isSellItemsExpanded"
+                aria-controls="profile-sell-content"
+                @click="toggleSellItems"
+              >
+                <span class="profile__sell-toggle-title">
+                  {{ $t('Sell Items') }}
+                </span>
+
+                <SvgIcon
+                  :icon="ChevronDownIcon"
+                  class="profile__sell-chevron"
+                  :class="{
+                    'is-open': isSellItemsExpanded,
+                  }"
+                />
+              </button>
+
+              <div
+                id="profile-sell-content"
+                v-show="isSellItemsExpanded"
+                class="profile__sell-content"
+              >
+                <SellSkinFrom
+                  :show-title="false"
+                  @success="handleSellSuccess"
+                  @cancel="closeSellItems"
+                />
+              </div>
+            </section>
+          </div>
+
+          <section class="profile__sell-right">
             <h2 class="profile__section-title">
               {{ $t('Sell Offers') }}
             </h2>
 
             <div class="profile__table">
-              <MyOffers />
+              <MyOffers :key="offersRefreshKey" />
             </div>
           </section>
+        </div>
+
+        <div v-else class="profile__unavailable">
+          {{ $t('Selling is currently unavailable') }}
         </div>
       </template>
     </div>
   </main>
-
-  <SellSkinsModal
-    v-if="isSellSkinModalOpen"
-    v-model="isSellSkinModalOpen"
-    @close="closeSellSkinModal"
-  />
 </template>
 
 <script setup>
 import { storeToRefs } from 'pinia'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
 import BaseButton from '@/components/base/BaseButton.vue'
-import { LogoutIcon, PlusIcon, UserIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
 
-import SellSkinsModal from '@/components/modals/sellSkins/SellSkinModal/SellSkinsModal.vue'
+import { ChevronDownIcon, LogoutIcon, UserIcon } from '@/components/icons'
+
+import SellSkinFrom from '@/components/modals/sellSkins/SellSkinModal/SellSkinFrom.vue'
 
 import MyBalance from '@/pages/AccountPage/components/MyBalance.vue'
 import MyWithdraw from '@/pages/AccountPage/components/MyWithdraw.vue'
+
 import MyOffers from '@/pages/AccountPage/tabs/MyOffers.vue'
 import OrderHistory from '@/pages/AccountPage/tabs/OrderHistory.vue'
 import PaymentHistory from '@/pages/AccountPage/tabs/PaymentHistory.vue'
 
 import { useToast } from '@/composables/useToast'
+
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
@@ -197,17 +211,35 @@ const userStore = useUserStore()
 
 const { name, steamID, avatar } = storeToRefs(userStore)
 
-const isSellSkinModalOpen = ref(false)
+const isLoggingOut = ref(false)
+const isSellItemsExpanded = ref(true)
+const offersRefreshKey = ref(0)
 
-const openSellSkinModal = () => {
-  isSellSkinModalOpen.value = true
+const isBalancePage = computed(() => {
+  return route.name === 'account-balance'
+})
+
+const isOffersPage = computed(() => {
+  return route.name === 'account-offers'
+})
+
+const toggleSellItems = () => {
+  isSellItemsExpanded.value = !isSellItemsExpanded.value
 }
 
-const closeSellSkinModal = () => {
-  isSellSkinModalOpen.value = false
+const closeSellItems = () => {
+  isSellItemsExpanded.value = false
+}
+
+const handleSellSuccess = () => {
+  offersRefreshKey.value += 1
 }
 
 const handleLogout = async () => {
+  if (isLoggingOut.value) return
+
+  isLoggingOut.value = true
+
   try {
     await authStore.logout()
 
@@ -217,6 +249,8 @@ const handleLogout = async () => {
   } catch (error) {
     console.error(error)
     toast.error(t('Failed to logout'))
+  } finally {
+    isLoggingOut.value = false
   }
 }
 
@@ -238,30 +272,49 @@ onMounted(async () => {
 
 .profile {
   position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
 
   width: 100%;
   min-width: 0;
+  min-height: 80vh;
 
   @include adaptiveValue('padding-top', 114, 80);
-  @include adaptiveValue('padding-bottom', 70, 30);
+  @include adaptiveValue('padding-bottom', 80, 35);
 
   &__background {
     position: absolute;
+    z-index: -1;
+    inset: 0;
+
     width: 100%;
     height: 100%;
-    top: 0;
-    left: 0;
 
     pointer-events: none;
+
+    img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+      object-position: center top;
+    }
   }
 
   &__inner {
     position: relative;
+
     width: 100%;
     min-width: 0;
   }
 
   &__title {
+    margin: 0;
+
     color: var(--primary-color);
     text-transform: uppercase;
 
@@ -275,6 +328,9 @@ onMounted(async () => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
 
+    width: 100%;
+    min-width: 0;
+
     @include adaptiveValue('gap', 20, 12);
 
     &:not(:last-child) {
@@ -283,19 +339,24 @@ onMounted(async () => {
   }
 
   &__account,
-  &__wallet {
-    position: relative;
+  &__wallet,
+  &__withdraw,
+  &__sell-panel {
     min-width: 0;
 
     border: 1px solid var(--border-primary-color);
     border-radius: 6px;
 
-    background-color: rgba(246, 241, 238, 0.55);
+    background-color: rgba(246, 241, 238, 0.65);
   }
 
   &__account {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(150px, 0.8fr);
+    grid-template-columns:
+      auto
+      minmax(0, 1fr)
+      minmax(140px, 0.8fr);
+
     align-items: center;
 
     @include adaptiveValue('gap', 18, 12);
@@ -346,14 +407,12 @@ onMounted(async () => {
     flex-wrap: wrap;
 
     min-width: 0;
-    gap: 8px 12px;
+    gap: 6px 12px;
   }
 
-  &__label,
-  &__status-heading {
-    flex-shrink: 0;
-
+  &__label {
     color: var(--hint-third-color);
+
     font-family: var(--font-inter);
     font-size: 11px;
     font-weight: 400;
@@ -366,6 +425,7 @@ onMounted(async () => {
     min-width: 0;
 
     color: var(--primary-color);
+
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 500;
@@ -387,32 +447,35 @@ onMounted(async () => {
     min-width: 0;
     height: 100%;
 
+    gap: 14px;
     padding-left: 20px;
 
     border-left: 1px solid var(--border-primary-color);
   }
 
-  &__status-heading {
-    &:not(:last-child) {
-      margin-bottom: 12px;
-    }
+  &__status-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    min-width: 0;
+    gap: 10px;
   }
 
   &__status {
     display: inline-flex;
     align-items: center;
+
     gap: 6px;
 
     color: var(--hint-third-color);
+
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.3;
 
-    &:not(:last-child) {
-      margin-bottom: 15px;
-    }
-
-    &--connected {
+    &.is-connected {
       color: var(--hint-primary-color);
 
       .profile__status-dot {
@@ -425,22 +488,31 @@ onMounted(async () => {
     display: block;
 
     width: 6px;
+    min-width: 6px;
     height: 6px;
-
-    flex-shrink: 0;
 
     border-radius: 50%;
     background-color: var(--hint-third-color);
   }
 
   &__logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
     width: fit-content;
-    min-height: 28px !important;
-    padding: 5px 10px;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 30px;
+
+    gap: 7px;
+    padding: 6px 10px;
 
     font-family: var(--font-inter);
     font-size: 11px;
     font-weight: 500;
+    line-height: 1.2;
+
     text-transform: none;
   }
 
@@ -452,60 +524,43 @@ onMounted(async () => {
 
   &__wallet {
     display: flex;
-    align-items: stretch;
+    align-items: center;
 
-    @include adaptiveValue('padding', 16, 12);
+    width: 100%;
+
+    @include adaptiveValue('padding', 18, 12);
   }
 
-  &__wallet-content {
+  &__wallet-inner {
     width: 100%;
     min-width: 0;
-  }
-
-  &__topup-heading {
-    position: absolute;
-    top: 18px;
-    left: 44%;
-
-    color: var(--primary-color);
-
-    font-family: var(--font-akshar);
-    font-size: 21px;
-    font-weight: 700;
-    line-height: 1;
-    text-transform: uppercase;
-
-    pointer-events: none;
   }
 
   &__wallet {
     :deep(.balance) {
       display: grid;
-      grid-template-columns: minmax(0, 40%) minmax(0, 60%);
-      grid-template-rows: auto 1fr;
+      grid-template-columns:
+        minmax(0, 40%)
+        minmax(0, 60%);
+      grid-template-rows: auto auto auto;
 
       align-items: center;
+      gap: 8px 0;
 
       width: 100%;
       min-width: 0;
-      min-height: 75px;
-
-      column-gap: 0;
-      row-gap: 6px;
     }
 
     :deep(.balance__title) {
       grid-column: 1;
       grid-row: 1;
 
-      margin: 0 !important;
+      margin: 0;
 
       color: var(--hint-third-color);
       font-family: var(--font-inter);
       font-size: 11px;
       font-weight: 400;
-      line-height: 1.3;
-
       text-transform: uppercase;
     }
 
@@ -514,13 +569,13 @@ onMounted(async () => {
       grid-row: 2;
 
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      justify-content: flex-start;
-      gap: 6px 12px;
+      flex-wrap: wrap;
 
       min-width: 0;
-      margin: 0 !important;
+      margin: 0;
+
+      gap: 8px;
     }
 
     :deep(.balance__coin) {
@@ -538,67 +593,38 @@ onMounted(async () => {
       width: 100%;
       min-width: 0;
 
-      padding-left: 20px;
+      padding-left: 18px;
     }
 
-    :deep(.balance__actions .base-input-wrap) {
+    :deep(.balance__input) {
       width: 100%;
       min-width: 0;
     }
 
-    :deep(.balance__actions .base-input) {
-      min-height: 44px;
-
-      border-color: var(--border-primary-color);
-      background-color: var(--bg-third-color);
-    }
-
-    :deep(.balance__actions .base-input__control) {
-      min-width: 0;
-      padding-right: 115px !important;
-      font-family: var(--font-inter);
-      font-size: 13px;
-    }
-
     :deep(.balance__content) {
-      gap: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     :deep(.balance__submit) {
-      width: auto;
-      min-width: 72px;
+      min-width: 74px;
       min-height: 34px;
 
-      margin-right: 4px;
-      padding: 6px 10px;
+      padding: 7px 10px;
 
       font-family: var(--font-inter);
       font-size: 11px;
       font-weight: 600;
-      text-transform: uppercase;
     }
 
-    :deep(.balance__total) {
-      grid-column: 2;
-      grid-row: 3;
-
-      padding-left: 20px;
-      margin: 0 !important;
-
-      font-family: var(--font-inter);
-      font-size: 12px;
-    }
-
+    :deep(.balance__total),
     :deep(.balance__error) {
       grid-column: 2;
-      grid-row: 4;
+      grid-row: auto;
 
-      padding-left: 20px;
-      margin: 0 !important;
-    }
-
-    :deep(.balance__warn) {
-      grid-column: 2;
+      min-width: 0;
+      padding-left: 18px;
     }
   }
 
@@ -608,10 +634,15 @@ onMounted(async () => {
 
     align-items: start;
 
+    width: 100%;
+    min-width: 0;
+
     @include adaptiveValue('gap', 20, 12);
   }
 
-  &__history {
+  &__history,
+  &__table {
+    width: 100%;
     min-width: 0;
   }
 
@@ -623,287 +654,149 @@ onMounted(async () => {
     font-family: var(--font-akshar);
     font-weight: 700;
     line-height: 1.2;
+
     text-transform: uppercase;
 
-    @include adaptiveValue('font-size', 20, 17);
+    @include adaptiveValue('font-size', 21, 18);
 
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 16, 12);
     }
   }
 
-  &__table {
+  &__sell-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    align-items: start;
+
     width: 100%;
     min-width: 0;
 
-    :deep(.profile-layout) {
-      width: 100%;
-      min-width: 0;
-    }
-
-    :deep(.profile-layout__content),
-    :deep(.profile-layout__table-wrap),
-    :deep(.profile-layout__table-body) {
-      width: 100%;
-      min-width: 0;
-    }
-
-    :deep(.profile-layout__table-head),
-    :deep(.profile-layout__tr) {
-      display: grid !important;
-
-      grid-template-columns:
-        minmax(0, 1.15fr)
-        minmax(0, 1.8fr)
-        minmax(0, 0.7fr)
-        minmax(0, 1.15fr)
-        minmax(0, 1fr);
-
-      align-items: center;
-      gap: 8px !important;
-
-      width: 100%;
-      min-width: 0;
-
-      @include adaptiveValue('padding-left', 16, 10);
-      @include adaptiveValue('padding-right', 16, 10);
-    }
-
-    :deep(.profile-layout__table-head) {
-      min-height: 36px;
-      padding-top: 10px;
-      padding-bottom: 10px;
-
-      border-radius: 5px 5px 0 0;
-
-      background-color: var(--bg-third-color);
-    }
-
-    :deep(.profile-layout__th) {
-      min-width: 0 !important;
-      max-width: none !important;
-      width: auto !important;
-
-      color: var(--hint-third-color);
-
-      font-family: var(--font-inter);
-      font-size: 10px;
-      font-weight: 500;
-      line-height: 1.3;
-      text-transform: uppercase;
-    }
-
-    :deep(.profile-layout__tr) {
-      min-height: 59px;
-
-      padding-top: 10px;
-      padding-bottom: 10px;
-
-      border-radius: 5px;
-      background-color: var(--bg-third-color);
-
-      &:not(:last-child) {
-        margin-bottom: 2px;
-      }
-    }
-
-    :deep(.profile-layout__td) {
-      min-width: 0 !important;
-      max-width: none !important;
-      width: auto !important;
-
-      overflow: visible;
-
-      color: var(--primary-color);
-
-      font-family: var(--font-inter);
-      font-size: 12px;
-      font-weight: 400;
-      line-height: 1.5;
-    }
-
-    :deep(.profile-layout__td > span:last-child) {
-      min-width: 0;
-
-      color: var(--primary-color);
-
-      font-family: var(--font-inter);
-      font-size: 12px;
-      line-height: 1.5;
-
-      overflow-wrap: anywhere;
-    }
-
-    :deep(.profile-layout__td > span:first-child) {
-      display: none;
-    }
-
-    :deep(.profile-layout__td_date),
-    :deep(.profile-layout__th_date) {
-      min-width: 0 !important;
-    }
-
-    :deep(.profile-layout__td_skin),
-    :deep(.profile-layout__th_skin) {
-      min-width: 0 !important;
-      max-width: none !important;
-      overflow: hidden;
-    }
-
-    :deep(.profile-layout__td_type),
-    :deep(.profile-layout__th_type),
-    :deep(.profile-layout__td_quantity),
-    :deep(.profile-layout__th_quantity),
-    :deep(.profile-layout__td_coinAmount),
-    :deep(.profile-layout__th_coinAmount),
-    :deep(.profile-layout__td_total),
-    :deep(.profile-layout__th_total),
-    :deep(.profile-layout__td_status),
-    :deep(.profile-layout__th_status) {
-      min-width: 0 !important;
-      max-width: none !important;
-      flex: initial !important;
-    }
-
-    :deep(.profile-layout__skins) {
-      min-width: 0;
-    }
-
-    :deep(.profile-layout__skin) {
-      min-width: 0;
-      gap: 6px;
-    }
-
-    :deep(.profile-layout__skin-name) {
-      font-family: var(--font-inter);
-      font-size: 12px;
-    }
-
-    :deep(.profile-layout__date) {
-      display: flex;
-      flex-direction: column;
-
-      gap: 2px;
-
-      font-family: var(--font-inter);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    :deep(.profile-layout__status) {
-      width: fit-content;
-      max-width: 100%;
-      min-width: 0;
-      min-height: 23px;
-
-      padding: 5px 8px;
-
-      border-radius: 4px;
-
-      font-family: var(--font-akshar);
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1;
-      text-transform: uppercase;
-
-      &.is-success {
-        background-color: var(--success-color);
-        color: var(--bg-third-color) !important;
-      }
-
-      &.is-warn {
-        background-color: var(--pending-color);
-        color: var(--bg-third-color) !important;
-      }
-
-      &.is-danger,
-      &.is-muted {
-        background-color: var(--error-color);
-        color: var(--bg-third-color) !important;
-      }
-    }
-
-    :deep(.profile-layout__bottom) {
-      display: flex;
-      justify-content: flex-end;
-
-      padding-top: 16px;
-    }
-
-    :deep(.profile-layout__pagination) {
-      margin-left: auto;
-    }
-
-    :deep(.profile-layout__empty) {
-      padding: 30px 15px;
-
-      border: 1px solid var(--border-primary-color);
-      border-radius: 6px;
-
-      background-color: var(--bg-third-color);
-
-      color: var(--hint-third-color);
-      font-family: var(--font-inter);
-      font-size: 14px;
-      font-weight: 500;
-    }
+    @include adaptiveValue('gap', 22, 14);
   }
 
-  &__offers {
-    display: grid;
-    gap: 30px;
+  &__sell-left,
+  &__sell-right {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
     min-width: 0;
   }
 
-  &__offers-overview {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
-
-    gap: 20px;
+  &__sell-left {
+    @include adaptiveValue('gap', 12, 8);
   }
 
-  &__offers-create,
   &__withdraw {
+    width: 100%;
+
+    @include adaptiveValue('padding', 18, 12);
+  }
+
+  &__sell-panel {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  &__sell-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    min-height: 58px;
+
+    gap: 12px;
+
+    @include adaptiveValue('padding-left', 20, 14);
+    @include adaptiveValue('padding-right', 20, 14);
+
+    border: 0;
+    background-color: transparent;
+
+    color: var(--primary-color);
+
+    font-family: var(--font-akshar);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+
+    text-align: left;
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition: background-color 0.25s ease;
+
+    &:focus-visible {
+      outline: 2px solid var(--hint-primary-color);
+      outline-offset: -3px;
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--bg-fourth-color);
+      }
+    }
+  }
+
+  &__sell-toggle-title {
     min-width: 0;
-    padding: 20px;
+  }
+
+  &__sell-chevron {
+    flex-shrink: 0;
+
+    width: 16px;
+    height: 16px;
+
+    transition: transform 0.25s ease;
+
+    &.is-open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__sell-content {
+    width: 100%;
+    min-width: 0;
+
+    @include adaptiveValue('padding-left', 20, 12);
+    @include adaptiveValue('padding-right', 20, 12);
+    @include adaptiveValue('padding-bottom', 20, 12);
+  }
+
+  &__unavailable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 160px;
+
+    padding: 24px;
 
     border: 1px solid var(--border-primary-color);
     border-radius: 6px;
 
-    background-color: rgba(246, 241, 238, 0.7);
-  }
-
-  &__offers-create {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  &__create {
-    width: fit-content;
-    min-height: 42px;
-    padding-inline: 15px;
+    background-color: var(--bg-third-color);
+    color: var(--hint-third-color);
 
     font-family: var(--font-inter);
-    font-size: 12px;
+    font-size: 14px;
+    text-align: center;
   }
 
-  &__create-icon {
-    width: 15px;
-    min-width: 15px;
-    height: 15px;
-  }
-
-  &__offers-history {
-    min-width: 0;
-  }
-
-  @media (max-width: 1200px) {
-    &__overview {
+  @media (max-width: $md2) {
+    &__overview,
+    &__histories,
+    &__sell-layout {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__histories {
+      gap: 28px;
     }
 
     &__account {
@@ -912,39 +805,35 @@ onMounted(async () => {
         minmax(0, 1fr)
         minmax(160px, 0.6fr);
     }
-
-    &__histories {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 28px;
-    }
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: $md4) {
     &__account {
       grid-template-columns: auto minmax(0, 1fr);
-      align-items: start;
     }
 
     &__account-status {
       grid-column: 1 / -1;
 
-      display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
 
       height: auto;
+      min-height: 0;
+
       padding: 14px 0 0;
 
       border-left: 0;
       border-top: 1px solid var(--border-primary-color);
     }
 
-    &__status-heading,
-    &__status {
-      margin: 0 !important;
+    &__status-info {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
     }
 
     &__wallet {
@@ -961,101 +850,25 @@ onMounted(async () => {
       :deep(.balance__error) {
         grid-column: 1;
         grid-row: auto;
+
         padding-left: 0;
       }
 
       :deep(.balance__actions) {
-        padding-top: 36px;
+        padding-top: 12px;
         border-top: 1px solid var(--border-primary-color);
       }
     }
 
-    &__topup-heading {
-      top: auto;
-      bottom: 76px;
-      left: 14px;
-      font-size: 18px;
-    }
-
-    &__table {
-      :deep(.profile-layout__table-head) {
-        display: none !important;
-      }
-
-      :deep(.profile-layout__table-body) {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin: 0;
-      }
-
-      :deep(.profile-layout__tr) {
-        display: flex !important;
-        flex-direction: column;
-        align-items: stretch;
-
-        width: 100%;
-        min-width: 0;
-        min-height: 0;
-
-        padding: 14px;
-
-        border: 1px solid var(--border-primary-color);
-        border-radius: 6px;
-
-        margin: 0 !important;
-      }
-
-      :deep(.profile-layout__td) {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-
-        min-width: 0;
-
-        &:not(:last-child) {
-          margin-bottom: 12px;
-        }
-      }
-
-      :deep(.profile-layout__td > span:first-child) {
-        display: block;
-
-        color: var(--hint-third-color);
-        font-family: var(--font-inter);
-        font-size: 10px;
-        font-weight: 500;
-        text-transform: uppercase;
-      }
-
-      :deep(.profile-layout__td > span:last-child) {
-        max-width: 65%;
-        text-align: right;
-      }
-
-      :deep(.profile-layout__td_skin) {
-        flex-direction: row !important;
-      }
-
-      :deep(.profile-layout__td_skin .profile-layout__skins) {
-        max-width: 65%;
-      }
-
-      :deep(.profile-layout__td_status .profile-layout__status) {
-        margin-left: auto;
-      }
-    }
-
-    &__offers-overview {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
+    &__sell-toggle {
+      min-height: 54px;
+      font-size: 19px;
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: $md6) {
     &__account {
-      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 12px;
     }
 
     &__avatar {
@@ -1064,7 +877,7 @@ onMounted(async () => {
     }
 
     &__identity {
-      gap: 10px;
+      gap: 9px;
     }
 
     &__identity-row {
@@ -1072,26 +885,28 @@ onMounted(async () => {
     }
 
     &__account-status {
-      justify-content: flex-start;
-    }
-
-    &__status-heading {
-      width: 100%;
+      align-items: flex-start;
     }
 
     &__logout {
       margin-left: auto;
     }
 
-    &__table {
-      :deep(.profile-layout__table-body) {
-        grid-template-columns: minmax(0, 1fr);
-      }
+    &__sell-toggle {
+      min-height: 50px;
+      font-size: 18px;
     }
 
-    &__create {
-      width: 100%;
+    &__section-title {
+      font-size: 18px;
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile__sell-toggle,
+  .profile__sell-chevron {
+    transition: none;
   }
 }
 </style>

@@ -1,154 +1,197 @@
 <template>
-  <div class="details">
-    <LoadingSpinner v-if="isLoading" class="details__loading" />
+  <section class="offer-details">
+    <div v-if="isLoading" class="offer-details__loading">
+      <LoadingSpinner />
+    </div>
 
-    <div v-else class="details__content">
-      <div class="details__title _h5">
-        {{ $t('Offer Details') }}
+    <div v-else class="offer-details__content">
+      <div class="offer-details__header">
+        <h3 class="offer-details__title">
+          {{ $t('Offer Details') }}
+        </h3>
+
+        <span class="offer-details__status" :class="statusClass">
+          {{ statusLabel }}
+        </span>
       </div>
 
-      <div class="details__layout">
-        <div class="details__main">
-          <div class="details__meta">
-            <div class="details__meta-item">
-              <div class="details__label">
-                {{ $t('ID') }}
-              </div>
+      <div class="offer-details__layout">
+        <div class="offer-details__main">
+          <div class="offer-details__meta">
+            <div class="offer-details__meta-item">
+              <span class="offer-details__label">
+                {{ $t('Offer ID') }}
+              </span>
 
-              <div class="details__value">
-                {{ currentOffer?.id || row?.id || '—' }}
-              </div>
+              <span class="offer-details__value">
+                #{{ currentOffer.id ?? row.id ?? '—' }}
+              </span>
             </div>
 
-            <div class="details__meta-item">
-              <div class="details__label">
-                {{ $t('Date/time') }}
-              </div>
+            <div class="offer-details__meta-item">
+              <span class="offer-details__label">
+                {{ $t('Date / Time') }}
+              </span>
 
-              <div class="details__value">
-                {{ getDate(currentOffer?.created_at || row?.createdAt) }}
+              <span class="offer-details__value">
+                {{ formattedDate }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="items.length" class="offer-details__items">
+            <div class="offer-details__items-heading">
+              <h4 class="offer-details__subtitle">
+                {{ $t('Items') }}
+              </h4>
+
+              <span class="offer-details__items-count">
+                {{ items.length }}
+                {{ $t('items') }}
+              </span>
+            </div>
+
+            <div class="offer-details__items-list">
+              <div
+                v-for="(item, index) in items"
+                :key="`${item.short_name}-${index}`"
+                class="offer-details__item"
+              >
+                <div class="offer-details__item-main">
+                  <span class="offer-details__item-number">
+                    {{ String(index + 1).padStart(2, '0') }}
+                  </span>
+
+                  <div class="offer-details__item-info">
+                    <span class="offer-details__label">
+                      {{ $t('Item') }}
+                    </span>
+
+                    <span class="offer-details__item-name">
+                      {{ item.short_name || '—' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="offer-details__item-data">
+                  <div class="offer-details__item-cell">
+                    <span class="offer-details__label">
+                      {{ $t('Quantity') }}
+                    </span>
+
+                    <span class="offer-details__value">
+                      {{ item.quantity ?? '—' }}
+                    </span>
+                  </div>
+
+                  <div class="offer-details__item-cell">
+                    <span class="offer-details__label">
+                      {{ $t('My Price') }}
+                    </span>
+
+                    <PriceFormatter
+                      v-if="hasValue(item.price)"
+                      :price="item.price"
+                      :currency-code="currencyCode"
+                      is-currency
+                      raw-fiat
+                      skip-conversion
+                      size="size-14"
+                      class="offer-details__item-price"
+                    />
+
+                    <span v-else>—</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div v-if="items.length" class="details__items">
-            <div
-              v-for="(item, index) in items"
-              :key="`${item.short_name}-${index}`"
-              class="details__item"
-            >
-              <div class="details__item-main">
-                <div class="details__item-number">
-                  {{ String(index + 1).padStart(2, '0') }}
-                </div>
-
-                <div class="details__item-info">
-                  <div class="details__label">
-                    {{ $t('Item') }}
-                  </div>
-
-                  <div class="details__item-name">
-                    {{ item.short_name || '—' }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="details__item-grid">
-                <div class="details__item-cell">
-                  <div class="details__label">
-                    {{ $t('Quantity') }}
-                  </div>
-
-                  <div class="details__value">
-                    {{ item.quantity ?? '—' }}
-                  </div>
-                </div>
-
-                <div class="details__item-cell">
-                  <div class="details__label">
-                    {{ $t('My price') }}
-                  </div>
-
-                  <div class="details__price">
-                    {{ formatPriceWithSymbol(item.price) }}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div v-else class="offer-details__empty">
+            {{ $t('No items available') }}
           </div>
 
-          <div v-if="currentOffer?.admin_note" class="details__comment">
-            <div class="details__label">
-              {{ $t('Comment') }}
-            </div>
+          <div v-if="currentOffer.admin_note" class="offer-details__comment">
+            <span class="offer-details__label">
+              {{ $t('Admin Comment') }}
+            </span>
 
-            <div class="details__comment-value">
+            <p class="offer-details__comment-text">
               {{ currentOffer.admin_note }}
-            </div>
+            </p>
           </div>
         </div>
 
-        <div class="details__side">
-          <div class="details__price-block">
-            <div class="details__price-row">
-              <div class="details__price-info">
-                <div class="details__label">
-                  {{ $t('Desired price') }}
-                </div>
+        <aside class="offer-details__side">
+          <div class="offer-details__summary">
+            <h4 class="offer-details__subtitle">
+              {{ $t('Price Summary') }}
+            </h4>
 
-                <div class="details__price-value">
-                  {{ formatPriceWithSymbol(currentOffer?.total_amount) }}
-                </div>
-              </div>
+            <div class="offer-details__summary-row">
+              <span class="offer-details__label">
+                {{ $t('Desired Price') }}
+              </span>
+
+              <PriceFormatter
+                v-if="hasValue(currentOffer.total_amount)"
+                :price="currentOffer.total_amount"
+                :currency-code="currencyCode"
+                is-currency
+                raw-fiat
+                skip-conversion
+                size="size-20"
+                class="offer-details__summary-price"
+              />
+
+              <span v-else class="offer-details__value"> — </span>
             </div>
 
             <div
               v-if="hasCounterOffer"
-              class="details__price-row details__price-row_offer"
+              class="offer-details__summary-row offer-details__summary-row--counter"
             >
-              <div class="details__price-info">
-                <div class="details__label">
-                  {{ $t('Offer price') }}
-                </div>
+              <span class="offer-details__label">
+                {{ $t('Admin Offer') }}
+              </span>
 
-                <div class="details__price-value">
-                  {{
-                    formatPriceWithSymbol(currentOffer?.counter_offer_amount)
-                  }}
-                </div>
-              </div>
+              <PriceFormatter
+                :price="currentOffer.counter_offer_amount"
+                :currency-code="currencyCode"
+                is-currency
+                raw-fiat
+                skip-conversion
+                size="size-20"
+                class="offer-details__summary-price offer-details__summary-price--counter"
+              />
             </div>
           </div>
 
-          <div v-if="canRespond" class="details__actions">
+          <div v-if="canRespond" class="offer-details__actions">
             <BaseButton
+              type="button"
               variant="primary"
-              class="details__button"
+              class="offer-details__button"
               :disabled="isSubmitting"
-              @click="$emit('accept')"
+              @click="emit('accept')"
             >
-              <span v-if="isSubmitting">
-                {{ $t('Processing...') }}
-              </span>
-
-              <span v-else>
-                {{ $t('Accept') }}
-              </span>
+              {{ isSubmitting ? $t('Processing...') : $t('Accept Offer') }}
             </BaseButton>
 
             <BaseButton
-              variant="secondary"
-              class="details__button"
+              type="button"
+              variant="bordered"
+              class="offer-details__button"
               :disabled="isSubmitting"
-              @click="$emit('decline')"
+              @click="emit('decline')"
             >
-              {{ $t('Decline') }}
+              {{ $t('Decline Offer') }}
             </BaseButton>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -156,57 +199,70 @@ import { computed } from 'vue'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
-
-import { useCurrencyStore } from '@/stores/currency'
+import PriceFormatter from '@/components/PriceFormatter.vue'
 
 const props = defineProps({
   row: {
     type: Object,
     required: true,
   },
-
   offer: {
     type: Object,
     default: null,
   },
-
   isLoading: {
     type: Boolean,
     default: false,
   },
-
   isSubmitting: {
     type: Boolean,
     default: false,
   },
 })
 
-defineEmits(['accept', 'decline'])
-
-const currencyStore = useCurrencyStore()
+const emit = defineEmits(['accept', 'decline'])
 
 const currentOffer = computed(() => {
   return props.offer || props.row?._source || props.row || {}
 })
 
 const items = computed(() => {
-  return Array.isArray(currentOffer.value?.items)
-    ? currentOffer.value.items
+  const sourceItems = currentOffer.value.items
+
+  if (Array.isArray(sourceItems)) {
+    return sourceItems
+  }
+
+  return Array.isArray(props.row?.skinItems)
+    ? props.row.skinItems.map(item => ({
+        short_name: item.title,
+        quantity: item.quantity,
+        price: item.price,
+      }))
     : []
 })
 
+const currencyCode = computed(() => {
+  return (
+    currentOffer.value.currency ||
+    props.row?.currencyCode ||
+    props.row?.currency ||
+    'EUR'
+  )
+})
+
 const normalizedStatus = computed(() => {
-  return String(currentOffer.value?.status || props.row?.statusKey || '')
+  return String(currentOffer.value.status || props.row?.statusKey || '')
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/-/g, '_')
+    .replace(/[\s-]+/g, '_')
 })
 
 const hasCounterOffer = computed(() => {
   return (
-    currentOffer.value?.counter_offer_amount !== null &&
-    currentOffer.value?.counter_offer_amount !== undefined
+    currentOffer.value.counter_offer_amount !== null &&
+    currentOffer.value.counter_offer_amount !== undefined &&
+    currentOffer.value.counter_offer_amount !== ''
   )
 })
 
@@ -217,66 +273,79 @@ const canRespond = computed(() => {
   )
 })
 
-const rowCurrency = computed(() => {
-  return currentOffer.value?.currency || props.row?.currency || 'EUR'
+const statusLabel = computed(() => {
+  const value = normalizedStatus.value
+
+  const labels = {
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    canceled: 'Cancelled',
+    counteroffer: 'Offer',
+    counter_offer: 'Offer',
+    userdeclined: 'Declined',
+    user_declined: 'Declined',
+    ready_for_payout: 'Ready for Payout',
+    payout_processing: 'Payout Processing',
+  }
+
+  return labels[value] || props.row?.status || value.replaceAll('_', ' ') || '—'
 })
 
-const currencySymbol = computed(() => {
-  const currency = currencyStore.currencies.find(currency => {
-    return (
-      String(currency.code).toUpperCase() ===
-      String(rowCurrency.value).toUpperCase()
-    )
-  })
+const statusClass = computed(() => {
+  const value = normalizedStatus.value
 
-  return currency?.symbol || rowCurrency.value
+  if (['approved', 'completed', 'ready_for_payout'].includes(value)) {
+    return 'is-success'
+  }
+
+  if (
+    [
+      'rejected',
+      'cancelled',
+      'canceled',
+      'userdeclined',
+      'user_declined',
+      'declined',
+    ].includes(value)
+  ) {
+    return 'is-danger'
+  }
+
+  return 'is-pending'
 })
 
-const formatPrice = price => {
-  const value = Number(price)
-
-  if (!Number.isFinite(value)) {
-    return '0.00'
-  }
-
-  return value.toFixed(2)
+const hasValue = value => {
+  return value !== null && value !== undefined && value !== ''
 }
 
-const formatPriceWithSymbol = price => {
-  return `${currencySymbol.value} ${formatPrice(price)}`
-}
+const formattedDate = computed(() => {
+  const raw = currentOffer.value.created_at || props.row?.createdAt
 
-const getDate = value => {
-  if (!value) {
-    return '—'
-  }
+  if (!raw) return '—'
 
-  const timestamp = Number(value)
+  const numeric = Number(raw)
 
-  if (!timestamp) {
-    return '—'
-  }
-
-  const date = new Date(
-    timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp,
-  )
+  const date =
+    Number.isFinite(numeric) && numeric > 0
+      ? new Date(numeric < 10_000_000_000 ? numeric * 1000 : numeric)
+      : new Date(raw)
 
   if (Number.isNaN(date.getTime())) {
     return '—'
   }
 
   const day = String(date.getDate()).padStart(2, '0')
-
   const month = String(date.getMonth() + 1).padStart(2, '0')
-
   const year = date.getFullYear()
 
   const hours = String(date.getHours()).padStart(2, '0')
-
   const minutes = String(date.getMinutes()).padStart(2, '0')
 
   return `${day}.${month}.${year} ${hours}:${minutes}`
-}
+})
 </script>
 
 <style lang="scss" scoped>
@@ -284,151 +353,209 @@ const getDate = value => {
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-.details {
+.offer-details {
   width: 100%;
+  min-width: 0;
 
   &__loading {
-    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 160px;
   }
 
   &__content {
     width: 100%;
+    min-width: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    &:not(:last-child) {
+      @include adaptiveValue('margin-bottom', 18, 12);
+    }
+  }
+
+  &__title,
+  &__subtitle {
+    margin: 0;
+
+    color: var(--primary-color);
+    font-family: var(--font-akshar);
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
   &__title {
-    text-transform: uppercase;
-    font-weight: 600;
+    @include adaptiveValue('font-size', 21, 17);
+  }
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 15);
+  &__subtitle {
+    @include adaptiveValue('font-size', 18, 15);
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 24px;
+    padding: 5px 10px;
+
+    border-radius: 4px;
+
+    color: var(--bg-third-color);
+    font-family: var(--font-akshar);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+
+    text-transform: uppercase;
+
+    &.is-success {
+      background-color: var(--success-color);
+    }
+
+    &.is-pending {
+      background-color: var(--pending-color);
+    }
+
+    &.is-danger {
+      background-color: var(--error-color);
     }
   }
 
   &__layout {
-    display: flex;
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.5fr)
+      minmax(0, 1fr);
+
+    align-items: start;
 
     @include adaptiveValue('gap', 16, 10);
-
-    @media (max-width: $md3) {
-      flex-direction: column;
-    }
   }
 
-  &__main {
-    flex: 1 1 auto;
-
-    min-width: 0;
-  }
-
+  &__main,
   &__side {
-    flex: 0 0 280px;
-
-    @media (max-width: $md2) {
-      flex: 0 0 240px;
-    }
-
-    @media (max-width: $md3) {
-      flex: 1 1 100%;
-    }
+    min-width: 0;
   }
 
   &__meta {
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    border: 1px solid var(--border-secondary-color);
-
-    background-color: var(--bg-primary-color);
+    gap: 10px;
 
     &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 8, 4);
-    }
-
-    @media (max-width: $md5) {
-      grid-template-columns: 1fr;
+      @include adaptiveValue('margin-bottom', 18, 12);
     }
   }
 
   &__meta-item {
-    @include adaptiveValue('padding', 16, 10);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    &:not(:last-child) {
-      border-right: 1px solid var(--border-secondary-color);
+    min-width: 0;
+    gap: 7px;
 
-      @media (max-width: $md5) {
-        border-right: 0;
+    @include adaptiveValue('padding', 14, 10);
 
-        border-bottom: 1px solid var(--border-secondary-color);
-      }
-    }
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
+
+    background-color: var(--bg-third-color);
   }
 
   &__label {
-    color: var(--secondary-color);
+    display: block;
 
-    font-family: var(--font-barlow);
-
-    font-size: 12px;
+    color: var(--hint-third-color);
+    font-family: var(--font-inter);
+    font-size: 11px;
     font-weight: 500;
-    line-height: 120%;
+    line-height: 1.4;
 
     text-transform: uppercase;
-
-    opacity: 0.7;
-
-    &:not(:last-child) {
-      margin-bottom: 6px;
-    }
   }
 
   &__value {
+    display: block;
+
+    min-width: 0;
+
     color: var(--primary-color);
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
 
-    font-family: var(--font-barlow);
-
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 130%;
+    overflow-wrap: anywhere;
   }
 
-  &__items {
+  &__items-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+  }
+
+  &__items-count {
+    color: var(--hint-third-color);
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  &__items-list {
+    display: grid;
+    gap: 5px;
+
     width: 100%;
+    min-width: 0;
   }
 
   &__item {
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.5fr)
+      minmax(0, 1fr);
 
-    @include adaptiveValue('gap', 20, 10);
+    align-items: center;
 
-    border: 1px solid var(--border-secondary-color);
+    width: 100%;
+    min-width: 0;
 
-    background-color: var(--bg-primary-color);
+    gap: 12px;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 8, 4);
-    }
+    @include adaptiveValue('padding', 14, 10);
 
-    @media (max-width: $md5) {
-      flex-direction: column;
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
 
-      gap: 0;
-    }
+    background-color: var(--bg-third-color);
   }
 
   &__item-main {
     display: flex;
     align-items: center;
 
-    flex: 1 1 auto;
-
     min-width: 0;
-
-    @include adaptiveValue('gap', 16, 10);
-
-    @include adaptiveValue('padding', 16, 10);
+    gap: 12px;
   }
 
   &__item-number {
@@ -436,54 +563,52 @@ const getDate = value => {
     align-items: center;
     justify-content: center;
 
-    flex: 0 0 46px;
+    flex: 0 0 36px;
 
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid var(--border-primary-color);
+    border-radius: 4px;
 
     background-color: var(--bg-fourth-color);
+    color: var(--hint-primary-color);
 
-    color: var(--secondary-color);
-
-    font-family: var(--font-condensed);
-
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 1;
+    font-family: var(--font-akshar);
+    font-size: 16px;
+    font-weight: 700;
   }
 
   &__item-info {
+    display: flex;
+    flex-direction: column;
+
     min-width: 0;
+    gap: 5px;
   }
 
   &__item-name {
-    overflow: hidden;
+    display: block;
+
+    min-width: 0;
 
     color: var(--primary-color);
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
 
-    font-family: var(--font-condensed);
-
-    @include adaptiveValue('font-size', 20, 18);
-
-    font-weight: 500;
-    line-height: 120%;
-
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
-  &__item-grid {
+  &__item-data {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    grid-template-columns: repeat(2, minmax(110px, 1fr));
+    align-items: center;
 
-    border-left: 1px solid var(--border-secondary-color);
-
-    @media (max-width: $md5) {
-      border-top: 1px solid var(--border-secondary-color);
-
-      border-left: 0;
-    }
+    min-width: 0;
+    gap: 10px;
   }
 
   &__item-cell {
@@ -492,116 +617,178 @@ const getDate = value => {
     justify-content: center;
 
     min-width: 0;
+    gap: 5px;
+  }
 
-    @include adaptiveValue('padding', 16, 10);
+  &__item-price {
+    justify-content: flex-start;
 
-    &:not(:last-child) {
-      border-right: 1px solid var(--border-secondary-color);
+    :deep(.price__value),
+    :deep(.price__currency) {
+      color: var(--primary-color);
+      font-family: var(--font-inter);
+      font-size: 13px;
+      font-weight: 700;
     }
   }
 
-  &__price {
-    color: var(--primary-color);
+  &__empty {
+    padding: 20px;
 
-    font-family: var(--font-barlow);
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
 
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 120%;
+    background-color: var(--bg-third-color);
+    color: var(--hint-third-color);
+
+    font-family: var(--font-inter);
+    font-size: 13px;
+    text-align: center;
   }
 
   &__comment {
-    border: 1px solid var(--border-secondary-color);
+    @include adaptiveValue('margin-top', 16, 12);
+    @include adaptiveValue('padding', 16, 12);
 
-    background-color: var(--bg-primary-color);
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
 
-    @include adaptiveValue('padding', 16, 10);
-
-    &:not(:first-child) {
-      @include adaptiveValue('margin-top', 8, 4);
-    }
+    background-color: var(--bg-third-color);
   }
 
-  &__comment-value {
+  &__comment-text {
+    margin-top: 8px;
+
     color: var(--primary-color);
-
-    font-family: var(--font-barlow);
-
-    font-size: 14px;
-    line-height: 150%;
+    font-family: var(--font-inter);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.6;
 
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
-  &__price-block {
-    border: 1px solid var(--border-secondary-color);
+  &__summary {
+    overflow: hidden;
 
-    background-color: var(--bg-primary-color);
+    border: 1px solid var(--border-primary-color);
+    border-radius: 5px;
 
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 8, 4);
-    }
+    background-color: var(--bg-third-color);
   }
 
-  &__price-row {
+  &__summary > .offer-details__subtitle {
+    @include adaptiveValue('padding', 16, 12);
+
+    border-bottom: 1px solid var(--border-primary-color);
+  }
+
+  &__summary-row {
     display: flex;
-    align-items: center;
+    flex-direction: column;
 
-    min-height: 82px;
+    min-width: 0;
+    gap: 9px;
 
-    @include adaptiveValue('padding', 16, 10);
+    @include adaptiveValue('padding', 16, 12);
 
-    &:not(:last-child) {
-      border-bottom: 1px solid var(--border-secondary-color);
+    & + & {
+      border-top: 1px solid var(--border-primary-color);
     }
 
-    &_offer {
-      background-color: var(--bg-third-color);
+    &--counter {
+      background-color: var(--bg-fourth-color);
+    }
+  }
 
-      .details__price-value {
+  &__summary-price {
+    justify-content: flex-start;
+    min-width: 0;
+
+    :deep(.price__value),
+    :deep(.price__currency) {
+      color: var(--primary-color);
+      font-family: var(--font-inter);
+      font-weight: 700;
+
+      @include adaptiveValue('font-size', 22, 18);
+    }
+
+    &--counter {
+      :deep(.price__value),
+      :deep(.price__currency) {
         color: var(--hint-primary-color);
       }
     }
   }
 
-  &__price-info {
-    width: 100%;
-  }
-
-  &__price-value {
-    color: var(--primary-color);
-
-    font-family: var(--font-condensed);
-
-    @include adaptiveValue('font-size', 28, 22);
-
-    font-weight: 600;
-    line-height: 100%;
-  }
-
   &__actions {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    @include adaptiveValue('gap', 8, 4);
+    gap: 10px;
 
-    @media (max-width: $md3) {
-      flex-direction: row;
-    }
-
-    @media (max-width: $md6) {
-      flex-direction: column;
-    }
+    @include adaptiveValue('margin-top', 14, 10);
   }
 
   &__button {
     width: 100%;
+    min-width: 0;
+
+    @include adaptiveValue('min-height', 42, 38);
+
+    padding: 8px 10px;
+
+    border-radius: 5px;
+
+    font-family: var(--font-inter);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
 
     text-transform: uppercase;
+    white-space: normal;
+  }
 
-    @media (max-width: $md3) {
-      flex: 1 1 50%;
+  @media (max-width: 1200px) {
+    &__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: $md4) {
+    &__item {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__item-data {
+      padding-top: 10px;
+      border-top: 1px solid var(--border-primary-color);
+    }
+  }
+
+  @media (max-width: $md6) {
+    &__meta {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__item-main {
+      gap: 9px;
+    }
+
+    &__item-number {
+      flex-basis: 32px;
+      width: 32px;
+      height: 32px;
     }
   }
 }
