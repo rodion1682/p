@@ -54,6 +54,12 @@ export const useOfferFlowStore = defineStore('offerFlow', () => {
   const isLoading = ref(false)
   const error = ref('')
   const offers = ref([])
+  const offersMeta = ref({
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0,
+  })
   const submissionInProgress = ref(false)
 
   const contactInfo = ref({
@@ -132,18 +138,30 @@ export const useOfferFlowStore = defineStore('offerFlow', () => {
     }
   }
 
-  const fetchOffers = async () => {
+  const fetchOffers = async (page = 1) => {
     isLoading.value = true
     error.value = ''
 
     try {
-      const response = await api.get('user/sell-requests')
+      const response = await api.get('user/sell-requests', {
+        params: { page },
+      })
 
       if (response.data?.status !== 'OK') {
         throw new Error(response.data?.message || 'Failed to fetch offers')
       }
 
       offers.value = normalizeApiList(response.data)
+
+      const pagination =
+        response.data?.meta || response.data?.payload?.meta || {}
+
+      offersMeta.value = {
+        current_page: Number(pagination.current_page || page),
+        last_page: Number(pagination.last_page || 1),
+        per_page: Number(pagination.per_page || 10),
+        total: Number(pagination.total ?? offers.value.length),
+      }
 
       return {
         success: true,
@@ -478,6 +496,7 @@ export const useOfferFlowStore = defineStore('offerFlow', () => {
     isLoading,
     error,
     offers,
+    offersMeta,
     submissionInProgress,
     contactInfo,
     paymentInfo,

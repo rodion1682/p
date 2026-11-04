@@ -281,7 +281,7 @@ onMounted(async () => {
   min-width: 0;
   min-height: 80vh;
 
-  @include adaptiveValue('padding-top', 114, 80);
+  @include adaptiveValue('padding-top', 55, 24);
   @include adaptiveValue('padding-bottom', 80, 35);
 
   &__background {
@@ -536,98 +536,6 @@ onMounted(async () => {
     min-width: 0;
   }
 
-  &__wallet {
-    :deep(.balance) {
-      display: grid;
-      grid-template-columns:
-        minmax(0, 40%)
-        minmax(0, 60%);
-      grid-template-rows: auto auto auto;
-
-      align-items: center;
-      gap: 8px 0;
-
-      width: 100%;
-      min-width: 0;
-    }
-
-    :deep(.balance__title) {
-      grid-column: 1;
-      grid-row: 1;
-
-      margin: 0;
-
-      color: var(--hint-third-color);
-      font-family: var(--font-inter);
-      font-size: 11px;
-      font-weight: 400;
-      text-transform: uppercase;
-    }
-
-    :deep(.balance__row) {
-      grid-column: 1;
-      grid-row: 2;
-
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-
-      min-width: 0;
-      margin: 0;
-
-      gap: 8px;
-    }
-
-    :deep(.balance__coin) {
-      justify-content: flex-start;
-    }
-
-    :deep(.balance__conversion) {
-      display: none;
-    }
-
-    :deep(.balance__actions) {
-      grid-column: 2;
-      grid-row: 2;
-
-      width: 100%;
-      min-width: 0;
-
-      padding-left: 18px;
-    }
-
-    :deep(.balance__input) {
-      width: 100%;
-      min-width: 0;
-    }
-
-    :deep(.balance__content) {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    :deep(.balance__submit) {
-      min-width: 74px;
-      min-height: 34px;
-
-      padding: 7px 10px;
-
-      font-family: var(--font-inter);
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    :deep(.balance__total),
-    :deep(.balance__error) {
-      grid-column: 2;
-      grid-row: auto;
-
-      min-width: 0;
-      padding-left: 18px;
-    }
-  }
-
   &__histories {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -686,7 +594,7 @@ onMounted(async () => {
   }
 
   &__sell-left {
-    @include adaptiveValue('gap', 12, 8);
+    @include adaptiveValue('gap', 4, 4);
   }
 
   &__withdraw {
@@ -834,30 +742,6 @@ onMounted(async () => {
       flex-wrap: wrap;
       align-items: center;
       gap: 8px 12px;
-    }
-
-    &__wallet {
-      :deep(.balance) {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto;
-        gap: 12px;
-      }
-
-      :deep(.balance__title),
-      :deep(.balance__row),
-      :deep(.balance__actions),
-      :deep(.balance__total),
-      :deep(.balance__error) {
-        grid-column: 1;
-        grid-row: auto;
-
-        padding-left: 0;
-      }
-
-      :deep(.balance__actions) {
-        padding-top: 12px;
-        border-top: 1px solid var(--border-primary-color);
-      }
     }
 
     &__sell-toggle {

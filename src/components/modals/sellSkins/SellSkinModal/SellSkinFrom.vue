@@ -13,7 +13,7 @@
         v-else-if="!selectedItems.length"
         class="sell-skins__state sell-skins__state--empty"
       >
-        <p>{{ $t('No items available for selling') }}</p>
+        <p>{{ errors.general || $t('No items available for selling') }}</p>
 
         <BaseButton
           v-if="!isLoading"
@@ -152,7 +152,7 @@
       </template>
 
       <p
-        v-if="errors.general"
+        v-if="errors.general && selectedItems.length"
         class="sell-skins__error _text-error"
         role="alert"
       >

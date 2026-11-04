@@ -1,12 +1,11 @@
 <template>
   <ProfileTableLayout
-    showSkinName
-    showCoinAmount
-    showItemsPerPage
-    isAmountMultiplied
+    show-skin-name
+    show-coin-amount
+    coin-label="Total Price"
     :show-quantity="true"
     :show-price="false"
-    :total-as-currency="true"
+    :total-as-currency="false"
     :show-data-column="true"
     :show-order-image="false"
     :rows="paginatedRows"
@@ -15,10 +14,7 @@
     :loading-text="`${$t('Loading')}...`"
     :total-pages="totalPages"
     :current-page="currentPage"
-    :items-per-page="itemsPerPage"
-    :per-page-options="PER_PAGE_OPTIONS"
     @update:current-page="onPageChange"
-    @update:items-per-page="onItemsPerPageChange"
   />
 </template>
 
@@ -29,13 +25,11 @@ import axios from '@/plugins/axios'
 
 import ProfileTableLayout from '@/pages/AccountPage/components/ProfileTableLayout.vue'
 
-const PER_PAGE_OPTIONS = [6, 12, 18]
+const PAGE_SIZE = 6
 
 const isLoading = ref(false)
 const orders = ref([])
-
 const currentPage = ref(1)
-const itemsPerPage = ref(5)
 
 const STATIC_DOMAIN =
   import.meta.env.VITE_STATIC_DOMAIN?.replace(/\/+$/, '') || ''
@@ -132,29 +126,31 @@ const rows = computed(() => {
       return {
         _key: `order-${index}`,
         id: String(index + 1),
-        createdAt: normalizeTimestamp(order.date),
-        type: '—',
+        createdAt: normalizeTimestamp(order.date ?? order.created_at),
+        type: '',
 
         skinItems: items.map(item => ({
           title: normalizeItemTitle(item.display_name),
-
           image: getImageUrl(item.image),
-
           quality: '',
         })),
 
         status: normalizeStatus(order.status),
 
         amount: Number(order.total_price || 0),
-
         total: Number(order.total_price || 0),
 
-        coinAmount: order.total_price_internal,
+        coinAmount: order.total_price_internal ?? null,
 
-        quantity: items.length || 1,
+        quantity: items.length
+          ? items.reduce(
+              (sum, item) =>
+                sum + (Number(item.count ?? item.quantity ?? 0) || 0),
+              0,
+            )
+          : null,
 
         currency: order.currency || '',
-
         currencyCode: order.currency || '',
       }
     })
@@ -162,30 +158,18 @@ const rows = computed(() => {
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(rows.value.length / itemsPerPage.value) || 1
+  return Math.ceil(rows.value.length / PAGE_SIZE) || 1
 })
 
 const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-
-  const end = start + itemsPerPage.value
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  const end = start + PAGE_SIZE
 
   return rows.value.slice(start, end)
 })
 
 const onPageChange = page => {
   currentPage.value = Number(page)
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  })
-}
-
-const onItemsPerPageChange = value => {
-  itemsPerPage.value = Number(value)
-
-  currentPage.value = 1
 }
 
 onMounted(fetchOrders)

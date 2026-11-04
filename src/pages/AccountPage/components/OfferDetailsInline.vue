@@ -24,7 +24,7 @@
               </span>
 
               <span class="offer-details__value">
-                #{{ currentOffer.id ?? row.id ?? '—' }}
+                #{{ currentOffer.id ?? row.id ?? '' }}
               </span>
             </div>
 
@@ -68,7 +68,7 @@
                     </span>
 
                     <span class="offer-details__item-name">
-                      {{ item.short_name || '—' }}
+                      {{ item.short_name || '' }}
                     </span>
                   </div>
                 </div>
@@ -80,7 +80,7 @@
                     </span>
 
                     <span class="offer-details__value">
-                      {{ item.quantity ?? '—' }}
+                      {{ item.quantity ?? '' }}
                     </span>
                   </div>
 
@@ -100,7 +100,7 @@
                       class="offer-details__item-price"
                     />
 
-                    <span v-else>—</span>
+                    <span v-else></span>
                   </div>
                 </div>
               </div>
@@ -144,7 +144,7 @@
                 class="offer-details__summary-price"
               />
 
-              <span v-else class="offer-details__value"> — </span>
+              <span v-else class="offer-details__value"></span>
             </div>
 
             <div
@@ -291,7 +291,7 @@ const statusLabel = computed(() => {
     payout_processing: 'Payout Processing',
   }
 
-  return labels[value] || props.row?.status || value.replaceAll('_', ' ') || '—'
+  return labels[value] || props.row?.status || value.replaceAll('_', ' ') || ''
 })
 
 const statusClass = computed(() => {
@@ -324,7 +324,7 @@ const hasValue = value => {
 const formattedDate = computed(() => {
   const raw = currentOffer.value.created_at || props.row?.createdAt
 
-  if (!raw) return '—'
+  if (!raw) return ''
 
   const numeric = Number(raw)
 
@@ -334,7 +334,7 @@ const formattedDate = computed(() => {
       : new Date(raw)
 
   if (Number.isNaN(date.getTime())) {
-    return '—'
+    return ''
   }
 
   const day = String(date.getDate()).padStart(2, '0')

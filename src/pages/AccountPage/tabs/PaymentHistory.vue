@@ -3,18 +3,14 @@
     showType
     showPrice
     showCoinAmount
-    showItemsPerPage
     :rows="paginatedRows"
     :is-loading="isLoading"
     :empty-text="$t('No transactions found')"
     :loading-text="`${$t('Loading')}...`"
     :total-pages="totalPages"
     :current-page="currentPage"
-    :items-per-page="itemsPerPage"
-    :per-page-options="PER_PAGE_OPTIONS"
     total-label="Total"
     @update:current-page="onPageChange"
-    @update:items-per-page="onItemsPerPageChange"
   />
 </template>
 
@@ -25,13 +21,11 @@ import axios from '@/plugins/axios'
 
 import ProfileTableLayout from '@/pages/AccountPage/components/ProfileTableLayout.vue'
 
-const PER_PAGE_OPTIONS = [6, 12, 18]
+const PAGE_SIZE = 6
 
 const isLoading = ref(false)
 const payments = ref([])
-
 const currentPage = ref(1)
-const itemsPerPage = ref(5)
 
 const UI_STATUS = {
   ACCEPTED: 'Accepted',
@@ -101,18 +95,18 @@ const rows = computed(() => {
 
       id: String(index + 1),
 
-      createdAt: normalizeTimestamp(payment.date),
+      createdAt: normalizeTimestamp(payment.date ?? payment.created_at),
 
-      type: 'Deposit',
+      type: String(payment.type || 'Deposit')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, letter => letter.toUpperCase()),
 
       status: normalizeStatus(payment.status),
 
       total: Number(payment.amount || 0),
-
       amount: Number(payment.amount || 0),
 
       currency: payment.currency || '',
-
       currencyCode: payment.currency || '',
 
       coinAmount:
@@ -125,30 +119,18 @@ const rows = computed(() => {
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(rows.value.length / itemsPerPage.value) || 1
+  return Math.ceil(rows.value.length / PAGE_SIZE) || 1
 })
 
 const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-
-  const end = start + itemsPerPage.value
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  const end = start + PAGE_SIZE
 
   return rows.value.slice(start, end)
 })
 
 const onPageChange = page => {
   currentPage.value = Number(page)
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  })
-}
-
-const onItemsPerPageChange = value => {
-  itemsPerPage.value = Number(value)
-
-  currentPage.value = 1
 }
 
 onMounted(fetchPayments)

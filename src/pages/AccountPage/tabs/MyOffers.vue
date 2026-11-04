@@ -1,7 +1,7 @@
 <template>
   <div class="offers">
     <ProfileTableLayout
-      :rows="paginatedRows"
+      :rows="allRows"
       :is-loading="isLoading"
       :empty-text="$t('No offers found')"
       :total-pages="totalPages"
@@ -9,10 +9,12 @@
       :expanded-row-key="openedDetailsKey"
       row-key="_key"
       total-label="Total Price"
-      show-id-column
-      show-skin-name
-      show-quantity
-      show-action
+      :show-id-column="hasIdData"
+      show-status-after-id
+      quantity-label="Q-ty"
+      :show-skin-name="hasItemData"
+      :show-quantity="hasQuantityData"
+      :show-action="hasAvailableActions"
       :show-order-image="false"
       :total-as-currency="true"
       @update:current-page="onPageChange"
@@ -46,8 +48,6 @@
         >
           {{ $t('Payout') }}
         </BaseButton>
-
-        <span v-else class="offers__action-empty" aria-hidden="true"> — </span>
       </template>
 
       <template #expanded="{ row }">
@@ -97,8 +97,6 @@ import { useModalStore } from '@/stores/modal'
 import { useOfferFlowStore } from '@/stores/offerFlow'
 import { useSettingsStore } from '@/stores/settings'
 
-const PAGE_SIZE = 10
-
 const { t } = useI18n()
 const toast = useToast()
 
@@ -118,6 +116,8 @@ const isOfferEnabled = computed(() => {
 
   return enabled === undefined ? true : Boolean(enabled)
 })
+
+const offerMeta = computed(() => offerFlowStore.offersMeta || {})
 
 const offersList = computed(() => {
   return Array.isArray(offerFlowStore.getOffers) ? offerFlowStore.getOffers : []
@@ -146,6 +146,7 @@ const statusLabels = {
 const normalizeStatus = value => {
   const status = String(value ?? '')
     .trim()
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
     .toLowerCase()
     .replace(/[\s-]+/g, '_')
 
@@ -205,25 +206,28 @@ const mapOffer = (offer, index) => {
     ? offer.counter_offer_amount
     : offer.total_amount
 
-  const numericAmount = Number(amount)
+  const numericAmount =
+    amount === null || amount === undefined || amount === ''
+      ? NaN
+      : Number(amount)
 
   return {
     _key: `offer-${offer.id ?? index}`,
 
-    id: offer.id ?? '—',
+    id: offer.id ?? null,
 
     createdAt: toTimestamp(offer.created_at),
 
     skinItems: items.map(item => ({
-      title: item.short_name || '—',
+      title: item.short_name || item.display_name || '',
       image: '',
       quantity: Number(item.quantity) || 0,
       price: Number(item.price) || 0,
     })),
 
-    quantity: items.reduce((sum, item) => {
-      return sum + (Number(item.quantity) || 0)
-    }, 0),
+    quantity: items.length
+      ? items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+      : null,
 
     total: Number.isFinite(numericAmount) ? numericAmount : null,
 
@@ -244,17 +248,31 @@ const allRows = computed(() => {
 })
 
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(allRows.value.length / PAGE_SIZE))
+  return Math.max(1, Number(offerMeta.value.last_page) || 1)
 })
 
-const paginatedRows = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE
+const hasAvailableActions = computed(() => {
+  return allRows.value.some(row =>
+    ['counter_offer', 'ready_for_payout'].includes(row.statusKey),
+  )
+})
 
-  return allRows.value.slice(start, start + PAGE_SIZE)
+const hasIdData = computed(() => {
+  return allRows.value.some(row => row.id !== null && row.id !== undefined)
+})
+
+const hasItemData = computed(() => {
+  return allRows.value.some(row => row.skinItems.some(item => item.title))
+})
+
+const hasQuantityData = computed(() => {
+  return allRows.value.some(
+    row => row.quantity !== null && row.quantity !== undefined,
+  )
 })
 
 const getTableTop = () => {
-  return document.querySelector('.profile__offers-history')
+  return document.querySelector('.profile__sell-right')
 }
 
 const scrollToOffers = async () => {
@@ -331,7 +349,7 @@ const openPayout = row => {
 }
 
 const refreshOffers = async () => {
-  const result = await offerFlowStore.fetchOffers()
+  const result = await offerFlowStore.fetchOffers(currentPage.value)
 
   if (result?.success === false) {
     throw new Error(result.error || 'Failed to fetch offers')
@@ -401,6 +419,15 @@ const onPageChange = async page => {
 
   currentPage.value = nextPage
   openedDetailsKey.value = null
+  isLoading.value = true
+
+  try {
+    await refreshOffers()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoading.value = false
+  }
 
   await scrollToOffers()
 }

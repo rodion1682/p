@@ -15,6 +15,10 @@
             {{ $t('ID') }}
           </div>
 
+          <div v-if="showStatusAfterId" class="profile-layout__th">
+            {{ $t('Status') }}
+          </div>
+
           <div v-if="showDataColumn" class="profile-layout__th">
             {{ $t('Date') }}
           </div>
@@ -28,7 +32,7 @@
           </div>
 
           <div v-if="showQuantity" class="profile-layout__th">
-            {{ $t('Count') }}
+            {{ $t(quantityLabel) }}
           </div>
 
           <div v-if="showPrice" class="profile-layout__th">
@@ -36,10 +40,10 @@
           </div>
 
           <div v-if="showCoinAmount" class="profile-layout__th">
-            {{ $t('Points') }}
+            {{ $t(coinLabel) }}
           </div>
 
-          <div class="profile-layout__th">
+          <div v-if="!showStatusAfterId" class="profile-layout__th">
             {{ $t('Status') }}
           </div>
 
@@ -75,7 +79,24 @@
                 </span>
 
                 <span class="profile-layout__td-value">
-                  {{ row.id ?? '—' }}
+                  {{ displayValue(row.id) }}
+                </span>
+              </div>
+
+              <div
+                v-if="showStatusAfterId"
+                class="profile-layout__td profile-layout__td_status"
+              >
+                <span class="profile-layout__td-label">
+                  {{ $t('Status') }}
+                </span>
+
+                <span
+                  v-if="hasValue(row.status)"
+                  class="profile-layout__status"
+                  :class="getStatusClass(row.statusKey || row.status)"
+                >
+                  {{ row.status }}
                 </span>
               </div>
 
@@ -109,7 +130,7 @@
                 </span>
 
                 <span class="profile-layout__td-value">
-                  {{ row.type || '—' }}
+                  {{ displayValue(row.type) }}
                 </span>
               </div>
 
@@ -119,9 +140,7 @@
               >
                 <span
                   class="profile-layout__td-label"
-                  :class="{
-                    'is-hidden': hideSkinNameLabel,
-                  }"
+                  :class="{ 'is-hidden': hideSkinNameLabel }"
                 >
                   {{ $t('Item') }}
                 </span>
@@ -147,7 +166,7 @@
 
                     <div class="profile-layout__skin-info">
                       <span class="profile-layout__skin-name">
-                        {{ item.title || '—' }}
+                        {{ displayValue(item.title) }}
                       </span>
                     </div>
                   </div>
@@ -159,11 +178,11 @@
                 class="profile-layout__td profile-layout__td_quantity"
               >
                 <span class="profile-layout__td-label">
-                  {{ $t('Count') }}
+                  {{ $t(quantityLabel) }}
                 </span>
 
                 <span class="profile-layout__td-value">
-                  {{ row.quantity ?? '—' }}
+                  {{ displayValue(row.quantity) }}
                 </span>
               </div>
 
@@ -185,7 +204,7 @@
                     size="size-14"
                   />
 
-                  <span v-else>—</span>
+                  <span v-else></span>
                 </div>
               </div>
 
@@ -194,7 +213,7 @@
                 class="profile-layout__td profile-layout__td_coinAmount"
               >
                 <span class="profile-layout__td-label">
-                  {{ $t('Points') }}
+                  {{ $t(coinLabel) }}
                 </span>
 
                 <div class="profile-layout__td-value">
@@ -205,11 +224,14 @@
                     size="size-14"
                   />
 
-                  <span v-else>—</span>
+                  <span v-else></span>
                 </div>
               </div>
 
-              <div class="profile-layout__td profile-layout__td_status">
+              <div
+                v-if="!showStatusAfterId"
+                class="profile-layout__td profile-layout__td_status"
+              >
                 <span class="profile-layout__td-label">
                   {{ $t('Status') }}
                 </span>
@@ -218,7 +240,7 @@
                   class="profile-layout__status"
                   :class="getStatusClass(row.statusKey || row.status)"
                 >
-                  {{ row.status || '—' }}
+                  {{ displayValue(row.status) }}
                 </span>
               </div>
 
@@ -308,7 +330,22 @@ const props = defineProps({
 
   totalLabel: {
     type: String,
-    default: 'Summ',
+    default: 'Total Price',
+  },
+
+  quantityLabel: {
+    type: String,
+    default: 'Count',
+  },
+
+  coinLabel: {
+    type: String,
+    default: 'Points',
+  },
+
+  showStatusAfterId: {
+    type: Boolean,
+    default: false,
   },
 
   actionLabel: {
@@ -383,7 +420,11 @@ const columns = computed(() => {
   const result = []
 
   if (props.showIDColumn) {
-    result.push('minmax(0, 0.95fr)')
+    result.push('minmax(0, 0.85fr)')
+  }
+
+  if (props.showStatusAfterId) {
+    result.push('minmax(0, 1.08fr)')
   }
 
   if (props.showDataColumn) {
@@ -410,10 +451,12 @@ const columns = computed(() => {
     result.push('minmax(0, 1fr)')
   }
 
-  result.push('minmax(0, 0.95fr)')
+  if (!props.showStatusAfterId) {
+    result.push('minmax(0, 0.95fr)')
+  }
 
   if (props.showAction) {
-    result.push('minmax(70px, 0.8fr)')
+    result.push('minmax(62px, 0.75fr)')
   }
 
   return result
@@ -428,16 +471,13 @@ const hasValue = value => {
 }
 
 const getSkinItems = row => {
-  if (Array.isArray(row.skinItems) && row.skinItems.length) {
-    return row.skinItems
-  }
+  return Array.isArray(row.skinItems)
+    ? row.skinItems.filter(item => hasValue(item.title))
+    : []
+}
 
-  return [
-    {
-      title: '—',
-      image: '',
-    },
-  ]
+const displayValue = value => {
+  return hasValue(value) ? value : ''
 }
 
 const isRowExpanded = (row, index) => {
@@ -449,7 +489,7 @@ const isRowExpanded = (row, index) => {
 }
 
 const formatRowDate = timestamp => {
-  if (!hasValue(timestamp)) return '—'
+  if (!hasValue(timestamp)) return ''
 
   return formatDate(timestamp, 'DD.MM.YYYY')
 }
@@ -463,7 +503,7 @@ const formatRowTime = timestamp => {
 const formatCoinAmount = amount => {
   const value = Number(amount)
 
-  return Number.isFinite(value) ? value.toFixed(2) : 0
+  return Number.isFinite(value) ? value.toFixed(2) : ''
 }
 
 const getStatusClass = status => {
@@ -488,6 +528,7 @@ const getStatusClass = status => {
 
   if (
     value.includes('counter offer') ||
+    value.includes('counteroffer') ||
     value.includes('pending') ||
     value.includes('processing') ||
     value.includes('awaiting')
@@ -816,7 +857,8 @@ const getStatusClass = status => {
     min-width: 0;
     max-width: 100%;
 
-    :deep(.btn) {
+    :deep(.btn),
+    :deep(.base-button) {
       display: inline-flex;
       flex: 0 1 auto;
 

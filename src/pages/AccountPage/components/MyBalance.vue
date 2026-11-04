@@ -1,140 +1,70 @@
 <template>
   <div class="balance" v-bind="attrs">
-    <div class="balance__title">
-      {{ $t('My Balance:') }}
-    </div>
-    <div class="balance__row">
+    <div class="balance__left">
+      <span class="balance__label">{{ $t('My Balance:') }}</span>
       <PriceFormatter
         class="balance__coin"
         :price="balanceInternal"
         size="size-32"
         skip-conversion
       />
-      <div class="balance__conversion">
-        <PriceFormatter
-          :price="creditsPerSelectedFiat"
-          skip-conversion
-          size="size-12"
-        />
-
-        <span>=</span>
-
-        <PriceFormatter
-          :price="1"
-          :currency-code="currencyStore.currentCurrencyCode"
-          is-currency
-          raw-fiat
-          skip-conversion
-          size="size-12"
-        />
+    </div>
+    <div class="balance__right">
+      <h2 class="balance__heading">{{ $t('Top Up') }}</h2>
+      <div class="balance__controls">
+        <div class="balance__conversion">
+          <PriceFormatter
+            :price="creditsPerSelectedFiat"
+            skip-conversion
+            size="size-12"
+          />
+          <span>=</span>
+          <PriceFormatter
+            :price="1"
+            :currency-code="currencyStore.currentCurrencyCode"
+            is-currency
+            raw-fiat
+            skip-conversion
+            size="size-12"
+          />
+        </div>
+        <div class="balance__actions">
+          <BaseInput
+            v-model.number="selectedAmount"
+            class="balance__input"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="0.00"
+            :disabled="isLoading"
+          >
+            <template #suffix>
+              <div class="balance__content">
+                <SvgIcon :icon="CoinIcon" class="balance__icon" />
+                <BaseButton
+                  class="balance__submit"
+                  variant="primary"
+                  :disabled="!isValidAmount || isLoading"
+                  @click="openDepositModal"
+                  >{{ $t('Top Up') }}</BaseButton
+                >
+              </div>
+            </template>
+          </BaseInput>
+        </div>
       </div>
-    </div>
-    <div v-if="selectedAmountNumber > 0" class="balance__total">
-      <span class="balance__total-label">
-        {{ $t('You will get:') }}
-      </span>
-
-      <PriceFormatter
-        :price="selectedAmountNumber"
-        :currency-code="currencyStore.currentCurrencyCode"
-        skip-conversion
-        size="size-14"
-        class="balance__total-price"
-      />
-    </div>
-    <div v-if="amountError" class="balance__error _text-error">
-      {{ amountError }}
-    </div>
-    <div class="balance__actions">
-      <BaseInput
-        v-model.number="selectedAmount"
-        class="balance__input"
-        type="number"
-        min="0"
-        step="1"
-        :placeholder="$t('Sum')"
-        :disabled="isLoading"
-      >
-        <template #suffix>
-          <span v-if="false" class="balance__input-symbol">
-            {{ currentCurrencyDisplay }}
-          </span>
-          <div class="balance__content">
-            <SvgIcon :icon="CoinIcon" class="balance__icon" />
-            <BaseButton
-              class="balance__submit"
-              variant="primary"
-              :disabled="!isValidAmount || isLoading"
-              @click="openDepositModal"
-            >
-              {{ $t('TOP UP') }}
-            </BaseButton>
-          </div>
-        </template>
-      </BaseInput>
-    </div>
-    <div v-if="minTopUpAmount && false" class="balance__warn">
-      <span>
-        {{ $t('Min. Top up - ') }}
-      </span>
-
-      <PriceFormatter
-        :price="minTopUpFiat"
-        :currency-code="currencyStore.currentCurrencyCode"
-        is-currency
-        raw-fiat
-        skip-conversion
-        size="size-14"
-      />
+      <p v-if="amountError" class="balance__error _text-error">
+        {{ amountError }}
+      </p>
     </div>
   </div>
-
-  <div class="balance__options" v-if="false">
-    <button
-      v-for="option in TOP_UP_OPTIONS"
-      :key="option"
-      type="button"
-      class="balance__option"
-      :class="{
-        active: Number(selectedAmount) === option,
-      }"
-      :disabled="isLoading"
-      @click="selectAmount(option)"
-    >
-      <PriceFormatter
-        :price="getOptionFiatValue(option)"
-        :currency-code="currencyStore.currentCurrencyCode"
-        is-currency
-        raw-fiat
-        skip-conversion
-        size="size-14"
-        class="balance__option-fiat"
-      />
-    </button>
-  </div>
-  <button
-    v-if="settingsStore.payoutEnabled && false"
-    type="button"
-    class="balance__withdraw _link"
-    @click="openWithdrawModal"
-  >
-    {{ $t('Withdraw') }}
-  </button>
-
   <TopUpModal
     :show="depositModalIsVisible"
     :selected-amount="selectedAmountNumber"
     :have-to-pay="topUpAmountInFiat"
     @close="closeDepositModal"
   />
-  <WithdrawModal
-    :show="withdrawModalIsVisible"
-    :balance="balance"
-    @close="closeWithdrawModal"
-    @success="handleWithdrawSuccess"
-  />
 </template>
-
 <script setup>
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, useAttrs, watch } from 'vue'
@@ -145,7 +75,6 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 
 import TopUpModal from '@/components/modals/TopUpModal.vue'
-import WithdrawModal from '@/components/modals/WithdrawModal.vue'
 
 import { CoinIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'
@@ -188,8 +117,6 @@ const creditsConversionRate = computed(() => {
   return Number(settingsStore.creditsConversionRate || 0)
 })
 
-// How much fiat 1 coin costs.
-// rate 0.5 => 1 coin = €2
 const oneCoinFiatValue = computed(() => {
   if (!creditsConversionRate.value) {
     return 0
@@ -352,7 +279,7 @@ const openWithdrawModal = () => {
     return
   }
 
-  const availableBalance = Number(balance.value || 0)
+  const availableBalance = Number(balanceInternal.value || 0)
 
   if (availableBalance <= 0) {
     toast.warning(t('You do not have enough balance to withdraw'))
@@ -397,88 +324,144 @@ onMounted(async () => {
   }
 })
 </script>
-
 <style lang="scss" scoped>
 @use '@/assets/styles/mixins' as *;
 @use '@/assets/styles/media' as *;
-@use '@/assets/styles/fonts' as *;
 @use '@/assets/styles/components/classes' as *;
-
 .balance {
-  &__title {
-    font-size: 12px;
-    line-height: 12px;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 25, 15);
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 60%);
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  &__left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    gap: 16px;
+    padding-right: 16px;
+  }
+  &__label {
+    color: var(--hint-third-color);
+    font-family: var(--font-inter);
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  &__coin {
+    justify-content: flex-start;
+    min-width: 0;
+    :deep(.price__value) {
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1;
+    }
+    :deep(.price__icon) {
+      width: 30px;
+      height: 30px;
     }
   }
-
-  &__row {
+  &__right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    min-width: 0;
+    padding-left: 20px;
+    border-left: 1px solid var(--border-primary-color);
+  }
+  &__heading {
+    margin: 0;
+    font-family: var(--font-akshar);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  &__controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 24, 20);
-    }
+    gap: 14px;
+    min-width: 0;
   }
-
-  &__coin {
-  }
-
   &__conversion {
     display: flex;
     align-items: center;
-    gap: 6px;
-    color: var(--primary-color) !important;
-    font-size: 12px;
-    line-height: 12px;
-    font-weight: 700;
-  }
-
-  &__total {
-    display: flex;
-    gap: 6px;
-    &:not(:last-child) {
-      @include adaptiveValue('margin-bottom', 25, 15);
+    flex: 0 0 auto;
+    gap: 5px;
+    color: var(--hint-third-color);
+    font-size: 11px;
+    white-space: nowrap;
+    :deep(.price__value),
+    :deep(.price__currency) {
+      color: var(--hint-third-color);
+      font-size: 11px;
     }
-    &-label {
-    }
-
-    &-price {
+    :deep(.price__icon) {
+      width: 11px;
+      height: 11px;
     }
   }
-
-  &__error {
-    &:not(:last-child) {
-      margin-bottom: 8px;
-    }
-  }
-
-  &__actions {
-    display: flex;
+  &__actions,
+  &__input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
   }
   &__input {
-    :deep(.base-input__control) {
-      padding-right: 120px !important;
+    :deep(.base-input) {
+      min-height: 44px;
+      background-color: var(--bg-third-color);
+      border-color: var(--border-primary-color);
     }
-
-    :deep(.base-input__suffix) {
-      right: 0 !important;
+    :deep(.base-input__control) {
+      min-width: 0;
+      padding-right: 112px;
+      font-size: 12px;
     }
   }
   &__content {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
   &__icon {
-    min-width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
   }
-
   &__submit {
-    min-width: 64px;
+    flex: 0 0 auto;
+    min-width: 68px;
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  &__error {
+    font-size: 11px;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 1300px) {
+    &__controls {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    &__conversion {
+      width: 100%;
+    }
+  }
+  @media (max-width: $md4) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    &__left {
+      gap: 10px;
+      padding: 0;
+    }
+    &__right {
+      padding: 16px 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--border-primary-color);
+    }
   }
 }
 </style>
