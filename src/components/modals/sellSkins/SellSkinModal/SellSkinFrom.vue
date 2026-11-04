@@ -6,7 +6,7 @@
       </h2>
 
       <div
-        v-if="is_debug_sell_items_active"
+        v-if="IS_DEBUG_SELL_ITEMS_ACTIVE"
         class="sell-skins__debug"
         role="status"
       >
@@ -20,7 +20,7 @@
       </div>
 
       <div
-        v-else-if="!selectedItems.length"
+        v-else-if="!inventoryItems.length"
         class="sell-skins__state sell-skins__state--empty"
       >
         <p>{{ errors.general || $t('No items available for selling') }}</p>
@@ -39,28 +39,18 @@
       <template v-else>
         <div class="sell-skins__table">
           <div class="sell-skins__head">
-            <div class="sell-skins__head-item">
-              {{ $t('Item') }}
-            </div>
-
-            <div class="sell-skins__head-item">
-              {{ $t('Available') }}
-            </div>
-
-            <div class="sell-skins__head-item">
-              {{ $t('Q-ty') }}
-            </div>
-
-            <div class="sell-skins__head-item">
-              {{ $t('Price') }}
-            </div>
+            <div class="sell-skins__head-item">{{ $t('Item') }}</div>
+            <div class="sell-skins__head-item">{{ $t('Available') }}</div>
+            <div class="sell-skins__head-item">{{ $t('Q-ty') }}</div>
+            <div class="sell-skins__head-item">{{ $t('Price') }}</div>
           </div>
 
           <div class="sell-skins__rows">
             <div
-              v-for="item in selectedItems"
+              v-for="item in inventoryItems"
               :key="getItemKey(item)"
               class="sell-skins__row"
+              :class="{ 'is-active': item.quantity > 0 }"
             >
               <div class="sell-skins__cell sell-skins__cell--name">
                 <span class="sell-skins__mobile-label">
@@ -90,7 +80,7 @@
                 <CartItemQuantity
                   class="sell-skins__quantity"
                   :model-value="item.quantity"
-                  :min="1"
+                  :min="0"
                   :max="item.available"
                   :loading="isLoading || isInventoryLoading"
                   @change="quantity => updateQuantity(item, quantity)"
@@ -154,10 +144,10 @@
             type="submit"
             variant="primary"
             class="sell-skins__submit"
-            :disabled="isLoading || !isFormValid"
+            :disabled="isLoading || isInventoryLoading || !isFormValid"
           >
             {{
-              is_debug_sell_items_active
+              IS_DEBUG_SELL_ITEMS_ACTIVE
                 ? $t('Preview Offer')
                 : $t('Create New Offer')
             }}
@@ -170,7 +160,7 @@
       </p>
 
       <p
-        v-if="errors.general && selectedItems.length"
+        v-if="errors.general && inventoryItems.length"
         class="sell-skins__error _text-error"
         role="alert"
       >
@@ -199,7 +189,7 @@ import { useModalStore } from '@/stores/modal'
 import { useOfferFlowStore } from '@/stores/offerFlow'
 import { useSettingsStore } from '@/stores/settings'
 
-const is_debug_sell_items_active = true
+const IS_DEBUG_SELL_ITEMS_ACTIVE = false
 
 const debugInventory = [
   {
@@ -273,8 +263,7 @@ const settingsStore = useSettingsStore()
 
 const { currentCurrencyCode } = storeToRefs(currencyStore)
 
-const inventory = ref([])
-const selectedItems = ref([])
+const inventoryItems = ref([])
 const acceptApproval = ref(false)
 const isLoading = ref(false)
 const isInventoryLoading = ref(false)
@@ -284,6 +273,8 @@ const errors = reactive({
   acceptApproval: '',
   general: '',
 })
+
+const roundMoney = value => Number((Number(value) || 0).toFixed(2))
 
 const currencyRate = computed(() => {
   const rate = Number(currencyStore.currentCurrency?.value)
@@ -295,22 +286,20 @@ const creditsRate = computed(() => {
   return Number.isFinite(rate) && rate > 0 ? rate : 1
 })
 
-const roundMoney = value => Number((Number(value) || 0).toFixed(2))
+const selectedItems = computed(() => {
+  return inventoryItems.value.filter(item => item.quantity > 0)
+})
 
 const getItemKey = item => `${item.short_name}:${item.skin}`
 
 const getItemTotal = item => {
-  return roundMoney(Number(item.unitCredits) * Number(item.quantity))
-}
-
-const getItemFiatTotal = item => {
-  return roundMoney(Number(item.unitFiat) * Number(item.quantity))
+  return roundMoney(item.unitCredits * item.quantity)
 }
 
 const totalPrice = computed(() => {
   return roundMoney(
     selectedItems.value.reduce((sum, item) => {
-      return sum + Number(item.unitCredits) * Number(item.quantity)
+      return sum + item.unitCredits * item.quantity
     }, 0),
   )
 })
@@ -318,7 +307,7 @@ const totalPrice = computed(() => {
 const totalFiat = computed(() => {
   return roundMoney(
     selectedItems.value.reduce((sum, item) => {
-      return sum + Number(item.unitFiat) * Number(item.quantity)
+      return sum + item.unitFiat * item.quantity
     }, 0),
   )
 })
@@ -327,17 +316,17 @@ const isFormValid = computed(() => {
   return (
     acceptApproval.value &&
     selectedItems.value.length > 0 &&
+    totalPrice.value > 0 &&
     totalFiat.value > 0 &&
-    selectedItems.value.every(item => {
-      return (
+    selectedItems.value.every(
+      item =>
         Boolean(item.short_name) &&
         Number.isInteger(item.quantity) &&
-        item.quantity >= 1 &&
+        item.quantity > 0 &&
         item.quantity <= item.available &&
         Number.isFinite(item.price) &&
-        item.price >= 0.01
-      )
-    })
+        item.price >= 0.01,
+    )
   )
 })
 
@@ -353,54 +342,51 @@ const normalizeItemTitle = value => {
 
 const normalizeInventoryItem = item => {
   const catalog = item?.catalog_item
-  const availableValue = Number(item?.amount ?? item?.available ?? 0)
-  const unitFiat = Number(catalog?.price)
+  const availableValue = Number(
+    item?.amount ?? item?.available ?? item?.count ?? 0,
+  )
+  const fiatValue = Number(catalog?.price ?? item?.price)
   const internalValue = Number(catalog?.price_internal)
+  const unitFiat = Number.isFinite(fiatValue) ? fiatValue : 0
   const unitBasePrice = roundMoney(unitFiat / currencyRate.value)
+
   const unitCredits =
     catalog?.price_internal != null && Number.isFinite(internalValue)
       ? internalValue
       : roundMoney(unitBasePrice * creditsRate.value)
 
   return {
-    short_name: String(item?.short_name || '').trim(),
-    skin: Number(item?.skin ?? 0),
+    short_name: String(item?.short_name ?? item?.item?.short_name ?? '').trim(),
+    skin: Number(item?.skin ?? item?.item?.skin ?? 0),
     name: normalizeItemTitle(
-      catalog?.name || item?.game_name || item?.short_name,
+      catalog?.name ||
+        item?.game_name ||
+        item?.item?.name ||
+        item?.title ||
+        item?.short_name,
     ),
     available: Number.isFinite(availableValue)
       ? Math.max(0, Math.floor(availableValue))
       : 0,
-    quantity: 1,
-    unitFiat: Number.isFinite(unitFiat) ? unitFiat : 0,
-    unitCredits: Number.isFinite(unitCredits) ? unitCredits : 0,
+    quantity: 0,
+    unitFiat,
+    unitCredits,
     price: unitBasePrice,
-    inCatalog: item?.in_catalog === true || Boolean(catalog),
+    inCatalog: ![false, 0, '0'].includes(item?.in_catalog) && Boolean(catalog),
   }
 }
 
 const setInventory = source => {
-  const previous = new Map(
-    selectedItems.value.map(item => [getItemKey(item), item.quantity]),
-  )
-  inventory.value = source
-  selectedItems.value = source
+  inventoryItems.value = source
     .map(normalizeInventoryItem)
-    .filter(item => {
-      return (
+    .filter(
+      item =>
         item.inCatalog &&
         item.short_name &&
         item.available > 0 &&
-        item.price >= 0.01
-      )
-    })
-    .map(item => ({
-      ...item,
-      quantity: Math.max(
-        1,
-        Math.min(previous.get(getItemKey(item)) || 1, item.available),
-      ),
-    }))
+        item.price >= 0.01 &&
+        item.unitCredits > 0,
+    )
 }
 
 const fetchInventory = async () => {
@@ -411,7 +397,7 @@ const fetchInventory = async () => {
   debugSubmitted.value = false
 
   try {
-    if (is_debug_sell_items_active) {
+    if (IS_DEBUG_SELL_ITEMS_ACTIVE) {
       setInventory(debugInventory)
       return
     }
@@ -430,8 +416,7 @@ const fetchInventory = async () => {
 
     setInventory(payload)
   } catch (error) {
-    inventory.value = []
-    selectedItems.value = []
+    inventoryItems.value = []
     errors.general =
       error?.response?.data?.message ||
       error?.message ||
@@ -442,10 +427,12 @@ const fetchInventory = async () => {
 }
 
 const updateQuantity = (item, value) => {
+  if (isLoading.value || isInventoryLoading.value) return
+
   const quantity = Number.parseInt(value, 10)
   if (!Number.isFinite(quantity)) return
 
-  item.quantity = Math.max(1, Math.min(quantity, item.available))
+  item.quantity = Math.max(0, Math.min(quantity, item.available))
   errors.general = ''
   debugSubmitted.value = false
 }
@@ -459,7 +446,7 @@ const validate = () => {
   clearErrors()
 
   if (!selectedItems.value.length) {
-    errors.general = t('No items selected for selling')
+    errors.general = t('Select at least one item to sell')
     return false
   }
 
@@ -477,9 +464,11 @@ const validate = () => {
 }
 
 const submit = async () => {
-  if (isLoading.value || isInventoryLoading.value || !validate()) return false
+  if (isLoading.value || isInventoryLoading.value || !validate()) {
+    return false
+  }
 
-  if (is_debug_sell_items_active) {
+  if (IS_DEBUG_SELL_ITEMS_ACTIVE) {
     debugSubmitted.value = true
     return false
   }
@@ -497,6 +486,7 @@ const submit = async () => {
 
     if (!result?.success) {
       const validationErrors = result?.validationErrors
+
       const firstValidationError =
         validationErrors && typeof validationErrors === 'object'
           ? Object.values(validationErrors).flat().find(Boolean)
@@ -506,19 +496,23 @@ const submit = async () => {
         firstValidationError ||
         result?.error ||
         t('Failed to create sell request')
+
       return false
     }
 
-    acceptApproval.value = false
+    reset()
     await fetchInventory()
+
     emit('success', result)
     modalStore.open('sellConfirmation')
+
     return true
   } catch (error) {
     errors.general =
       error?.response?.data?.message ||
       error?.message ||
       t('Failed to create sell request')
+
     return false
   } finally {
     isLoading.value = false
@@ -529,15 +523,10 @@ const reset = () => {
   acceptApproval.value = false
   debugSubmitted.value = false
   clearErrors()
-  selectedItems.value = inventory.value
-    .map(normalizeInventoryItem)
-    .filter(
-      item =>
-        item.inCatalog &&
-        item.short_name &&
-        item.available > 0 &&
-        item.price >= 0.01,
-    )
+
+  inventoryItems.value.forEach(item => {
+    item.quantity = 0
+  })
 }
 
 const cancel = () => {
@@ -707,10 +696,27 @@ defineExpose({
     border-radius: 4px;
     background-color: var(--bg-third-color);
 
-    transition: background-color 0.25s ease;
+    transition:
+      background-color 0.25s ease,
+      box-shadow 0.25s ease;
+
+    &.is-active {
+      background-color: rgba(107, 161, 27, 0.15);
+      box-shadow: inset 3px 0 0 var(--hint-primary-color);
+
+      .sell-skins__item-name {
+        font-weight: 600;
+      }
+
+      @media (any-hover: hover) {
+        &:hover {
+          background-color: rgba(107, 161, 27, 0.2);
+        }
+      }
+    }
 
     @media (any-hover: hover) {
-      &:hover {
+      &:not(.is-active):hover {
         background-color: var(--bg-fourth-color);
       }
     }
@@ -758,6 +764,9 @@ defineExpose({
 
     :deep(.cart-quantity) {
       min-width: 0;
+      border-color: var(--border-primary-color);
+      border-radius: 5px;
+      background-color: var(--bg-third-color);
     }
 
     :deep(.cart-quantity__button) {
@@ -779,12 +788,6 @@ defineExpose({
 
       font-family: var(--font-inter);
       font-size: 12px;
-    }
-
-    :deep(.cart-quantity) {
-      border-color: var(--border-primary-color);
-      border-radius: 5px;
-      background-color: var(--bg-third-color);
     }
   }
 
@@ -929,6 +932,10 @@ defineExpose({
 
       border: 1px solid var(--border-primary-color);
       border-radius: 6px;
+
+      &.is-active {
+        border-color: var(--hint-primary-color);
+      }
     }
 
     &__cell {
