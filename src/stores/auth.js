@@ -9,7 +9,6 @@ export const useAuthStore = defineStore('auth', {
     isLoading: false,
     error: null,
     isAuthenticated: !!localStorage.getItem('auth_session'),
-    emailVerified: false,
     authCheckedOnce: false,
     sessionExpired: false,
   }),
@@ -43,7 +42,6 @@ export const useAuthStore = defineStore('auth', {
     clearAuthState() {
       // Update store state
       this.isAuthenticated = false
-      this.emailVerified = false
       this.authCheckedOnce = false // Reset the auth check flag
       this.sessionExpired = false // Reset session expired flag
 

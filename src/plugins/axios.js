@@ -77,15 +77,6 @@ axiosInstance.interceptors.response.use(
           })
         }
       }
-    } else if (
-      error.response?.status === 403 &&
-      error.response?.data?.message === 'Your email address is not verified.'
-    ) {
-      // Redirect to email verification page
-      router.push({
-        name: 'EmailVerificationPage',
-        query: { redirect: router.currentRoute.value.fullPath },
-      })
     }
 
     return Promise.reject(error)

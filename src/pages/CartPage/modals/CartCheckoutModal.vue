@@ -2,16 +2,20 @@
   <BaseModal
     :show="show"
     wrapper-classes="checkout__inner"
+    :persistent="isSubmitting"
     @close="handleClose"
   >
     <div class="checkout">
       <div class="checkout__info">
         <BaseButton
+          type="button"
           variant="bordered"
           class="checkout__back"
+          :disabled="isSubmitting"
           @click="handleClose"
         >
           <SvgIcon :icon="ChevronDownIcon" class="checkout__back-icon" />
+
           <span>{{ $t('Back to cart') }}</span>
         </BaseButton>
 
@@ -26,6 +30,7 @@
             :error="errors.name"
             variant="checkout"
             class="checkout__input"
+            autocomplete="given-name"
             :disabled="isSubmitting"
             @blur="validateField('name')"
           />
@@ -36,6 +41,7 @@
             :error="errors.surname"
             variant="checkout"
             class="checkout__input"
+            autocomplete="family-name"
             :disabled="isSubmitting"
             @blur="validateField('surname')"
           />
@@ -45,6 +51,7 @@
             :label="$t('Phone')"
             :error="errors.phone"
             type="tel"
+            inputmode="tel"
             autocomplete="tel"
             variant="checkout"
             class="checkout__input"
@@ -57,6 +64,7 @@
             :label="$t('Email')"
             :error="errors.email"
             type="email"
+            autocomplete="email"
             variant="checkout"
             class="checkout__input"
             :disabled="isSubmitting"
@@ -82,6 +90,7 @@
             :error="errors.city"
             variant="checkout"
             class="checkout__input"
+            autocomplete="address-level2"
             :disabled="isSubmitting"
             @blur="validateField('city')"
           />
@@ -92,6 +101,7 @@
             :error="errors.address"
             variant="checkout"
             class="checkout__input"
+            autocomplete="street-address"
             :disabled="isSubmitting"
             @blur="validateField('address')"
           />
@@ -102,6 +112,7 @@
             :error="errors.postCode"
             variant="checkout"
             class="checkout__input"
+            autocomplete="postal-code"
             :disabled="isSubmitting"
             @blur="validateField('postCode')"
           />
@@ -146,7 +157,7 @@
           terms
         />
 
-        <div v-if="submitError" class="summary__error _text-error">
+        <div v-if="submitError" class="summary__error _text-error" role="alert">
           {{ submitError }}
         </div>
 
@@ -156,6 +167,7 @@
               type="button"
               variant="primary"
               class="summary__submit"
+              :loading="isSubmitting && selectedPaymentMethod === 'balance'"
               :disabled="isSubmitting || !isFormComplete || !hasEnoughBalance"
               @click="submit('balance')"
             >
@@ -179,6 +191,7 @@
               type="button"
               class="summary__submit"
               :variant="isCard(method.code) ? 'primary' : 'bordered'"
+              :loading="isSubmitting && selectedPaymentMethod === method.code"
               :disabled="isSubmitting || !isFormComplete"
               @click="submit(method.code)"
             >
@@ -186,10 +199,12 @@
                 v-if="method.image"
                 class="summary__submit-image _ibg-contain"
               >
-                <img :src="method.image" :alt="method.title" />
+                <img :src="method.image" :alt="method.title || method.code" />
               </span>
 
-              <span v-else>{{ method.title }}</span>
+              <span v-else>
+                {{ method.title || method.code }}
+              </span>
             </BaseButton>
           </div>
         </div>
@@ -225,17 +240,20 @@ import { usePurchaseStore } from '@/stores/purchase'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 
-const STORAGE_KEY = 'cart_checkout_contact_form'
+const STORAGE_KEY = 'checkout_contact_form'
+const LEGACY_STORAGE_KEY = 'cart_checkout_contact_form'
 
 const props = defineProps({
   show: {
     type: Boolean,
     default: false,
   },
+
   totalCoins: {
     type: [Number, String],
     default: 0,
   },
+
   totalFiat: {
     type: [Number, String],
     default: 0,
@@ -247,6 +265,7 @@ const emit = defineEmits(['close'])
 const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
+
 const { ensurePages } = useStaticPages()
 
 const cartStore = useCartStore()
@@ -260,12 +279,13 @@ const userStore = useUserStore()
 const isSubmitting = ref(false)
 const selectedPaymentMethod = ref(null)
 const submitError = ref('')
+const hasHydratedContact = ref(false)
 
 const localForm = reactive({
   name: '',
   surname: '',
-  email: '',
   phone: '',
+  email: '',
   country: '',
   city: '',
   address: '',
@@ -276,8 +296,8 @@ const localForm = reactive({
 const errors = reactive({
   name: '',
   surname: '',
-  email: '',
   phone: '',
+  email: '',
   country: '',
   city: '',
   address: '',
@@ -285,10 +305,24 @@ const errors = reactive({
   acceptTerms: '',
 })
 
-const norm = value => String(value ?? '').trim()
+const norm = value => {
+  return String(value ?? '').trim()
+}
 
 const emailRe = /^\S+@\S+\.\S+$/
+
 const nameRe = /^[\p{L}][\p{L}\p{M}' -]{1,}$/u
+
+const contactFields = [
+  'name',
+  'surname',
+  'phone',
+  'email',
+  'country',
+  'city',
+  'address',
+  'postCode',
+]
 
 const userBalance = computed(() => {
   return (
@@ -311,34 +345,44 @@ const countries = computed(() => {
   }))
 })
 
-const normCode = code =>
-  String(code || '')
+const normCode = code => {
+  return String(code || '')
     .toLowerCase()
     .trim()
+}
 
-const isCard = code =>
-  ['card', 'creditdebit-card', 'credit_card'].includes(normCode(code))
+const isCard = code => {
+  return ['card', 'creditdebit-card', 'credit_card'].includes(normCode(code))
+}
 
-const isBalance = code => normCode(code) === 'balance'
+const isBalance = code => {
+  return normCode(code) === 'balance'
+}
 
 const availablePaymentMethods = computed(() => {
   const methods = settingsStore.paymentMethods || []
-  const currency = currencyStore.currentCurrencyCode
+  const currency = String(currencyStore.currentCurrencyCode || '').toUpperCase()
 
   return methods.filter(method => {
-    if (isBalance(method.code)) return false
+    if (!method?.code || isBalance(method.code)) {
+      return false
+    }
 
-    if (!method.currencies?.length) return true
+    if (!Array.isArray(method.currencies) || !method.currencies.length) {
+      return true
+    }
 
-    return method.currencies.includes(currency)
+    return method.currencies.some(code => {
+      return String(code).toUpperCase() === currency
+    })
   })
 })
 
 const getStoragePayload = () => ({
   name: localForm.name,
   surname: localForm.surname,
-  email: localForm.email,
   phone: localForm.phone,
+  email: localForm.email,
   country: localForm.country,
   city: localForm.city,
   address: localForm.address,
@@ -354,40 +398,32 @@ const saveFormToStorage = () => {
 }
 
 const prefillFromStorage = () => {
-  let saved
+  hasHydratedContact.value = false
 
   try {
-    saved = localStorage.getItem(STORAGE_KEY)
-  } catch {
-    localForm.acceptTerms = false
-    return
-  }
+    const sharedSaved = localStorage.getItem(STORAGE_KEY)
+    const legacySaved = localStorage.getItem(LEGACY_STORAGE_KEY)
 
-  if (!saved) {
-    localForm.acceptTerms = false
-    return
-  }
+    const saved = sharedSaved || legacySaved
 
-  try {
-    const data = JSON.parse(saved)
+    if (saved) {
+      const data = JSON.parse(saved)
 
-    localForm.name = data.name || ''
-    localForm.surname = data.surname || ''
-    localForm.email = data.email || ''
-    localForm.phone = data.phone || ''
-    localForm.country = data.country || ''
-    localForm.city = data.city || ''
-    localForm.address = data.address || ''
-    localForm.postCode = data.postCode || ''
-    localForm.acceptTerms = false
-  } catch {
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch {
-      // Storage unavailable.
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        contactFields.forEach(key => {
+          localForm[key] = data[key] ?? ''
+        })
+
+        if (!sharedSaved && legacySaved) {
+          saveFormToStorage()
+        }
+      }
     }
-
+  } catch (error) {
+    console.warn('Could not restore checkout contact details', error)
+  } finally {
     localForm.acceptTerms = false
+    hasHydratedContact.value = true
   }
 }
 
@@ -430,14 +466,6 @@ const validateField = field => {
       }
       break
 
-    case 'email':
-      if (!value) {
-        errors.email = t('Email is required')
-      } else if (!emailRe.test(value)) {
-        errors.email = t('Invalid email format')
-      }
-      break
-
     case 'phone':
       if (!value) {
         errors.phone = t('Phone is required')
@@ -446,12 +474,28 @@ const validateField = field => {
       }
       break
 
+    case 'email':
+      if (!value) {
+        errors.email = t('Email is required')
+      } else if (!emailRe.test(value)) {
+        errors.email = t('Invalid email format')
+      }
+      break
+
     case 'country':
-      if (!value) errors.country = t('Country is required')
+      if (
+        localForm.country === '' ||
+        localForm.country === null ||
+        localForm.country === undefined
+      ) {
+        errors.country = t('Country is required')
+      }
       break
 
     case 'city':
-      if (!value) errors.city = t('City is required')
+      if (!value) {
+        errors.city = t('City is required')
+      }
       break
 
     case 'address':
@@ -494,9 +538,11 @@ const isFormComplete = computed(() => {
   return Boolean(
     nameRe.test(norm(localForm.name)) &&
     nameRe.test(norm(localForm.surname)) &&
-    emailRe.test(norm(localForm.email)) &&
     isValidPhone(localForm.phone) &&
-    localForm.country &&
+    emailRe.test(norm(localForm.email)) &&
+    localForm.country !== '' &&
+    localForm.country !== null &&
+    localForm.country !== undefined &&
     norm(localForm.city) &&
     norm(localForm.address) &&
     norm(localForm.postCode) &&
@@ -505,8 +551,13 @@ const isFormComplete = computed(() => {
 })
 
 const submit = async methodCode => {
-  if (isSubmitting.value) return
-  if (!validateForm()) return
+  if (isSubmitting.value) {
+    return
+  }
+
+  if (!validateForm()) {
+    return
+  }
 
   selectedPaymentMethod.value = methodCode
 
@@ -515,19 +566,21 @@ const submit = async methodCode => {
 
     submitError.value = message
     toast.error(message)
+
     return
   }
 
   try {
     isSubmitting.value = true
     clearErrors()
+
     saveFormToStorage()
 
     const purchaseData = {
       name: norm(localForm.name),
       surname: norm(localForm.surname),
-      email: norm(localForm.email),
       phone: norm(localForm.phone),
+      email: norm(localForm.email),
       country: localForm.country,
       city: norm(localForm.city),
       address: norm(localForm.address),
@@ -540,7 +593,7 @@ const submit = async methodCode => {
 
     const response = await purchaseStore.purchaseCartItems(purchaseData)
 
-    if (response.success) {
+    if (response?.success) {
       if (response.redirect_url) {
         window.location.href = response.redirect_url
         return
@@ -556,79 +609,114 @@ const submit = async methodCode => {
     }
 
     const errorMessage =
-      response.error || t('An error occurred during checkout')
+      response?.error || t('An error occurred during checkout')
 
     submitError.value = errorMessage
+
     toast.error(errorMessage)
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message ||
-      error.message ||
+      error?.response?.data?.message ||
+      error?.message ||
       t('An error occurred during checkout')
 
     submitError.value = errorMessage
+
     toast.error(errorMessage)
   } finally {
     isSubmitting.value = false
+    selectedPaymentMethod.value = null
   }
 }
 
 const handleClose = () => {
-  if (isSubmitting.value) return
+  if (isSubmitting.value) {
+    return
+  }
 
   saveFormToStorage()
+
   emit('close')
+}
+
+const initializeCheckout = async () => {
+  prefillFromStorage()
+
+  clearErrors()
+  selectedPaymentMethod.value = null
+
+  const requests = [ensurePages()]
+
+  if (!settingsStore.settings) {
+    requests.push(settingsStore.fetchSettings())
+  }
+
+  if (!countryStore.countries?.length) {
+    requests.push(countryStore.fetchCountries())
+  }
+
+  requests.push(cartStore.fetchCartContent())
+
+  const results = await Promise.allSettled(requests)
+
+  results.forEach(result => {
+    if (result.status === 'rejected') {
+      console.error('Failed to initialize checkout', result.reason)
+    }
+  })
 }
 
 watch(
   () => props.show,
-  async isOpen => {
-    if (!isOpen) return
-
-    try {
-      await Promise.all([
-        ensurePages(),
-        settingsStore.fetchSettings(),
-        countryStore.fetchCountries(),
-        cartStore.fetchCartContent(),
-      ])
-    } catch (error) {
-      console.error('Failed to initialize checkout', error)
+  isOpen => {
+    if (isOpen) {
+      initializeCheckout()
+    } else {
+      hasHydratedContact.value = false
     }
-
-    prefillFromStorage()
-    clearErrors()
-    selectedPaymentMethod.value = null
   },
 )
 
 watch(
-  localForm,
+  () => [
+    localForm.name,
+    localForm.surname,
+    localForm.phone,
+    localForm.email,
+    localForm.country,
+    localForm.city,
+    localForm.address,
+    localForm.postCode,
+  ],
   () => {
-    saveFormToStorage()
+    if (props.show && hasHydratedContact.value) {
+      saveFormToStorage()
+    }
   },
-  { deep: true },
 )
 
 watch(
   () => localForm.country,
-  () => validateField('country'),
+  () => {
+    if (errors.country) {
+      validateField('country')
+    }
+  },
 )
 
-onMounted(async () => {
-  try {
-    if (!settingsStore.settings) {
-      await settingsStore.fetchSettings()
+watch(
+  () => localForm.acceptTerms,
+  accepted => {
+    if (accepted) {
+      errors.acceptTerms = ''
     }
+  },
+)
 
-    if (!countryStore.countries?.length) {
-      await countryStore.fetchCountries()
-    }
-  } catch (error) {
-    console.error('Failed to initialize checkout data', error)
+onMounted(() => {
+  if (props.show) {
+    initializeCheckout()
   }
-
-  prefillFromStorage()
 })
 </script>
 
@@ -637,10 +725,10 @@ onMounted(async () => {
 @use '@/assets/styles/media' as *;
 @use '@/assets/styles/components/classes' as *;
 
-// BaseModal teleports its content to body.
-:global(.checkout__inner) {
+:global(.modal__inner.checkout__inner) {
   width: calc(100% - 32px);
   max-width: 1072px;
+
   border-radius: 6px;
   background: var(--bg-third-color);
 }
@@ -663,7 +751,10 @@ onMounted(async () => {
 
 .checkout {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-columns:
+    minmax(0, 3fr)
+    minmax(0, 2fr);
+
   align-items: start;
 
   @include adaptiveValue('gap', 40, 16);
@@ -680,24 +771,31 @@ onMounted(async () => {
     @include adaptiveValue('margin-bottom', 28, 18);
 
     padding: 8px 12px;
+
     background: transparent;
     color: var(--primary-color);
 
     font-family: var(--font-inter);
     font-size: 12px;
     font-weight: 500;
+    line-height: 1;
+
     text-transform: uppercase;
 
     &-icon {
       width: 12px;
       min-width: 12px;
       height: 12px;
+
       transform: rotate(90deg);
     }
   }
 
   &__title {
+    margin: 0;
+
     color: var(--primary-color);
+    text-transform: uppercase;
 
     @include adaptiveValue('margin-bottom', 30, 18);
   }
@@ -707,9 +805,13 @@ onMounted(async () => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
     @include adaptiveValue('gap', 18, 10);
+
+    width: 100%;
+    min-width: 0;
   }
 
   &__input {
+    width: 100%;
     min-width: 0;
   }
 
@@ -739,25 +841,31 @@ onMounted(async () => {
 
   border: 1px solid var(--border-primary-color);
   border-radius: 6px;
+
   background: var(--bg-fourth-color);
 
   &__heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     gap: 12px;
 
     @include adaptiveValue('margin-bottom', 24, 16);
   }
 
   &__title {
+    margin: 0;
+
     color: var(--primary-color);
     text-transform: uppercase;
   }
 
   &__count {
     flex-shrink: 0;
+
     color: var(--hint-third-color);
+
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 600;
@@ -765,13 +873,16 @@ onMounted(async () => {
 
   &__total {
     position: relative;
+
     @include adaptiveValue('margin-bottom', 30, 20);
   }
 
   &__subtitle {
+    color: var(--hint-third-color);
+
     font-family: var(--font-inter);
     font-size: 13px;
-    color: var(--hint-third-color);
+    line-height: 1.4;
 
     &:not(:last-child) {
       @include adaptiveValue('margin-bottom', 12, 8);
@@ -788,6 +899,7 @@ onMounted(async () => {
 
   &__fiat {
     justify-content: flex-end;
+
     color: var(--primary-color);
   }
 
@@ -795,19 +907,21 @@ onMounted(async () => {
     @include adaptiveValue('margin-bottom', 24, 16);
 
     :deep(.base-checkbox__row) {
+      align-items: flex-start;
       gap: 16px;
     }
 
     :deep(.base-checkbox__label) {
+      color: var(--primary-color);
+
       font-family: var(--font-inter);
       font-size: 14px;
       line-height: 1.5;
-      color: var(--primary-color);
     }
 
     :deep(.base-checkbox__box) {
-      min-width: 22px;
       width: 22px;
+      min-width: 22px;
       height: 22px;
     }
   }
@@ -818,38 +932,59 @@ onMounted(async () => {
 
   &__methods {
     display: grid;
+
+    grid-template-columns: minmax(0, 1fr);
+
     gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
   &__method {
+    width: 100%;
     min-width: 0;
   }
 
   &__submit {
     width: 100%;
-    border-radius: 5px;
+    min-width: 0;
 
     @include adaptiveValue('min-height', 44, 40);
+
+    border-radius: 5px;
 
     font-family: var(--font-inter);
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.3;
+
+    text-align: center;
     text-transform: uppercase;
 
     &-warn {
       margin-top: 8px;
-      text-align: center;
+
+      color: var(--error-color);
+
       font-family: var(--font-inter);
       font-size: 12px;
+      line-height: 1.5;
+
+      text-align: center;
     }
 
     &-image {
       width: 130px;
       max-width: 70%;
       height: 26px;
+
       margin: auto;
 
       img {
+        display: block;
+        width: 100%;
+        height: 100%;
+
         object-fit: contain;
       }
     }
@@ -857,7 +992,8 @@ onMounted(async () => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .checkout__back {
+  .checkout__back,
+  .summary__submit {
     transition: none;
   }
 }
