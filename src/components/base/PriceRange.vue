@@ -10,6 +10,7 @@
         :disabled="disabled"
         inputmode="numeric"
         autocomplete="off"
+        empty
         @update:modelValue="onMinInput"
         @blur="emitChange"
         @enter="emitChange"
@@ -32,6 +33,7 @@
         :disabled="disabled"
         inputmode="numeric"
         autocomplete="off"
+        empty
         @update:modelValue="onMaxInput"
         @blur="emitChange"
         @enter="emitChange"
