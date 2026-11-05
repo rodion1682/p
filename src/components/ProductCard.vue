@@ -34,7 +34,7 @@
 
       <BaseButton
         class="card__add"
-        :variant="isInCart ? 'trash' : 'priamry'"
+        :variant="isInCart ? 'trash' : 'primary'"
         :disabled="isLoading"
         :aria-label="isInCart ? t('Remove') : t('Add')"
         @click="handleCartClick"

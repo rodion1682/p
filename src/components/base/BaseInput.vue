@@ -111,7 +111,7 @@ const hasValue = computed(() => {
 })
 
 const isFilled = computed(() => {
-  return isFocused.value || hasValue.value || isInitiallyFilled.value
+  return isFocused.value || hasValue.value
 })
 
 const hasSuffix = computed(() => {

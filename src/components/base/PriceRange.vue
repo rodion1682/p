@@ -69,22 +69,36 @@ const props = defineProps({
 
 const emit = defineEmits(['update:min', 'update:max', 'change'])
 
-const sanitize = value => String(value ?? '').replace(/[^\d]/g, '')
+const sanitize = value => {
+  const cleaned = String(value ?? '')
+    .replace(',', '.')
+    .replace(/[^\d.]/g, '')
+
+  const parts = cleaned.split('.')
+
+  if (parts.length === 1) {
+    return cleaned
+  }
+
+  return `${parts[0]}.${parts.slice(1).join('')}`
+}
 
 const clamp = value => {
   if (value === '') return ''
 
-  let numeric = Number(value)
+  const numeric = Number(value)
+
+  if (!Number.isFinite(numeric)) return ''
 
   if (props.minLimit !== null && numeric < props.minLimit) {
-    numeric = props.minLimit
+    return String(props.minLimit)
   }
 
   if (props.maxLimit !== null && numeric > props.maxLimit) {
-    numeric = props.maxLimit
+    return String(props.maxLimit)
   }
 
-  return String(numeric)
+  return value
 }
 
 const normalize = value => clamp(sanitize(value))

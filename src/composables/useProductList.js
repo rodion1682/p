@@ -243,7 +243,6 @@ export function useProductList(initialCategory = DEFAULT_CATEGORY) {
   let currentRequestId = 0
   let abortController = null
   let isInitialized = false
-  let isSyncingRoute = false
 
   const resetPagination = () => {
     pagination.total = 0
@@ -331,6 +330,8 @@ export function useProductList(initialCategory = DEFAULT_CATEGORY) {
         resetPagination()
       }
     } catch (err) {
+      if (requestId !== currentRequestId) return
+
       const canceled =
         err?.name === 'AbortError' ||
         err?.name === 'CanceledError' ||
@@ -426,17 +427,11 @@ export function useProductList(initialCategory = DEFAULT_CATEGORY) {
 
   watch(
     () => route.fullPath,
-    async () => {
-      if (!isInitialized || isSyncingRoute) return
+    () => {
+      if (!isInitialized) return
 
-      isSyncingRoute = true
-
-      try {
-        syncFiltersFromRoute()
-        await fetchProductsImmediate()
-      } finally {
-        isSyncingRoute = false
-      }
+      syncFiltersFromRoute()
+      fetchProductsImmediate()
     },
   )
 
