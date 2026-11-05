@@ -509,31 +509,23 @@ onBeforeUnmount(() => {
 
   @media (max-width: $md3) {
     position: fixed;
-
     top: 49px;
     left: -100%;
 
     width: 100%;
+    box-sizing: border-box;
 
     height: calc(100vh - 49px);
-    min-height: 100%;
+    height: calc(100dvh - 49px);
+    min-height: 0;
 
-    display: block;
-
-    z-index: var(--menu-z-index);
-
-    padding: 25px 10px 30px;
+    padding: 25px 10px calc(30px + env(safe-area-inset-bottom, 0px));
 
     overflow-x: hidden;
     overflow-y: auto;
-
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-
-    transition: left 0.3s ease 0s;
-
     background-color: var(--bg-primary-color);
-
-    margin-left: 0;
 
     border-top: 1px solid var(--primary-color);
 

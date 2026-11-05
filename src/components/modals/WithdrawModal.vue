@@ -360,6 +360,10 @@ const creditsRate = computed(() => {
 })
 
 const withdrawAmountFiat = computed(() => {
+  if (!settingsStore.creditsEnabled) {
+    return Number(amountValue.value.toFixed(2))
+  }
+
   if (creditsRate.value <= 0) return 0
 
   return Number(

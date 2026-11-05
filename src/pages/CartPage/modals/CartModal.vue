@@ -506,8 +506,12 @@ const goToShop = async () => {
     &__content {
       grid-template-columns: minmax(0, 1fr);
     }
+    &__items {
+      grid-row: 1;
+    }
     &__summary {
       min-height: 0;
+      grid-row: 2;
     }
     &__buy {
       margin-top: 24px;

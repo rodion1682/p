@@ -283,6 +283,26 @@ const fiatAmount = computed(() => {
   return Number.isFinite(value) ? value : 0
 })
 
+const minFiatAmount = computed(() => {
+  return Math.max(
+    Number(settingsStore.minTopUpAmount || 0),
+    Number(settingsStore.minOrderAmount || 0) || 1,
+  )
+})
+
+const maxFiatAmount = computed(() => {
+  return Number(settingsStore.maxOrderAmount || 0)
+})
+
+const validAmount = computed(() => {
+  return (
+    coinsAmount.value > 0 &&
+    fiatAmount.value > 0 &&
+    fiatAmount.value >= minFiatAmount.value &&
+    (maxFiatAmount.value <= 0 || fiatAmount.value <= maxFiatAmount.value)
+  )
+})
+
 const currencyCode = computed(() => currencyStore.currentCurrencyCode || 'EUR')
 
 const countries = computed(() => {
@@ -407,7 +427,7 @@ const validateForm = () => {
   clearErrors()
   Object.keys(errors).forEach(validateField)
 
-  if (coinsAmount.value <= 0 || fiatAmount.value <= 0) {
+  if (!validAmount.value) {
     submitError.value = t('Invalid top up amount')
     return false
   }
@@ -485,7 +505,9 @@ const submit = async methodCode => {
       postCode: clean(form.postCode),
       currency: currencyCode.value,
       amount: fiatAmount.value,
-      amount_internal: coinsAmount.value,
+      amount_internal: settingsStore.creditsEnabled
+        ? coinsAmount.value
+        : undefined,
       paymentType: methodCode,
     })
 

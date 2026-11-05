@@ -1,9 +1,7 @@
 <template>
   <div class="withdraw">
     <div class="withdraw__balance">
-      <span class="withdraw__label">
-        {{ $t('My Balance:') }}
-      </span>
+      <span class="withdraw__label"> {{ $t('Withdraw Balance') }}: </span>
 
       <PriceFormatter
         class="withdraw__balance-price"
@@ -135,7 +133,7 @@ const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 const currencyStore = useCurrencyStore()
 
-const { balanceInternal } = storeToRefs(userStore)
+const { payoutBalance, payoutBalanceInternal } = storeToRefs(userStore)
 
 const selectedAmount = ref('')
 const amountError = ref('')
@@ -145,7 +143,11 @@ const withdrawModalIsVisible = computed(() => {
 })
 
 const numericBalance = computed(() => {
-  const value = Number(balanceInternal.value)
+  const rawBalance = settingsStore.creditsEnabled
+    ? payoutBalanceInternal.value
+    : payoutBalance.value
+
+  const value = Number(rawBalance)
 
   return Number.isFinite(value) ? Math.max(0, value) : 0
 })
@@ -159,9 +161,9 @@ const creditsConversionRate = computed(() => {
 })
 
 const oneCoinFiatValue = computed(() => {
-  if (creditsConversionRate.value <= 0) {
-    return 0
-  }
+  if (!settingsStore.creditsEnabled) return 1
+
+  if (creditsConversionRate.value <= 0) return 0
 
   return selectedCurrencyRate.value / creditsConversionRate.value
 })

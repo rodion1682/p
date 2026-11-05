@@ -138,6 +138,10 @@ const selectedAmountNumber = computed(() => {
 })
 
 const topUpAmountInFiat = computed(() => {
+  if (!settingsStore.creditsEnabled) {
+    return Number(selectedAmountNumber.value.toFixed(2))
+  }
+
   if (creditsConversionRate.value <= 0) return 0
 
   return Number(
@@ -149,11 +153,14 @@ const topUpAmountInFiat = computed(() => {
 })
 
 const minTopUpFiat = computed(() => {
-  return Number(settingsStore.minTopUpAmount || 0) * selectedCurrencyRate.value
+  return Math.max(
+    Number(settingsStore.minTopUpAmount || 0),
+    Number(settingsStore.minOrderAmount || 0) || 1,
+  )
 })
 
 const maxTopUpFiat = computed(() => {
-  return Number(settingsStore.maxOrderAmount || 0) * selectedCurrencyRate.value
+  return Number(settingsStore.maxOrderAmount || 0)
 })
 
 const isValidAmount = computed(() => {
