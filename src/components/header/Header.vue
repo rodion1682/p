@@ -420,8 +420,6 @@ onBeforeUnmount(() => {
   min-width: 320px;
   width: 100%;
 
-  transition: all 0.3s ease 0s;
-
   z-index: var(--header-z-index);
 
   background: linear-gradient(180deg, #f0eae5 0%, rgb(240, 234, 229, 0.7) 100%);

@@ -85,16 +85,6 @@ const props = defineProps({
     type: String,
     default: 'Close modal',
   },
-
-  compensateLayout: {
-    type: Boolean,
-    default: true,
-  },
-
-  compensateSelectors: {
-    type: Array,
-    default: () => ['header'],
-  },
 })
 
 const emit = defineEmits(['close', 'update:show'])
@@ -106,7 +96,6 @@ const GLOBAL_KEY = '__base_modal_scroll_lock__'
 let didLock = false
 let previousFocus = null
 
-// Global scroll lock shared by all BaseModal instances
 const getGlobalState = () => {
   const doc = document
 
@@ -117,48 +106,11 @@ const getGlobalState = () => {
       saved: {
         htmlOverflow: '',
         bodyOverflow: '',
-        bodyPaddingRight: '',
-        paddingRightMap: new Map(),
       },
     }
   }
 
   return doc[GLOBAL_KEY]
-}
-
-const getScrollbarWidth = () => {
-  return Math.max(0, window.innerWidth - document.documentElement.clientWidth)
-}
-
-const applyLayoutCompensation = (state, width) => {
-  if (!props.compensateLayout || width <= 0) {
-    return
-  }
-
-  const elements = props.compensateSelectors.flatMap(selector => [
-    ...document.querySelectorAll(selector),
-  ])
-
-  elements.forEach(element => {
-    if (!element) return
-
-    if (!state.saved.paddingRightMap.has(element)) {
-      state.saved.paddingRightMap.set(element, element.style.paddingRight)
-    }
-
-    const originalPadding =
-      parseFloat(window.getComputedStyle(element).paddingRight) || 0
-
-    element.style.paddingRight = `${originalPadding + width}px`
-  })
-}
-
-const restoreLayoutCompensation = state => {
-  state.saved.paddingRightMap.forEach((value, element) => {
-    element.style.paddingRight = value
-  })
-
-  state.saved.paddingRightMap.clear()
 }
 
 const lockScroll = () => {
@@ -171,25 +123,12 @@ const lockScroll = () => {
 
   if (state.applied) return
 
-  const scrollbarWidth = getScrollbarWidth()
-
   state.saved.htmlOverflow = document.documentElement.style.overflow
 
   state.saved.bodyOverflow = document.body.style.overflow
 
-  state.saved.bodyPaddingRight = document.body.style.paddingRight
-
-  const bodyPadding =
-    parseFloat(getComputedStyle(document.body).paddingRight) || 0
-
   document.documentElement.style.overflow = 'hidden'
   document.body.style.overflow = 'hidden'
-
-  if (scrollbarWidth > 0) {
-    document.body.style.paddingRight = `${bodyPadding + scrollbarWidth}px`
-  }
-
-  applyLayoutCompensation(state, scrollbarWidth)
 
   state.applied = true
 }
@@ -205,18 +144,15 @@ const unlockScroll = () => {
 
   if (state.count > 0) return
 
+  if (!state.applied) return
+
   document.documentElement.style.overflow = state.saved.htmlOverflow
 
   document.body.style.overflow = state.saved.bodyOverflow
 
-  document.body.style.paddingRight = state.saved.bodyPaddingRight
-
-  restoreLayoutCompensation(state)
-
   state.applied = false
 }
 
-// Modal actions
 const handleClose = () => {
   emit('close')
   emit('update:show', false)
@@ -228,27 +164,28 @@ const handleBackdropClick = () => {
   handleClose()
 }
 
-const handleEscKey = event => {
-  if (event.key !== 'Escape' || !props.show || props.persistent) {
-    return
-  }
-
-  // Only the topmost modal handles Escape
-  const modals = document.querySelectorAll(
-    '.modal[role="presentation"], .modal',
-  )
+const isTopmostModal = () => {
+  const modals = document.querySelectorAll('.modal')
 
   const lastModal = modals[modals.length - 1]
 
-  if (innerRef.value && lastModal?.contains(innerRef.value)) {
-    event.preventDefault()
-    handleClose()
-  }
+  return Boolean(
+    lastModal && innerRef.value && lastModal.contains(innerRef.value),
+  )
 }
 
-// Keep keyboard focus inside the modal
+const handleEscKey = event => {
+  if (event.key !== 'Escape') return
+  if (!props.show || props.persistent) return
+  if (!isTopmostModal()) return
+
+  event.preventDefault()
+  handleClose()
+}
+
 const handleTabKey = event => {
   if (!props.show || event.key !== 'Tab') return
+  if (!isTopmostModal()) return
 
   const modal = innerRef.value
 
@@ -256,7 +193,8 @@ const handleTabKey = event => {
 
   const focusable = [
     ...modal.querySelectorAll(
-      'a[href], button:not([disabled]), ' +
+      'a[href], ' +
+        'button:not([disabled]), ' +
         'input:not([disabled]), ' +
         'select:not([disabled]), ' +
         'textarea:not([disabled]), ' +
@@ -266,7 +204,7 @@ const handleTabKey = event => {
 
   if (!focusable.length) {
     event.preventDefault()
-    modal.focus()
+    modal.focus({ preventScroll: true })
     return
   }
 
@@ -275,18 +213,20 @@ const handleTabKey = event => {
   const active = document.activeElement
 
   if (event.shiftKey) {
-    if (active === first || active === modal) {
+    if (active === first || active === modal || !modal.contains(active)) {
       event.preventDefault()
-      last.focus()
+      last.focus({ preventScroll: true })
     }
-  } else if (active === last || active === modal) {
+  } else if (active === last || active === modal || !modal.contains(active)) {
     event.preventDefault()
-    first.focus()
+    first.focus({ preventScroll: true })
   }
 }
 
 const focusModal = async () => {
   await nextTick()
+
+  if (!props.show || !isTopmostModal()) return
 
   innerRef.value?.focus({
     preventScroll: true,
@@ -308,12 +248,18 @@ watch(
   async isOpen => {
     if (isOpen) {
       previousFocus = document.activeElement
+
       lockScroll()
+
       await focusModal()
     } else {
       unlockScroll()
+
       await nextTick()
-      restoreFocus()
+
+      if (!props.show) {
+        restoreFocus()
+      }
     }
   },
 )
@@ -323,7 +269,9 @@ onMounted(async () => {
 
   if (props.show) {
     previousFocus = document.activeElement
+
     lockScroll()
+
     await focusModal()
   }
 })
@@ -332,6 +280,7 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleEscKey)
 
   unlockScroll()
+
   restoreFocus()
 })
 
@@ -355,7 +304,7 @@ defineExpose({
 }
 
 .product-modal__inner {
-  max-width: 627px;
+  max-width: 627px !important;
 }
 
 .sell-skins__inner {
@@ -366,7 +315,7 @@ defineExpose({
 .top-up__inner,
 .withdraw-modal__inner,
 .cart-modal__inner {
-  max-width: 1073px;
+  max-width: 1073px !important;
 }
 
 .contact-modal__inner {
