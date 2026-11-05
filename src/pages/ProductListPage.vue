@@ -15,14 +15,20 @@
           role="search"
           @submit.prevent="submitSearch"
         >
-          <SvgIcon :icon="SearchIcon" class="products__search-icon" />
-
-          <input
+          <BaseInput
             v-model="searchText"
+            class="products__search-input"
             type="search"
+            variant="checkout"
             :placeholder="$t('Search')"
             :aria-label="$t('Search')"
-          />
+            autocomplete="off"
+            empty
+          >
+            <template #prefix>
+              <SvgIcon :icon="SearchIcon" class="products__search-icon" />
+            </template>
+          </BaseInput>
         </form>
       </div>
 
@@ -157,6 +163,7 @@ import { useI18n } from 'vue-i18n'
 
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import PriceRange from '@/components/base/PriceRange.vue'
 
@@ -382,45 +389,53 @@ onBeforeUnmount(() => {
 
   &__search {
     width: min(100%, 300px);
-    min-height: 40px;
+    min-width: 0;
+  }
 
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  &__search-input {
+    width: 100%;
+    min-width: 0;
 
-    border: 1px solid var(--border-primary-color);
-    border-radius: 6px;
+    :deep(.base-input) {
+      min-height: 40px;
+      border: 1px solid var(--border-primary-color);
+      border-radius: 6px;
+      background-color: var(--bg-third-color);
+    }
 
-    padding: 0 12px;
-    background: var(--bg-third-color);
-
-    &:focus-within {
+    :deep(.base-input.is-focused) {
       border-color: var(--hint-primary-color);
     }
 
-    input {
-      background: transparent;
-      border: 0;
-      outline: none;
+    :deep(.base-input__prefix) {
+      left: 12px;
+    }
 
-      min-width: 0;
-      width: 100%;
+    :deep(.base-input__control) {
+      min-height: 38px;
+      padding: 0 12px 0 38px;
 
       color: var(--primary-color);
       font-family: var(--font-inter);
       font-size: 14px;
-
-      &::placeholder {
-        color: var(--hint-third-color);
-      }
     }
 
-    &-icon {
-      width: 16px;
-      height: 16px;
-      color: var(--hint-third-color);
-      flex-shrink: 0;
+    :deep(.base-input__control::placeholder) {
+      color: var(--primary-color);
+      opacity: 1;
+      transition: opacity 0.2s ease;
     }
+
+    :deep(.base-input__control:focus::placeholder) {
+      opacity: 0;
+    }
+  }
+
+  &__search-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--hint-third-color);
   }
 
   &__layout {
@@ -459,12 +474,10 @@ onBeforeUnmount(() => {
   &__price-labels {
     display: grid;
     grid-template-columns: 1fr 1fr;
-
     gap: 10px;
 
     color: var(--hint-third-color);
     font-size: 11px;
-
     margin-bottom: 5px;
   }
 
@@ -493,7 +506,6 @@ onBeforeUnmount(() => {
     :deep(.base-input__placeholder) {
       color: var(--primary-color);
       opacity: 1;
-
       transition: opacity 0.2s ease;
     }
 
@@ -506,32 +518,13 @@ onBeforeUnmount(() => {
   &__categories {
     display: flex;
     flex-direction: column;
-
     gap: 0;
 
     max-height: 250px;
 
     overflow-y: auto;
     overflow-x: hidden;
-
     overscroll-behavior-y: contain;
-
-    scrollbar-gutter: stable;
-    scrollbar-width: thin;
-    scrollbar-color: var(--hint-primary-color) transparent;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      border-radius: 6px;
-      background-color: var(--hint-primary-color);
-    }
 
     > :not(:last-child) {
       border-bottom: 1px solid var(--border-primary-color);
@@ -561,7 +554,6 @@ onBeforeUnmount(() => {
 
   &__items {
     display: grid;
-
     grid-template-columns: repeat(5, minmax(0, 1fr));
 
     @include adaptiveValue('gap', 10, 4);
