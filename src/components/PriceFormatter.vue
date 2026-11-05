@@ -96,15 +96,17 @@ const stripCurrencySymbols = value => {
 }
 
 const formattedPrice = computed(() => {
-  if (priceValue.value === null) return '0'
+  if (priceValue.value === null) return '0.00'
 
   if (showCurrencySymbol.value) {
     return stripCurrencySymbols(
       formattedFiatByCode(priceValue.value, resolvedCurrencyCode.value),
-    )
+    ).trim()
   }
 
-  return String(priceValue.value).trim()
+  const value = Number(String(priceValue.value).trim())
+
+  return Number.isFinite(value) ? value.toFixed(2) : ''
 })
 </script>
 

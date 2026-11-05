@@ -156,11 +156,11 @@ const router = createRouter({
       ],
     },
 
-    {
-      path: '/faq',
-      name: 'FAQ',
-      component: FaqPage,
-    },
+    // {
+    //   path: '/faq',
+    //   name: 'FAQ',
+    //   component: FaqPage,
+    // },
 
     // {
     //   path: '/cart',
