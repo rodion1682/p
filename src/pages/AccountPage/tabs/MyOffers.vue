@@ -61,19 +61,6 @@
         />
       </template>
     </ProfileTableLayout>
-
-    <template v-if="isOfferEnabled">
-      <ContactInfoModal
-        :show="modalStore.isOpen('contactInfo')"
-        @close="modalStore.close('contactInfo')"
-      />
-
-      <PaymentModal
-        :show="modalStore.isOpen('payment')"
-        :payment-method="modalStore.getData('payment')?.paymentMethod"
-        @close="modalStore.close('payment')"
-      />
-    </template>
   </div>
 </template>
 
@@ -85,9 +72,6 @@ import { useI18n } from 'vue-i18n'
 import BaseButton from '@/components/base/BaseButton.vue'
 import OfferDetailsInline from '@/pages/AccountPage/components/OfferDetailsInline.vue'
 import ProfileTableLayout from '@/pages/AccountPage/components/ProfileTableLayout.vue'
-
-import ContactInfoModal from '@/components/modals/sellSkins/ContactInfoModal.vue'
-import PaymentModal from '@/components/modals/sellSkins/PaymentModal.vue'
 
 import { ChevronDownIcon } from '@/components/icons'
 import SvgIcon from '@/components/icons/SvgIcon.vue'

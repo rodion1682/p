@@ -184,8 +184,6 @@ import SvgIcon from '@/components/icons/SvgIcon.vue'
 
 import { ChevronDownIcon, LogoutIcon, UserIcon } from '@/components/icons'
 
-import SellSkinFrom from '@/components/modals/sellSkins/SellSkinModal/SellSkinFrom.vue'
-
 import MyBalance from '@/pages/AccountPage/components/MyBalance.vue'
 import MyWithdraw from '@/pages/AccountPage/components/MyWithdraw.vue'
 
@@ -198,6 +196,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+import SellSkinFrom from '../SellSkin/components/SellSkinFrom.vue'
 
 const route = useRoute()
 const router = useRouter()
